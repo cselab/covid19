@@ -25,8 +25,8 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 args = parser.parse_args()
 
 
-
 model = import_from( 'epidemics.' + args.compModel, 'epModel')
+
 
 a = model( **vars(args) )
 
