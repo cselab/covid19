@@ -10,12 +10,12 @@ plt.ioff()
 
 from scipy.integrate import solve_ivp
 
-from .sirBase import *
+from  .modelBase import *
 from ..std_models.std_models import *
 from ..tools.tools import prepare_folder, make_path
 
 
-class epModel( sirBase ):
+class model( modelBase ):
 
 
   def __init__( self, fileName=[], **kwargs ):

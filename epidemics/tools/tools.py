@@ -16,7 +16,7 @@ import json
 def prepare_folder( dir, clean=True ):
   dir = os.path.relpath( dir )
   if( os.path.commonpath( ['data',dir])  != 'data' ):
-     sys.exit('Error: The data must be saved in the ./data folder')
+     sys.exit(f'\n[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}\n')
   # XXX dangerous!
   if(clean==True):
     shutil.rmtree(dir, ignore_errors=True)

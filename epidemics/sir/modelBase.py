@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: George Arampatzis
-# Date:   31/3/2020
+# Date:   27/3/2020
 # Email:  garampat@ethz.ch
 
 import requests
@@ -8,12 +8,13 @@ import pandas as pd
 import io
 import os
 import numpy as np
+from scipy.integrate import solve_ivp
 
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
+from ..tools.population_of import population_of
 
-
-class seiirBase( epidemicsBase ):
+class modelBase( epidemicsBase ):
 
 
   def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
@@ -61,47 +62,46 @@ class seiirBase( epidemicsBase ):
 
   def set_variables_and_distributions( self ):
 
-    self.e['Variables'][0]['Name'] = 'beta'
-    self.e['Variables'][0]['Prior Distribution'] = 'Uniform 0'
+    p = ['beta','gamma','[Sigma]']
+    for k,x in enumerate(p):
+      self.e['Variables'][k]['Name'] = x
+      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
 
-    self.e['Variables'][1]['Name'] = 'gamma'
-    self.e['Variables'][1]['Prior Distribution'] = 'Uniform 1'
+    self.nParameters = len(p)
 
-    self.e['Variables'][2]['Name'] = '[Sigma]'
-    self.e['Variables'][2]['Prior Distribution'] = 'Uniform 2'
+    k=0
+    self.e['Distributions'][k]['Name'] = 'Prior for beta'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 30.0
+    k+=1
 
-    self.nParameters = 3;
+    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 30.0
+    k+=1
 
-    self.e['Distributions'][0]['Name'] = 'Uniform 0'
-    self.e['Distributions'][0]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][0]['Minimum'] = 0
-    self.e['Distributions'][0]['Maximum'] = +6.0
+    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 2000.0
 
-    self.e['Distributions'][1]['Name'] = 'Uniform 1'
-    self.e['Distributions'][1]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][1]['Minimum'] = 0.0
-    self.e['Distributions'][1]['Maximum'] = +6.0
-
-    self.e['Distributions'][2]['Name'] = 'Uniform 2'
-    self.e['Distributions'][2]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][2]['Minimum'] = 0.0
-    self.e['Distributions'][2]['Maximum'] = +600.0
 
 
 
 
   def sir_rhs( self, t, y, N, beta, gamma ):
-    S, I, R = y
+    S, I = y
     c1 = beta * S * I / N
     c2 = gamma * I
     dSdt = -c1
     dIdt =  c1 - c2
-    dRdt =  c2
-    return dSdt, dIdt, dRdt
+    return dSdt, dIdt
 
 
 
 
-  def solve_ode( y0, T, N, p ):
-    sol = solve_ivp( sir_rhs, t_span=[0, T], y0=y0, args=(N, p[0], p[1]), dense_output=True)
+  def solve_ode( self, y0, T, N, p ):
+    sol = solve_ivp( self.sir_rhs, t_span=[0, T], y0=y0, args=(N, p[0], p[1]), dense_output=True)
     return sol

@@ -5,8 +5,8 @@
 
 import json
 import os
+import sys
 import numpy as np
-import pprint
 import korali
 
 from .tools.tools import prepare_folder, save_file, load_file, make_path
@@ -23,10 +23,15 @@ class epidemicsBase(  ):
         'nThreads': 1,
         'silent': False,
         'noSave': False,
-        'percentages': [0.5, 0.95]
+        'percentages': [0.5, 0.95],
+        'dataFolder': './data/'
     }
 
     if fileName == []:
+
+      for x in kwargs:
+        if x not in defaultProperties:
+          sys.exit(f'\n[epidemics] Unknown input argument: {x}\n')
 
       for key, value in defaultProperties.items():
         setattr( self, key, kwargs.get(key, value) )
@@ -41,7 +46,7 @@ class epidemicsBase(  ):
       }
 
       for x in self.saveInfo.keys():
-        self.saveInfo[x] = make_path( './', *self.save_data_path(), self.saveInfo[x] )
+        self.saveInfo[x] = make_path( *self.save_data_path(), self.saveInfo[x] )
 
       self.save( fileName=self.saveInfo['initials'] )
 
@@ -104,27 +109,20 @@ class epidemicsBase(  ):
   def download_raw_data( self, args ):
     pass
 
-
-
-
   def computational_model( s ):
     pass
 
-
-
-
   def computational_model_propagate( s ):
     pass
-
-
-
 
   def set_variables_for_interval( s ):
     pass
 
 
   def save_data_path( self ):
-    pass
+    return (self.dataFolder,)
+
+
 
 
   def set_korali_output_files( self, folder):

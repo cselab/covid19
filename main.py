@@ -5,11 +5,12 @@
 
 
 import argparse
+import copy
 
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--compModel', '-cm', default='sir', help='The computational mode.')
+parser.add_argument('--compModel', '-cm', default='sir.basic', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--rawData', '-d', default=[], nargs='+', type=float, help='Infected population.')
@@ -25,10 +26,13 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 args = parser.parse_args()
 
 
-model = import_from( 'epidemics.' + args.compModel, 'epModel')
+x = copy.deepcopy(args)
+del x.compModel
+del x.nSamples
 
+model = import_from( 'epidemics.' + args.compModel, 'model')
 
-a = model( **vars(args) )
+a = model( **vars(x) )
 
 a.sample( args.nSamples )
 

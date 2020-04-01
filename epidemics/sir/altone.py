@@ -10,18 +10,17 @@ plt.ioff()
 
 from scipy.integrate import solve_ivp
 
-from .sirBase import *
+from  .modelBase import *
 from ..std_models.std_models import *
 from ..tools.tools import prepare_folder
 
 
-class epModel( sirBase ):
-
+class model( modelBase ):
 
 
   def __init__( self, fileName=[], **kwargs ):
 
-    self.modelName = 'sir_altone'
+    self.modelName        = 'sir_altone'
     self.modelDescription = 'Fit SIR on Infected Rate Data'
 
     defaultProperties = {
@@ -29,7 +28,6 @@ class epModel( sirBase ):
         'futureDays': 2,
         'nPropagation': 100,
         'logPlot': False,
-        'dataFolder': './data/',
         'nValidation': 0
     }
 
@@ -52,9 +50,9 @@ class epModel( sirBase ):
     y = self.data['Raw']['Infected']
     t = self.data['Raw']['Time']
     N = self.data['Raw']['Population Size']
-    I0, R0 = y[0], 0
-    S0 = N - I0 - R0
-    y0 = S0, I0, R0
+    I0 = y[0]
+    S0 = N - I0
+    y0 = S0, I0
 
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
