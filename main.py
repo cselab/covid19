@@ -13,7 +13,7 @@ parser.add_argument('--compModel', '-cm', default='sir', help='The computational
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--rawData', '-d', default=[], nargs='+', type=float, help='Infected population.')
-parser.add_argument('--populationSize', '-ps', type=int, default=80000, help='Total population.')
+parser.add_argument('--populationSize', '-ps', type=int, default=-1, help='Total population.')
 parser.add_argument('--stdModel', '-sm', type=int, default=0, help='Standard deviation model. 0-Constant, 1-Sqrt, 2-Linear')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')

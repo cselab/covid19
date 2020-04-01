@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Author: George Arampatzis
-# Date:   27/3/2020
+# Date:   31/3/2020
 # Email:  garampat@ethz.ch
 
 import requests
@@ -11,9 +11,9 @@ import numpy as np
 
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
-from ..tools.population_of import population_of
 
-class sirBase( epidemicsBase ):
+
+class seiirBase( epidemicsBase ):
 
 
   def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
@@ -56,7 +56,7 @@ class sirBase( epidemicsBase ):
     self.data['Raw']['Infected'] = np.asarray(I)
     self.data['Raw']['Country'] = self.country
 
-    print( self.data['Raw']['Population Size'] )
+
 
 
   def set_variables_and_distributions( self ):

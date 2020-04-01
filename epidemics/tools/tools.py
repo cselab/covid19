@@ -76,5 +76,5 @@ def make_path( path, *paths):
 
 
 def import_from( module, name ):
-    module = importlib.import_module( module )
-    return getattr( module, name )
+  module = importlib.import_module( module )
+  return getattr( module, name )
