@@ -38,6 +38,7 @@ class epidemicsBase(  ):
 
       self.saveInfo ={
         'initials': 'initials.pickle',
+        'database': 'data_base.pickle',
         'state': 'state.pickle',
         'korali samples': './_korali_samples/',
         'korali propagation': './_korali_propagation/',

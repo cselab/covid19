@@ -11,8 +11,9 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 from ..epidemics import epidemicsBase
-from ..tools.tools import save_file
+from ..tools.tools import save_file, load_file
 from ..tools.population_of import population_of
+
 
 class modelBase( epidemicsBase ):
 
@@ -39,10 +40,15 @@ class modelBase( epidemicsBase ):
     if( self.rawData ):
       I = self.rawData
     else:
-      url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-      print(f'Retrieve population data for {self.country} from: {url}')
 
-      s = requests.get(url).content
+      if os.path.isfile(self.saveInfo['database']):
+          s = load_file(self.saveInfo['database'], 'Downloaded Database', 'pickle')
+      else:
+        url = 'https://hgis.uw.edu/virus/assets/virus.csv'
+        print(f'Retrieve population data for {self.country} from: {url}')
+        s = requests.get(url).content
+        save_file( s, self.saveInfo['database'], 'Downloaded Database', 'pickle' )  
+
       df = pd.read_csv(io.StringIO(s.decode('utf-8')))
       if( not self.country in list( df.columns.values ) ):
         sys.exit('Country not in database.')

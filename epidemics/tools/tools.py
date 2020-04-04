@@ -36,8 +36,8 @@ def get_last_generation( folder, pattern ):
 def save_file( data, file, str, fileType='pickle' ):
   prepare_folder( os.path.dirname(file), clean=False )
 
-  if not str:
-    print(f'\nSave {str} in  {fileType} file: {file}\n')
+  if str:
+    print(f'[Epidemics] Save {str} in {fileType} file: {file}')
 
   if(fileType=='json'):
     with open(file, 'w') as f:
@@ -52,8 +52,8 @@ def save_file( data, file, str, fileType='pickle' ):
 
 def load_file( file, str, fileType='pickle' ):
 
-  if not str:
-    print(f'Load {str} from {fileType} file: {file}')
+  if str:
+    print(f'[Epidemics] Load {str} from {fileType} file: {file}')
 
   if(fileType=='json'):
     with open(file, 'r') as f:

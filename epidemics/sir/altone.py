@@ -8,7 +8,7 @@ import os
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, quad
 
 from  .modelBase import *
 from ..std_models.std_models import *
@@ -75,14 +75,22 @@ class model( modelBase ):
 
 
 
+  def incidence( self, sol, p, t1, t2 ):
+    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[1];
+    return quad(f,t1,t2)[0]
+
+
+
+
   def computational_model( self, s ):
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
-    y = ( p[0]*sol.y[0]*sol.y[1]/N ).tolist()
+    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+
+    y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']

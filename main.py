@@ -26,6 +26,8 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 args = parser.parse_args()
 
 
+
+
 x = copy.deepcopy(args)
 del x.compModel
 del x.nSamples

@@ -4,6 +4,9 @@
 # Email:  garampat@ethz.ch
 import numpy as np
 
+
+# XXX Fix me
+
 def standardDeviationModelConst( p, t, d=[] ):
   return [ p[2] for s in t];
 
