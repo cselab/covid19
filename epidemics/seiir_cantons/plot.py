@@ -183,10 +183,10 @@ class Renderer:
         '''
         self.code_to_text = code_to_text
 
-    def get_color(self):
+    def get_colors(self):
         return self.code_to_color
 
-    def get_text(self):
+    def get_texts(self):
         return self.code_to_text
 
     def get_codes(self):
@@ -232,7 +232,7 @@ class Renderer:
                 init_func=self.init, blit=True)
         Writer = animation.writers['ffmpeg']
         writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=2000)
-        ani.save('a.mp4', writer=writer)
+        ani.save(filename, writer=writer)
 
     def save_image(self, frame=-1, filename="a.png"):
         self.max_frame = 1
