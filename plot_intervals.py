@@ -10,23 +10,18 @@ import os
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataFolder', '-df', help='Load model data from this directory.')
+parser.add_argument('--dataFolder', '-df', help='Load model data from this directory.', required=True)
 args = parser.parse_args()
-
-
-
-
 
 
 file = os.path.join(args.dataFolder,'initials.pickle')
 
 x = load_file(file,'','pickle')
 
-model = import_from( x['moduleName'], 'epModel' )
+model = import_from( x['moduleName'], 'model' )
 
 file = os.path.join(args.dataFolder,'state.pickle')
 
 a = model( file )
-
 
 a.plot_intervals()

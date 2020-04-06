@@ -21,7 +21,7 @@ class model( modelBase ):
   def __init__( self, fileName=[], **kwargs ):
 
     self.modelName        = 'sir_altone'
-    self.modelDescription = 'Fit SIR on Infected Rate Data'
+    self.modelDescription = 'Fit SIR on Daily Infected Data'
 
     defaultProperties = {
         'stdModel': 0,
@@ -67,8 +67,8 @@ class model( modelBase ):
     self.data['Model']['Population Size'] = self.populationSize
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
-    T = t[-1] + self.futureDays
-    self.data['Propagation']['x-data'] = np.linspace(0,T,self.nPropagation).tolist()
+    T = np.ceil( t[-1] + self.futureDays )
+    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1)).tolist()
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
@@ -105,21 +105,19 @@ class model( modelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
+    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+
+    y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
     js = {}
     js['Variables'] = []
 
     js['Variables'].append({})
-    js['Variables'][0]['Name'] = 'S'
-    js['Variables'][0]['Values'] = sol.y[0].tolist()
-
-    js['Variables'].append({})
-    js['Variables'][1]['Name'] = 'I'
-    js['Variables'][1]['Values'] = sol.y[1].tolist()
+    js['Variables'][0]['Name']   = 'Daily Incidence'
+    js['Variables'][0]['Values'] = y
 
     js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = sol.y.shape[1]
+    js['Length of Variables'] = len(t)
 
     d = self.data['Model']['y-data']
     js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
@@ -133,11 +131,9 @@ class model( modelBase ):
 
     self.intervalVariables = {}
 
-    self.intervalVariables['Total Infected'] = {}
-    self.intervalVariables['Total Infected']['Formula'] = lambda v: self.populationSize - v['S']
+    self.intervalVariables['Daily Infected'] = {}
+    self.intervalVariables['Daily Infected']['Formula'] = lambda v: v['Daily Incidence']
 
-    self.intervalVariables['Infected Rate'] = {}
-    self.intervalVariables['Infected Rate']['Formula'] = lambda v: self.parameters[0]['Values'] * v['S'] * v['I'] / self.populationSize
 
 
 
@@ -148,33 +144,72 @@ class model( modelBase ):
 
     fig.suptitle(self.modelDescription)
 
-    ax  = fig.subplots(len(self.credibleIntervals))
+    ax  = fig.subplots( 2 )
 
-    ax[1].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected (data)', color='black')
+
+    z = np.cumsum(self.data['Model']['y-data'])
+    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Infected(data)', color='black')
+
+    Ns = self.propagatedVariables['Daily Incidence'].shape[0]
+    Nt = self.propagatedVariables['Daily Incidence'].shape[1]
+    ns = 10;
+    samples = np.zeros((Ns*ns,Nt))
+    for k in range(Nt):
+      x = [ np.random.normal( self.propagatedVariables['Daily Incidence'][:,k],self.propagatedVariables['Standard Deviation'][:,k]) for _ in range(ns) ]
+      samples[:,k] = np.asarray(x).flatten()
+
+    samples = np.cumsum(samples,axis=1)
+
+
+    mean   = np.zeros((Nt,1))
+    median = np.zeros((Nt,1))
+    for k in range(Nt):
+      median[k] = np.quantile( samples[:,k],0.5)
+      mean[k] = np.mean( samples[:,k] )
+
+
+    for p in np.sort(self.percentages)[::-1]:
+      q1 = np.zeros((Nt,));
+      q2 = np.zeros((Nt,));
+      for k in range(Nt):
+        q1[k] = np.quantile( samples[:,k],0.5-p/2)
+        q2[k] = np.quantile( samples[:,k],0.5+p/2)
+      q1 = np.maximum(q1,0)
+      ax[1].fill_between( self.data['Propagation']['x-data'], q1 , q2,  alpha=0.5, label=f' {100*p:.1f}% credible interval' )
+
+
+    ax[1].plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color='black')
+    ax[1].plot( self.data['Propagation']['x-data'], median, '-', lw=2, label='Median', color='black')
+
+
+    ax[1].legend(loc='upper left')
+    ax[1].set_ylabel( 'Total number of infected' )
+    ax[1].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    ax[1].grid()
+
+    #----------------------------------------------------------------------------------------------------------------------------------
+    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected(data)', color='black')
 
     if self.nValidation > 0:
-      ax[1].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Total Infected (validation data)', color='black')
+      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    # z = np.asarray(self.data['Model']['y-data'])[1:] - np.asarray(self.data['Model']['y-data'])[0:-1]
-    # ax[1].plot( self.data['Model']['x-data'][1:], z, 'o', lw=2, label='Infected Rate (data)', color='black')
+    y = 'Daily Infected'
+    ax[0].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
+    ax[0].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
 
-    for k,y in enumerate( self.credibleIntervals.keys() ):
-      ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
-      ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
+    self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
 
-      self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
+    for x in self.credibleIntervals[y]['Intervals']:
+      p1 = [ max(k,0) for k in x['Low Interval'] ]
+      p2 = x['High Interval']
+      p  = 100.*x['Percentage']
+      ax[0].fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f' {p:.1f}% credible interval' )
 
-      for x in self.credibleIntervals[y]['Intervals']:
-        p1 = [ max(k,0) for k in x['Low Interval'] ]
-        p2 = x['High Interval']
-        p  = 100.*x['Percentage']
-        ax[k].fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f' {p:.1f}% credible interval' )
-
-      ax[k].legend(loc='upper left')
-      ax[k].set_ylabel( y )
-      ax[k].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
-      ax[k].grid()
-      if( self.logPlot ): ax[k].set_yscale('log')
+    ax[0].legend(loc='upper left')
+    ax[0].set_ylabel( y )
+    ax[0].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    ax[0].grid()
+    if( self.logPlot ): ax[k].set_yscale('log')
 
     ax[-1].set_xlabel('time in days')
 

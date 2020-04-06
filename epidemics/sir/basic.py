@@ -128,8 +128,8 @@ class model( modelBase ):
     self.intervalVariables['Total Infected'] = {}
     self.intervalVariables['Total Infected']['Formula'] = lambda v: self.populationSize - v['S']
 
-    self.intervalVariables['Infected Rate'] = {}
-    self.intervalVariables['Infected Rate']['Formula'] = lambda v: self.parameters[0]['Values'] * v['S'] * v['I'] / self.populationSize
+    # self.intervalVariables['Infected Rate'] = {}
+    # self.intervalVariables['Infected Rate']['Formula'] = lambda v: self.parameters[0]['Values'] * v['S'] * v['I'] / self.populationSize
 
 
 
@@ -140,35 +140,33 @@ class model( modelBase ):
 
     fig.suptitle(self.modelDescription)
 
-    ax  = fig.subplots(len(self.credibleIntervals))
+    ax  = fig.subplots( 1 )
 
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected (data)', color='black')
+    ax.plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected (data)', color='black')
 
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Total Infected (validation data)', color='black')
 
-    z = np.asarray(self.data['Model']['y-data'])[1:] - np.asarray(self.data['Model']['y-data'])[0:-1]
-    ax[1].plot( self.data['Model']['x-data'][1:], z, 'o', lw=2, label='Infected Rate (data)', color='black')
+    y = 'Total Infected'
 
-    for k,y in enumerate( self.credibleIntervals.keys() ):
-      ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
-      ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
+    ax.plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
+    ax.plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
 
-      self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
+    self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
 
-      for x in self.credibleIntervals[y]['Intervals']:
-        p1 = [ max(k,0) for k in x['Low Interval'] ]
-        p2 = x['High Interval']
-        p  = 100.*x['Percentage']
-        ax[k].fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f' {p:.1f}% credible interval' )
+    for x in self.credibleIntervals[y]['Intervals']:
+      p1 = [ max(k,0) for k in x['Low Interval'] ]
+      p2 = x['High Interval']
+      p  = 100.*x['Percentage']
+      ax.fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f' {p:.1f}% credible interval' )
 
-      ax[k].legend(loc='upper left')
-      ax[k].set_ylabel( y )
-      ax[k].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
-      ax[k].grid()
-      if( self.logPlot ): ax[k].set_yscale('log')
+    ax.legend(loc='upper left')
+    ax.set_ylabel( y )
+    ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    ax.grid()
+    if( self.logPlot ): ax[k].set_yscale('log')
 
-    ax[-1].set_xlabel('time in days')
+    ax.set_xlabel('time in days')
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )

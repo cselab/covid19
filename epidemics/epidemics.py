@@ -23,7 +23,7 @@ class epidemicsBase(  ):
         'nThreads': 1,
         'silent': False,
         'noSave': False,
-        'percentages': [0.5, 0.95],
+        'percentages': [0.5, 0.95, 0.99],
         'dataFolder': './data/'
     }
 
