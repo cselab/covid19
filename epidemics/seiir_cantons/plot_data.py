@@ -10,7 +10,6 @@ from data import fetch_canton_data
 from plot import Renderer
 
 CANTON_TO_INDEX, IR = fetch_canton_data()
-IR = IR[::5]
 IR_MAX = np.nanmax(IR)
 
 def plot_data():
@@ -21,7 +20,7 @@ def plot_data():
         for i, c in enumerate(rend.get_codes()):
             Ir = IR[frame][CANTON_TO_INDEX[c]]
             if np.isfinite(Ir):
-                values[c] = Ir / IR_MAX * 1.5
+                values[c] = Ir / IR_MAX * 2
                 texts[c] = str(int(Ir))
         rend.set_values(values)
         rend.set_texts(texts)
