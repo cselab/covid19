@@ -53,12 +53,13 @@ for code,name in code_to_name.items():
 
 codes = code_to_name.keys()
 
-
 class Renderer:
-    def __init__(self, code_to_timeseries):
+    def __init__(self, frame_callback):
         '''
-        code_to_timeseries[code]: `numpy.ndarray`, (N)
-            Dictionary with timeseries for every canton code.
+        frame_callback: callable
+            Function that takes Renderer and called before rendering a frame.
+            It can use `set_colors()` and `set_texts()` to update the state,
+            and `get_frame()` and `get_max_frame()` to get current frame index.
         '''
         basedir = os.path.dirname(__file__)
         with open(os.path.join(basedir, "data/home_work_people.json")) as f:
@@ -74,12 +75,12 @@ class Renderer:
                 centers[name_to_code[name]] = [x.mean(), y.mean()]
                 break
 
-        colors = {}
-        colorcycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        colorcycle = {}
+        plt_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
         for i,code in enumerate(codes):
-            colors[code] = np.array(matplotlib.colors.to_rgb(
-                    colorcycle[i % len(colorcycle)]))
-        self.colors = colors
+            colorcycle[code] = np.array(matplotlib.colors.to_rgb(
+                    plt_cycle[i % len(plt_cycle)]))
+        self.colorcycle = colorcycle
 
         dpi = 200
         fig, ax = plt.subplots(figsize=(1920 / dpi, 1080 / dpi), dpi=dpi)
@@ -106,7 +107,7 @@ class Renderer:
         for code in codes:
             text = ax.text(*centers[code], code, ha='center', zorder=10)
             texts[code] = text
-            ax.scatter(*centers[code], color=colors[code], zorder=5)
+            ax.scatter(*centers[code], color=colorcycle[code], zorder=5)
 
         # Draw connections.
         max_people = np.max([v for vv in home_work_people.values() for v in vv.values()])
@@ -116,41 +117,97 @@ class Renderer:
             n = home_work_people[c_home][c_work]
             alpha = np.clip(n / max_people * 100, 0, 1)
             lw = np.clip(n / max_people * 5, 1, 4)
-            ax.plot([x0, x1], [y0, y1], color=colors[c_work], alpha=alpha, lw=lw)
+            ax.plot([x0, x1], [y0, y1], color=colorcycle[c_work], alpha=alpha, lw=lw)
 
-        self.code_to_timeseries = code_to_timeseries
-        self.timeseries_length = len(next(iter(code_to_timeseries.values())))
+        self.frame_callback = frame_callback
+        self.code_to_color = {}
+        self.code_to_text = {}
+        self.codes = codes
+
+    def set_colors(self, code_to_color):
+        '''
+        code_to_color: `dict`
+          Mapping from canton code to float between 0 and 1.
+        '''
+        self.code_to_color = code_to_color
+
+    def set_texts(self, code_to_text):
+        '''
+        code_to_text: `dict`
+          Mapping from canton code to label text.
+        '''
+        self.code_to_text = code_to_text
+
+    def get_color(self):
+        return self.code_to_color
+
+    def get_text(self):
+        return self.code_to_text
+
+    def get_codes(self):
+        return self.codes
+
+    def get_frame(self):
+        '''
+        Returns current frame index between 0 and get_max_frame().
+        '''
+        return self.frame
+
+    def get_max_frame(self):
+        '''
+        Returns maximum frame index.
+        Set to `frames - 1` by `save_movie(frames)`.
+        Set to 1 by `save_image()`.
+        '''
+        return self.max_frame
 
     def init(self):
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
 
-    def update(self, timeidx=-1, silent=False):
-        if timeidx == -1:
-            timeidx = self.timeseries_length - 1
+    def update(self, frame=-1, silent=False):
+        self.frame = frame
+        self.frame_callback(self)
+
+        if frame == -1:
+            frame = self.max_frame
         if not silent:
-            print("{:}/{:}".format(timeidx + 1, self.timeseries_length))
-        for code,timeseries in self.code_to_timeseries.items():
-            u = timeseries[timeidx]
-            color = self.colors[code] * np.clip(u, 0, 1)
-            self.texts[code].set_text("{:}\n{:.2f}".format(code, u))
+            print("{:}/{:}".format(frame, self.max_frame))
+        for code,color in self.code_to_color.items():
+            color = self.colorcycle[code] * np.clip(color, 0, 1)
             for fill in self.fills[code]:
-                fill.set_color(color * u)
+                fill.set_color(color)
+        for code,text in self.code_to_text.items():
+            self.texts[code].set_text("{:}\n{:}".format(code, text))
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
 
-    def save_movie(self, frames=100, filename="a.mp4"):
+    def save_movie(self, frames=100, filename="a.mp4", fps=15):
+        self.max_frame = frames - 1
         ani = animation.FuncAnimation(self.fig, self.update,
-                frames=np.linspace(0, self.timeseries_length - 1, frames, dtype=int),
+                frames=list(range(frames)),
                 init_func=self.init, blit=True)
         Writer = animation.writers['ffmpeg']
-        writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=2000)
+        writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=2000)
         ani.save('a.mp4', writer=writer)
 
-    def save_image(self, timeidx=-1, filename="a.png"):
+    def save_image(self, frame=-1, filename="a.png"):
+        self.max_frame = 1
         self.init()
-        self.update(timeidx, silent=True)
+        self.update(self.max_frame, silent=True)
         self.fig.savefig(filename)
 
 if __name__ == "__main__":
-    rend = Renderer({"ZH":[0, 0.5, 0.3]})
-    #rend.save_movie(frames=3)
+
+    def frame_callback(rend):
+        print(rend.get_frame(), rend.get_max_frame())
+        colors = dict()
+        texts = dict()
+        for i, c in enumerate(rend.get_codes()):
+            colors[c] = np.sin(i + rend.get_frame()) ** 2
+            texts[c] = "{:},{:}".format(rend.get_frame(), i)
+        rend.set_colors(colors)
+        rend.set_texts(texts)
+
+    rend = Renderer(frame_callback)
+
+    rend.save_movie(frames=30)
     rend.save_image()
