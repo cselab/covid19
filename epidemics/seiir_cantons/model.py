@@ -3,36 +3,74 @@
 # Date:   31/3/2020
 # Email:  garampat@ethz.ch
 
-import math
-import requests
-import pandas as pd
 import io
-import os
+import math
 import numpy as np
+import os
+import pandas as pd
+import requests
+import sys
+import random
 from scipy.integrate import solve_ivp
+
+BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
+if os.path.exists(BUILD_DIR):
+    sys.path.append(BUILD_DIR)
 
 from  .data import fetch_canton_data, CANTON_POPULATION
 import libseiir
 
-
+from ..std_models.std_models import standard_deviation_models, standardDeviationModelConst
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
 
+def flatten(matrix):
+    """
+    >>> flatten_and_remove_nans([[10, 20, 30], [40, 50]])
+    [10, 20, 30, 40, 50]
+    """
+    return [
+        value
+        for row in matrix
+        for value in row
+    ]
+
+
+def filter_out_nans_wrt(a, b):
+    """
+    >>> filter_out_nans_wrt([10, 20, 30, 40], [100, nan, 300, nan])
+    ([10, 30], [100, 300])
+    """
+    assert len(a) == len(b), (len(a), len(b))
+    out_a = []
+    out_b = []
+    for i in range(len(b)):
+        if not math.isnan(b[i]):
+            out_a.append(a[i])
+            out_b.append(b[i])
+    return out_a, out_b
+
+
 def flatten_and_remove_nans(matrix):
-  """
-  >>> flatten_and_remove_nans([[10, nan, 20], [nan, 30]])
-  [10, 20, 30]
-  """
-  return [
-      value
-      for row in matrix
-      for value in row
-      if not math.isnan(value)
-  ]
+    """
+    >>> flatten_and_remove_nans([[10, nan, 20], [nan, 30]])
+    [10, 20, 30]
+    """
+    return [
+        value
+        for row in matrix
+        for value in row
+        if not math.isnan(value)
+    ]
 
 
 class MultiSEIIRModel( epidemicsBase ):
     def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
+        # Ignore the following arguments:
+        kwargs.pop('country')
+        kwargs.pop('rawData')
+        kwargs.pop('populationSize')
+
         self.modelName        = 'multi_seiir'
         self.modelDescription = "Multi-region SEIIR model."
 
@@ -54,10 +92,13 @@ class MultiSEIIRModel( epidemicsBase ):
 
     def download_raw_data( self ):
         cantons, infected = fetch_canton_data()
-        num_days = len(cases)
+        num_days = len(infected)
         self.data['Raw']['Cantons'] = cantons
         self.data['Raw']['Time'] = np.asarray(range(num_days))
         self.data['Raw']['Infected'] = infected
+
+        # TODO: Real Mij in the format Mij[from * numCantons + to].
+        self.data['Raw']['Flat Mij'] = [random.random() for x in range(len(cantons) ** 2)]
 
     def set_variables_and_distributions( self ):
         p = [ 'beta', 'mu', 'alpha', 'Z', 'D', 'theta', '[Sigma]' ]
@@ -68,6 +109,7 @@ class MultiSEIIRModel( epidemicsBase ):
 
         self.nParameters = len(p)
 
+        # Note: the order here must match the order in src/model.h:Parameters!
         k = 0
         self.e['Distributions'][k]['Name'] = 'Prior for beta'
         self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
@@ -100,7 +142,7 @@ class MultiSEIIRModel( epidemicsBase ):
         self.e['Distributions'][k]['Maximum'] = 15.0  # Days.
         k += 1
 
-        self.e['Distributions'][k]['Name'] = 'Prior for Theta'
+        self.e['Distributions'][k]['Name'] = 'Prior for theta'
         self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
         self.e['Distributions'][k]['Minimum'] = 1.0
         self.e['Distributions'][k]['Maximum'] = 1.75
@@ -109,7 +151,7 @@ class MultiSEIIRModel( epidemicsBase ):
         self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
         self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
         self.e['Distributions'][k]['Minimum'] = 0.0
-        self.e['Distributions'][k]['Maximum'] = +600.0
+        self.e['Distributions'][k]['Maximum'] = +200.0
 
     def save_data_path( self ):
         return ( self.dataFolder, self.modelName )
@@ -120,53 +162,54 @@ class MultiSEIIRModel( epidemicsBase ):
         cantons = self.data['Raw']['Cantons']
         numCantons = len(cantons)
 
-        # Flattened is what we use for evaluation (only non-nan values), but we
-        # need the full matrix to know what to take from the C++ code, what to
-        # ignore.
-        self.data['Raw']['Reference Infected'] = flatten_and_remove_nans(infected)
-
         N0 = [CANTON_POPULATION[canton] for canton in cantons]
         S0 = N0
         E0 = [0] * numCantons
         IR0 = [0] * numCantons
         IU0 = [0] * numCantons
 
-        ticino = cantons.index('TI')
-        IR0[ticino] = 1
-        IU0[ticino] = 10
+        # Ticini.
+        IR0[cantons['TI']] = 1
+        IU0[cantons['TI']] = 10
 
         y0 = S0 + E0 + IR0 + IU0 + N0
 
-        if self.nValidation == 0:
-            self.data['Model']['x-data'] = t[1:]
-            # self.data['Model']['y-data'] = y[1:]
-        else:
-            self.data['Model']['x-data'] = t[1:-self.nValidation]
-            # self.data['Model']['y-data'] = y[1:-self.nValidation]
+        # Only non-nan data is used for evaluation.
+        numDays = len(t) - self.nValidation
+        self.data['Model']['x-data'] = t[1:numDays]
+        self.data['Model']['y-data'] = flatten_and_remove_nans(y[1:numDays])
+        self.data['Model']['Full y-data'] = flatten(y[1:numDays])
+        if self.nValidation > 0:
             self.data['Validation']['x-data'] = t[-self.nValidation:]
-            # self.data['Validation']['y-data'] = y[-self.nValidation:]
+            self.data['Validation']['y-data'] = flatten_and_remove_nans(y[-self.nValidation:])
 
         self.data['Model']['Initial Condition'] = y0
-        self.data['Model']['Population Size'] = self.populationSize
         self.data['Model']['Standard Deviation Model'] = self.stdModel
 
         T = t[-1] + self.futureDays
-        self.data['Propagation']['x-data'] = np.linspace(0,T,self.nPropagation).tolist()
+        self.data['Propagation']['x-data'] = np.linspace(0, T, self.nPropagation).tolist()
 
+        self.multiseiir = libseiir.MultiSEIIR(self.data['Raw']['Flat Mij'])
         save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
     def computational_model( self, s ):
         p = s['Parameters']
         t  = self.data['Model']['x-data']
         y0 = self.data['Model']['Initial Condition']
-        N  = self.data['Model']['Population Size']
 
-        sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
-        y = ( N - sol.y[0]).tolist()
+        # beta, mu, alpha, Z, D, theta, [sigma]
+        params = libseiir.Parameters(*p[:-1])
+        import time
+        t0 = time.time()
+        result_all = self.multiseiir.solve(params, y0, t[-1])
+        print('eval', time.time() - t0)
+        result_Ir = [day[2::5] for day in result_all]  # Order of values: S, E, Ir, Iu, N.
+        d = self.data['Model']['y-data']
+
+        y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
 
         s['Reference Evaluations'] = y
-        d = self.data['Model']['y-data']
-        s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
+        s['Standard Deviation Model'] = [p[-1] for known_data_cell in y]
 
 
     def computational_model_propagate( self, s ):
@@ -175,23 +218,22 @@ class MultiSEIIRModel( epidemicsBase ):
         y0 = self.data['Model']['Initial Condition']
         N  = self.data['Model']['Population Size']
 
-        sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
+        params = libseiir.Parameters(*p[:-1])
+        result_all = self.multiseiir.solve(params, y0, t[-1])
+        result_Ir = [day[2::5] for day in result_all]  # Order of values: S, E, Ir, Iu, N.
 
         js = {}
-        js['Variables'] = []
-
-        js['Variables'].append({})
+        js['Variables'] = [{}, {}]
         js['Variables'][0]['Name'] = 'S'
-        js['Variables'][0]['Values'] = sol.y[0].tolist()
-
-        js['Variables'].append({})
+        js['Variables'][0]['Values'] = [day[0::5] for day in result_all]
         js['Variables'][1]['Name'] = 'I'
-        js['Variables'][1]['Values'] = sol.y[1].tolist()
+        js['Variables'][1]['Values'] = [day[2::5] for day in result_all]
 
         js['Number of Variables'] = len(js['Variables'])
-        js['Length of Variables'] = sol.y.shape[1]
+        js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
         d = self.data['Model']['y-data']
+        y, d = filter_out_nans_wrt(flatten(result_Ir), d)
         js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
 
         s['Saved Results'] = js

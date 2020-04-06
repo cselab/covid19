@@ -145,7 +145,7 @@ class epidemicsBase(  ):
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
     self.e['Problem']['Likelihood Model'] = 'Additive Normal General'
-    self.e['Problem']['Reference Data']   = self.data['Model']['y-data'].tolist()
+    self.e['Problem']['Reference Data']   = list(self.data['Model']['y-data'])
     self.e['Problem']['Computational Model'] = self.computational_model
 
     self.e['Solver']['Type'] = 'TMCMC'

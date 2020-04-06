@@ -19,8 +19,8 @@ PYBIND11_MODULE(libseiir, m)
         .def_readwrite("theta", &Parameters::theta);
 
     py::class_<MultiSEIIR>(m, "MultiSEIIR")
-        .def(py::init<std::vector<int>, std::vector<int>>(),
-             "Ni"_a, "Mij"_a)
+        .def(py::init<std::vector<double>>(),
+             "Mij"_a)
         .def("solve", &MultiSEIIR::solve,
              "parameters"_a, "initialState"_a, "days"_a);
 }

@@ -54,26 +54,27 @@ def fetch_canton_data(cache=True):
     """Fetch per-day per-canton number of cases.
 
     Returns a tuple of two values:
-        - canton abbreviations (list of strings)
+        - canton map {abbreviation string: index}
         - matrix m[day][canton index], number of cases (list of lists of floats)
     """
     rows = fetch(cache=cache).split()
-    cantons = rows[0].split(',')[1:]  # Skip the "Date" cell.
+    cantons = rows[0].split(',')[1:-1]  # Skip the "Date" cell and "CH",
 
-    assert set(cantons) == set(CANTON_POPULATION.keys()), \
-            set(cantons) ^ set(CANTON_POPULATION.keys())
+
+    A = set(cantons)
+    B = set(CANTON_POPULATION.keys())
+    assert A == B, (A - B, B - A)
 
     data = []
     for day in rows[1:]:
-        day = day.split(',')[1:]  # Skip the date.
+        day = day.split(',')[1:-1]  # Skip "Date" and "CH".
         assert len(day) == len(cantons), (len(day), len(cantons))
 
         data.append([float(cell or 'nan') for cell in day])
-        print(data[-1])
 
     # data = np.array(data)
 
-    return cantons, data
+    return {key: k for k, key in enumerate(cantons)}, data
 
 
 if __name__ == '__main__':

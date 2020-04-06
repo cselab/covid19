@@ -9,3 +9,11 @@ pybind11_add_module(
     libseiir
     ${SRC_DIR}/model.cpp
     ${SRC_DIR}/bindings.cpp)
+
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release
+      RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
