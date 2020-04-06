@@ -16,33 +16,61 @@ struct Parameters {
     }
 };
 
-struct MultiSEIIRState {
-    // Per-region variables.
-    std::vector<double> S;
-    std::vector<double> E;
-    std::vector<double> Idoc;
-    std::vector<double> Iundoc;
-    std::vector<double> N;
+/*
+ * Using custom types with boost::odeint is not that simple. Instead, we use a
+ * single std::vector<double> to store the whole state of the simulation.
+ *
+ * The view classes below are used to read and write the state vector in a human-readable way.
+ */
+using MultiSEIIRState = std::vector<double>;
 
-    void reset();
+struct MultiSEIIRStateView {
+    double &S (size_t i) const { return v_[0 * numRegions_ + i]; }
+    double &E (size_t i) const { return v_[1 * numRegions_ + i]; }
+    double &Ir(size_t i) const { return v_[2 * numRegions_ + i]; }
+    double &Iu(size_t i) const { return v_[3 * numRegions_ + i]; }
+    double &N (size_t i) const { return v_[4 * numRegions_ + i]; }
+
+    MultiSEIIRStateView(std::vector<double> &v) : numRegions_{v.size() / 5}, v_{v} { }
+
+private:
+    size_t numRegions_;
+    std::vector<double> &v_;
+};
+
+struct MultiSEIIRStateConstView {
+    double S (size_t i) const { return v_[0 * numRegions_ + i]; }
+    double E (size_t i) const { return v_[1 * numRegions_ + i]; }
+    double Ir(size_t i) const { return v_[2 * numRegions_ + i]; }
+    double Iu(size_t i) const { return v_[3 * numRegions_ + i]; }
+    double N (size_t i) const { return v_[4 * numRegions_ + i]; }
+
+    MultiSEIIRStateConstView(const std::vector<double> &v) : numRegions_{v.size() / 5}, v_{v} { }
+
+private:
+    size_t numRegions_;
+    const std::vector<double> &v_;
 };
 
 std::vector<MultiSEIIRState> solve_seiir(
         Parameters parameters, MultiSEIIRState initialState, int days);
 
 
-class RegionalSEIIR {
+class MultiSEIIR {
 public:
-    RegionalSEIIR(std::vector<int> population, std::vector<int> commuteMatrix);
+    MultiSEIIR(std::vector<int> population, std::vector<int> commuteMatrix);
 
     double M(int from, int to) const {
         return M_[from * numRegions_ + to];
     }
 
-    void deterministicRHS(const Parameters &p, const MultiSEIIRState &x, MultiSEIIRState &dxdt) const;
+    std::vector<MultiSEIIRState> solve(
+            Parameters parameters,
+            MultiSEIIRState initialState,
+            int days) const;
 
-    std::vector<MultiSEIIRState> solve(Parameters parameters, int days) const;
 private:
+    void deterministicRHS(const Parameters &p, const MultiSEIIRState &x, MultiSEIIRState &dxdt) const;
 
     size_t numRegions_;
     std::vector<int> N_;  // Population.
