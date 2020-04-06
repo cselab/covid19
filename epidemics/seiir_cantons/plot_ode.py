@@ -62,10 +62,9 @@ def plot_ode_results(results):
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            # colors[c] = np.sin(i + rend.get_frame()) ** 2
             Ir = Ir_per_canton[CANTON_TO_INDEX[c]]
             print(i, c, Ir)
-            colors[c] = int(Ir)
+            colors[c] = Ir
             texts[c] = str(int(Ir))
         rend.set_colors(colors)
         rend.set_texts(texts)
