@@ -1,2 +1,4 @@
+*.mp4
+*.png
 /build
 covid19_cases_switzerland_openzh.csv

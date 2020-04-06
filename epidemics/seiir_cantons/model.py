@@ -23,54 +23,10 @@ import libseiir
 from ..std_models.std_models import standard_deviation_models, standardDeviationModelConst
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
-
-def flatten(matrix):
-    """
-    >>> flatten([[10, 20, 30], [40, 50]])
-    [10, 20, 30, 40, 50]
-    """
-    return [
-        value
-        for row in matrix
-        for value in row
-    ]
-
-
-def filter_out_nans_wrt(a, b):
-    """
-    >>> filter_out_nans_wrt([10, 20, 30, 40], [100, nan, 300, nan])
-    ([10, 30], [100, 300])
-    """
-    assert len(a) == len(b), (len(a), len(b))
-    out_a = []
-    out_b = []
-    for i in range(len(b)):
-        if not math.isnan(b[i]):
-            out_a.append(a[i])
-            out_b.append(b[i])
-    return out_a, out_b
-
-
-def flatten_and_remove_nans(matrix):
-    """
-    >>> flatten_and_remove_nans([[10, nan, 20], [nan, 30]])
-    [10, 20, 30]
-    """
-    return [
-        value
-        for row in matrix
-        for value in row
-        if not math.isnan(value)
-    ]
+from .misc import Values, flatten, filter_out_nans_wrt, flatten_and_remove_nans, extract_values_from_state
 
 
 class MultiSEIIRModel( epidemicsBase ):
-    VALUE_S = 0
-    VALUE_E = 1
-    VALUE_IR = 2
-    VALUE_IU = 3
-    VALUE_N = 4
-
     def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
         # Ignore the following arguments:
         kwargs.pop('country')
@@ -108,12 +64,6 @@ class MultiSEIIRModel( epidemicsBase ):
         assert len(Mij) == len(cantons), (len(Mij), len(cantons))
         assert len(Mij[0]) == len(cantons)
         self.data['Raw']['Flat Mij'] = flatten(Mij)
-
-    def extract_values_from_state(self, state, value_idx):
-        """Given a state vector representing a single day, extract the given value."""
-        assert isinstance(state, list)
-        assert len(state) == 5 * self.numCantons, len(state)
-        return state[value_idx * self.numCantons : (value_idx + 1) * self.numCantons]
 
     def set_variables_and_distributions( self ):
         p = [ 'beta', 'mu', 'alpha', 'Z', 'D', 'theta', '[Sigma]' ]
@@ -183,7 +133,7 @@ class MultiSEIIRModel( epidemicsBase ):
         IR0 = [0] * numCantons
         IU0 = [0] * numCantons
 
-        # Ticini.
+        # Ticino.
         IR0[cantons['TI']] = 1
         IU0[cantons['TI']] = 10
 
@@ -215,7 +165,7 @@ class MultiSEIIRModel( epidemicsBase ):
         # beta, mu, alpha, Z, D, theta, [sigma]
         params = libseiir.Parameters(*p[:-1])
         result_all = self.multiseiir.solve(params, y0, int(t[-1]))
-        result_Ir = [self.extract_values_from_state(state, self.VALUE_IR) for state in result_all]
+        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
         y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
         s['Reference Evaluations'] = y
@@ -229,8 +179,8 @@ class MultiSEIIRModel( epidemicsBase ):
 
         params = libseiir.Parameters(*p[:-1])
         result_all = self.multiseiir.solve(params, y0, int(t[-1]))
-        result_S  = [self.extract_values_from_state(state, self.VALUE_S)  for state in result_all]
-        result_Ir = [self.extract_values_from_state(state, self.VALUE_IR) for state in result_all]
+        result_S  = [extract_values_from_state(state, self.numCantons, Values.S)  for state in result_all]
+        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
         js = {}
         js['Variables'] = [{}, {}]
