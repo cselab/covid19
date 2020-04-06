@@ -47,7 +47,7 @@ def fetch(cache=True):
         data = req.read()
         with open(fname, 'wb') as f:
             f.write(data)
-        return data
+        return data.decode('utf8')
     with open(fname) as f:
         return f.read()
 
