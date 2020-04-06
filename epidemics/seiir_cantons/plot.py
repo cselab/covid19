@@ -47,6 +47,40 @@ code_to_name = {
     'JU':'Jura',
 }
 
+code_to_center_shift = {
+    'BE':(0,0),
+    'LU':(0,0),
+    'UR':(0,0),
+    'SZ':(0,0),
+    'OW':(0,-3),
+    'NW':(2,2),
+    'GL':(0,0),
+    'ZG':(-2,-2),
+    'FR':(5,-3),
+    'SO':(-5,0),
+    'BS':(-1,0.5),
+    'BL':(9,-4),
+    'SH':(-4,1),
+    'AR':(-9,-6),
+    'AI':(3,-3),
+    'SG':(-7,-3),
+    'GR':(0,0),
+    'AG':(4,5),
+    'TG':(5,7),
+    'TI':(0,5),
+    'VD':(-20,5),
+    'VS':(0,0),
+    'NE':(1,-3),
+    'GE':(0,-2),
+    'JU':(0,3),
+        }
+
+for key in code_to_center_shift:
+    shift = code_to_center_shift[key]
+    k = 1e3
+    code_to_center_shift[key] = [shift[0] * k, shift[1] * k]
+
+
 name_to_code = {}
 for code,name in code_to_name.items():
     name_to_code[name] = code
@@ -72,7 +106,12 @@ class Renderer:
         for name, ss in d.items():
             for i,s in enumerate(ss):
                 x, y = s
-                centers[name_to_code[name]] = [x.mean(), y.mean()]
+                code = name_to_code[name]
+                centers[code] = [x.mean(), y.mean()]
+                if code in code_to_center_shift:
+                    shift = code_to_center_shift[code]
+                    centers[code][0] += shift[0]
+                    centers[code][1] += shift[1]
                 break
 
         colorcycle = {}
@@ -97,7 +136,7 @@ class Renderer:
             code = name_to_code[name]
             for i,s in enumerate(ss):
                 x, y = s
-                line, = ax.plot(x, y, marker=None, c='black', lw=0.5)
+                line, = ax.plot(x, y, marker=None, c='black', lw=0.25)
                 fill, = ax.fill(x, y, alpha=0.25, c='white')
                 fills[code].append(fill)
 
@@ -105,9 +144,15 @@ class Renderer:
         texts = dict()
         self.texts = texts
         for code in codes:
-            text = ax.text(*centers[code], code, ha='center', zorder=10)
+            xc, yc = centers[code]
+            ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
+                    color=[0,0,0])
+            text = ax.text(
+                    xc, yc - 1700,
+                    '', ha='center', va='top', zorder=10, fontsize=7,
+                    color=[0,0,0])
             texts[code] = text
-            ax.scatter(*centers[code], color=colorcycle[code], zorder=5)
+            ax.scatter(xc, yc, color=colorcycle[code], s=10, zorder=5)
 
         # Draw connections.
         max_people = np.max([v for vv in home_work_people.values() for v in vv.values()])
@@ -115,8 +160,8 @@ class Renderer:
             x0, y0 = centers[c_home]
             x1, y1 = centers[c_work]
             n = home_work_people[c_home][c_work]
-            alpha = np.clip(n / max_people * 100, 0, 1)
-            lw = np.clip(n / max_people * 5, 1, 4)
+            alpha = np.clip(n / max_people * 100, 0, 0.5)
+            lw = np.clip(n / max_people * 100, 0.5, 5)
             ax.plot([x0, x1], [y0, y1], color=colorcycle[c_work], alpha=alpha, lw=lw)
 
         self.frame_callback = frame_callback
@@ -177,7 +222,7 @@ class Renderer:
             for fill in self.fills[code]:
                 fill.set_color(color)
         for code,text in self.code_to_text.items():
-            self.texts[code].set_text("{:}\n{:}".format(code, text))
+            self.texts[code].set_text(str(text))
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
 
     def save_movie(self, frames=100, filename="a.mp4", fps=15):
@@ -202,12 +247,12 @@ if __name__ == "__main__":
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            colors[c] = np.sin(i + rend.get_frame()) ** 2
+            colors[c] = np.sin(i + rend.get_frame()) ** 2 + 1
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
         rend.set_colors(colors)
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)
 
-    rend.save_movie(frames=30)
+    #rend.save_movie(frames=30)
     rend.save_image()
