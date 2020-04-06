@@ -165,7 +165,7 @@ class MultiSEIIRModel( epidemicsBase ):
         # beta, mu, alpha, Z, D, theta, [sigma]
         params = libseiir.Parameters(*p[:-1])
         result_all = self.multiseiir.solve(params, y0, int(t[-1]))
-        result_Ir = [self.extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
+        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
         y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
         s['Reference Evaluations'] = y
@@ -179,8 +179,8 @@ class MultiSEIIRModel( epidemicsBase ):
 
         params = libseiir.Parameters(*p[:-1])
         result_all = self.multiseiir.solve(params, y0, int(t[-1]))
-        result_S  = [self.extract_values_from_state(state, self.numCantons, Values.S)  for state in result_all]
-        result_Ir = [self.extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
+        result_S  = [extract_values_from_state(state, self.numCantons, Values.S)  for state in result_all]
+        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
         js = {}
         js['Variables'] = [{}, {}]
