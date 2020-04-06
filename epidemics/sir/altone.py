@@ -75,6 +75,36 @@ class model( modelBase ):
 
 
 
+  def set_variables_and_distributions( self ):
+
+    p = ['beta','gamma','[Sigma]']
+    for k,x in enumerate(p):
+      self.e['Variables'][k]['Name'] = x
+      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
+
+    self.nParameters = len(p)
+
+    k=0
+    self.e['Distributions'][k]['Name'] = 'Prior for beta'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 20.
+    self.e['Distributions'][k]['Maximum'] = 40.
+    k+=1
+
+    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 20.
+    self.e['Distributions'][k]['Maximum'] = 40.
+    k+=1
+
+    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    self.e['Distributions'][k]['Minimum'] = 450.
+    self.e['Distributions'][k]['Maximum'] = 650.
+
+
+
+
   def incidence( self, sol, p, t1, t2 ):
     def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[1];
     return quad(f,t1,t2)[0]
