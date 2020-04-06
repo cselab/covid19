@@ -59,14 +59,14 @@ def plot_ode_results(results):
         state = results[rend.get_frame()]
         Ir_per_canton = extract_values_from_state(state, NUM_CANTONS, Values.Ir)
 
-        colors = dict()
+        values = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
             Ir = Ir_per_canton[CANTON_TO_INDEX[c]]
             print(i, c, Ir)
-            colors[c] = Ir
+            values[c] = Ir
             texts[c] = str(int(Ir))
-        rend.set_colors(colors)
+        rend.set_values(values)
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)

@@ -10,19 +10,20 @@ from data import fetch_canton_data
 from plot import Renderer
 
 CANTON_TO_INDEX, IR = fetch_canton_data()
+IR = IR[::5]
 IR_MAX = np.nanmax(IR)
 
 def plot_data():
     def frame_callback(rend):
-        colors = rend.get_colors()
+        values = rend.get_values()
         texts = rend.get_texts()
         frame = rend.get_frame()
         for i, c in enumerate(rend.get_codes()):
             Ir = IR[frame][CANTON_TO_INDEX[c]]
             if np.isfinite(Ir):
-                colors[c] = Ir / IR_MAX * 3
+                values[c] = Ir / IR_MAX * 1.5
                 texts[c] = str(int(Ir))
-        rend.set_colors(colors)
+        rend.set_values(values)
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)

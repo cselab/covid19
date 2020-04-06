@@ -92,9 +92,15 @@ class Renderer:
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
-            It can use `set_colors()` and `set_texts()` to update the state,
+            It can use `set_values()` and `set_texts()` to update the state,
             and `get_frame()` and `get_max_frame()` to get current frame index.
         '''
+
+        self.frame_callback = frame_callback
+        self.code_to_value = {}
+        self.code_to_text = {}
+        self.codes = codes
+
         basedir = os.path.dirname(__file__)
         with open(os.path.join(basedir, "data/home_work_people.json")) as f:
             home_work_people = json.load(f)
@@ -114,12 +120,7 @@ class Renderer:
                     centers[code][1] += shift[1]
                 break
 
-        colorcycle = {}
-        plt_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-        for i,code in enumerate(codes):
-            colorcycle[code] = np.array(matplotlib.colors.to_rgb(
-                    plt_cycle[i % len(plt_cycle)]))
-        self.colorcycle = colorcycle
+        self.set_base_colors('red')
 
         dpi = 200
         fig, ax = plt.subplots(figsize=(1920 / dpi, 1080 / dpi), dpi=dpi)
@@ -152,29 +153,27 @@ class Renderer:
                     '', ha='center', va='top', zorder=10, fontsize=7,
                     color=[0,0,0])
             texts[code] = text
-            ax.scatter(xc, yc, color=colorcycle[code], s=10, zorder=5)
+            ax.scatter(xc, yc, color='black', s=8, zorder=5)
 
         # Draw connections.
         max_people = np.max([v for vv in home_work_people.values() for v in vv.values()])
         for c_home, c_work in itertools.product(codes, repeat=2):
+            if c_home == c_work:
+                continue
             x0, y0 = centers[c_home]
             x1, y1 = centers[c_work]
             n = home_work_people[c_home][c_work]
             alpha = np.clip(n / max_people * 100, 0, 0.5)
             lw = np.clip(n / max_people * 100, 0.5, 5)
-            ax.plot([x0, x1], [y0, y1], color=colorcycle[c_work], alpha=alpha, lw=lw)
+            ax.plot([x0, x1], [y0, y1], color='blue',
+                    alpha=alpha, lw=lw)
 
-        self.frame_callback = frame_callback
-        self.code_to_color = {}
-        self.code_to_text = {}
-        self.codes = codes
-
-    def set_colors(self, code_to_color):
+    def set_values(self, code_to_value):
         '''
-        code_to_color: `dict`
+        code_to_value: `dict`
           Mapping from canton code to float between 0 and 1.
         '''
-        self.code_to_color = code_to_color
+        self.code_to_value = code_to_value
 
     def set_texts(self, code_to_text):
         '''
@@ -183,8 +182,8 @@ class Renderer:
         '''
         self.code_to_text = code_to_text
 
-    def get_colors(self):
-        return self.code_to_color
+    def get_values(self):
+        return self.code_to_value
 
     def get_texts(self):
         return self.code_to_text
@@ -217,10 +216,12 @@ class Renderer:
             frame = self.max_frame
         if not silent:
             print("{:}/{:}".format(frame, self.max_frame))
-        for code,color in self.code_to_color.items():
-            color = self.colorcycle[code] * np.clip(color, 0, 1)
+        for code,value in self.code_to_value.items():
+            color = self.base_colors[code]
+            alpha = np.clip(value, 0, 1)
             for fill in self.fills[code]:
                 fill.set_color(color)
+                fill.set_alpha(alpha)
         for code,text in self.code_to_text.items():
             self.texts[code].set_text(str(text))
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
@@ -240,19 +241,31 @@ class Renderer:
         self.update(self.max_frame, silent=True)
         self.fig.savefig(filename)
 
+    def set_base_colors(self, code_to_rgb=None):
+        if code_to_rgb is None:
+            code_to_rgb = {}
+            plt_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            for i,code in enumerate(self.get_codes()):
+                code_to_rgb[code] = plt_cycle[i % len(plt_cycle)]
+        if isinstance(code_to_rgb, str):
+            code_to_rgb = {code: code_to_rgb for code in self.get_codes()}
+        self.base_colors = {}
+        for code in code_to_rgb:
+            self.base_colors[code] = np.array(matplotlib.colors.to_rgb(
+                    code_to_rgb[code]))
+
 if __name__ == "__main__":
 
     def frame_callback(rend):
-        print(rend.get_frame(), rend.get_max_frame())
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            colors[c] = np.sin(i + rend.get_frame()) ** 2 + 1
+            colors[c] = np.sin(i + rend.get_frame() * 0.1) ** 2
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
-        rend.set_colors(colors)
+        rend.set_values(colors)
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)
 
-    #rend.save_movie(frames=30)
     rend.save_image()
+    rend.save_movie(frames=30)
