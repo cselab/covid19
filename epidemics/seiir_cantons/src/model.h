@@ -49,6 +49,4 @@ private:
     std::vector<double> M_;   // Flattened matrix Mij.
     std::vector<double> Mt_;  // Flattened matrix Mji.
     int R_;                  // Number of regions.
-
-    mutable int evalCounter_;
 };

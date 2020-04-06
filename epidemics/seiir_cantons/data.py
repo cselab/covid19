@@ -1,8 +1,10 @@
+from datetime import datetime
+import json
 import numpy as np
 import os
 import urllib.request
-from datetime import datetime
 
+MIJ_MATRIX_JSON = os.path.join(os.path.dirname(__file__), 'data', 'home_work_people.json')
 
 CANTON_POPULATION = dict(zip(
     'ZH BE LU UR SZ OW NW GL ZG FR SO BS BL SH AR AI SG GR AG TG TI VD VS NE GE JU'.split(),
@@ -76,6 +78,28 @@ def fetch_canton_data(cache=True):
 
     return {key: k for k, key in enumerate(cantons)}, data
 
+
+def get_Mij(cantons):
+    """Returns a matrix M[i][j] which represents daily commute from i to j.
+
+    Arguments:
+        cantons: List of canton abbreviations.
+    """
+    with open(MIJ_MATRIX_JSON) as f:
+        Mjson = json.load(f)
+    for canton in cantons:
+        print(canton, Mjson[canton][canton], CANTON_POPULATION[canton])
+        Mjson[canton][canton] = 0
+    Mij = [[Mjson[a][b] for a in cantons] for b in cantons]
+
+    return Mij
+
+
+def get_symmetric_Mij(cantons):
+    N = len(cantons)
+    Mij = get_Mij(cantons)
+    Mij = [[0.5 * (Mij[i][j] + Mij[j][i]) for j in range(N)] for i in range(N)]
+    return Mij
 
 if __name__ == '__main__':
     fetch_canton_data()

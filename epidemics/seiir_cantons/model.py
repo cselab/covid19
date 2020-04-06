@@ -17,7 +17,7 @@ BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
 if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
-from  .data import fetch_canton_data, CANTON_POPULATION
+from  .data import fetch_canton_data, CANTON_POPULATION, get_symmetric_Mij
 import libseiir
 
 from ..std_models.std_models import standard_deviation_models, standardDeviationModelConst
@@ -26,7 +26,7 @@ from ..tools.tools import save_file
 
 def flatten(matrix):
     """
-    >>> flatten_and_remove_nans([[10, 20, 30], [40, 50]])
+    >>> flatten([[10, 20, 30], [40, 50]])
     [10, 20, 30, 40, 50]
     """
     return [
@@ -65,6 +65,12 @@ def flatten_and_remove_nans(matrix):
 
 
 class MultiSEIIRModel( epidemicsBase ):
+    VALUE_S = 0
+    VALUE_E = 1
+    VALUE_IR = 2
+    VALUE_IU = 3
+    VALUE_N = 4
+
     def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
         # Ignore the following arguments:
         kwargs.pop('country')
@@ -93,12 +99,21 @@ class MultiSEIIRModel( epidemicsBase ):
     def download_raw_data( self ):
         cantons, infected = fetch_canton_data()
         num_days = len(infected)
+        self.numCantons = len(cantons)
         self.data['Raw']['Cantons'] = cantons
         self.data['Raw']['Time'] = np.asarray(range(num_days))
         self.data['Raw']['Infected'] = infected
 
-        # TODO: Real Mij in the format Mij[from * numCantons + to].
-        self.data['Raw']['Flat Mij'] = [random.random() for x in range(len(cantons) ** 2)]
+        Mij = get_symmetric_Mij(cantons)
+        assert len(Mij) == len(cantons), (len(Mij), len(cantons))
+        assert len(Mij[0]) == len(cantons)
+        self.data['Raw']['Flat Mij'] = flatten(Mij)
+
+    def extract_values_from_state(self, state, value_idx):
+        """Given a state vector representing a single day, extract the given value."""
+        assert isinstance(state, list)
+        assert len(state) == 5 * self.numCantons, len(state)
+        return state[value_idx * self.numCantons : (value_idx + 1) * self.numCantons]
 
     def set_variables_and_distributions( self ):
         p = [ 'beta', 'mu', 'alpha', 'Z', 'D', 'theta', '[Sigma]' ]
@@ -151,7 +166,7 @@ class MultiSEIIRModel( epidemicsBase ):
         self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
         self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
         self.e['Distributions'][k]['Minimum'] = 0.0
-        self.e['Distributions'][k]['Maximum'] = +200.0
+        self.e['Distributions'][k]['Maximum'] = +600.0
 
     def save_data_path( self ):
         return ( self.dataFolder, self.modelName )
@@ -199,15 +214,10 @@ class MultiSEIIRModel( epidemicsBase ):
 
         # beta, mu, alpha, Z, D, theta, [sigma]
         params = libseiir.Parameters(*p[:-1])
-        import time
-        t0 = time.time()
-        result_all = self.multiseiir.solve(params, y0, t[-1])
-        print('eval', time.time() - t0)
-        result_Ir = [day[2::5] for day in result_all]  # Order of values: S, E, Ir, Iu, N.
-        d = self.data['Model']['y-data']
+        result_all = self.multiseiir.solve(params, y0, int(t[-1]))
+        result_Ir = [self.extract_values_from_state(state, self.VALUE_IR) for state in result_all]
 
         y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
-
         s['Reference Evaluations'] = y
         s['Standard Deviation Model'] = [p[-1] for known_data_cell in y]
 
@@ -216,26 +226,24 @@ class MultiSEIIRModel( epidemicsBase ):
         p = s['Parameters']
         t  = self.data['Propagation']['x-data']
         y0 = self.data['Model']['Initial Condition']
-        N  = self.data['Model']['Population Size']
 
         params = libseiir.Parameters(*p[:-1])
-        result_all = self.multiseiir.solve(params, y0, t[-1])
-        result_Ir = [day[2::5] for day in result_all]  # Order of values: S, E, Ir, Iu, N.
+        result_all = self.multiseiir.solve(params, y0, int(t[-1]))
+        result_S  = [self.extract_values_from_state(state, self.VALUE_S)  for state in result_all]
+        result_Ir = [self.extract_values_from_state(state, self.VALUE_IR) for state in result_all]
 
         js = {}
         js['Variables'] = [{}, {}]
         js['Variables'][0]['Name'] = 'S'
-        js['Variables'][0]['Values'] = [day[0::5] for day in result_all]
+        js['Variables'][0]['Values'] = flatten(result_S)
         js['Variables'][1]['Name'] = 'I'
-        js['Variables'][1]['Values'] = [day[2::5] for day in result_all]
+        js['Variables'][1]['Values'] = flatten(result_Ir)
 
         js['Number of Variables'] = len(js['Variables'])
         js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
-        d = self.data['Model']['y-data']
-        y, d = filter_out_nans_wrt(flatten(result_Ir), d)
-        js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
-
+        y = flatten(result_Ir[:-self.futureDays])
+        js['Standard Deviation Model'] = [p[-1] for known_data_cell in y]
         s['Saved Results'] = js
 
     def set_variables_for_interval( self ):

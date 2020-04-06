@@ -81,10 +81,8 @@ std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIR
         ++cnt;
     };
 
-    evalCounter_ = 0;
     boost::numeric::odeint::integrate_n_steps(
             Stepper{}, rhs, initialState, 0.0, dt, days * STEPS_PER_DAY, observer);
-    fprintf(stderr, "eval counter = %d\n", evalCounter_);
     return result;
 }
 
@@ -92,7 +90,6 @@ void MultiSEIIR::deterministicRHS(
         Parameters p,
         const MultiSEIIRState &x_,
         MultiSEIIRState &dxdt_) const {
-    ++evalCounter_;
     dxdt_.resize(x_.size());
 
     MultiSEIIRStateConstView x{numRegions_, x_.data()};
