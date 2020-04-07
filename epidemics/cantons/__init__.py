@@ -1,1 +1,1 @@
-from .model import MultiSEIIRModel as model
+from .model_deprecated import MultiRegionModel as model

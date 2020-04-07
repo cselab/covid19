@@ -28,7 +28,7 @@ from ..tools.tools import save_file
 from .misc import Values, flatten, filter_out_nans_wrt, flatten_and_remove_nans
 
 
-class MultiSEIIRModel( epidemicsBase ):
+class MultiRegionModel( epidemicsBase ):
     def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
         # Ignore the following arguments:
         kwargs.pop('country')
@@ -38,7 +38,7 @@ class MultiSEIIRModel( epidemicsBase ):
         kwargs.pop('stdModel')
 
         self.modelName        = 'multi_seiin'
-        self.modelDescription = "Multi-region SEIIR model."
+        self.modelDescription = "Multi-region SEII model."
 
         defaultProperties = { **defaultProperties,
             'futureDays': 10,
