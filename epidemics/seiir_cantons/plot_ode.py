@@ -5,6 +5,7 @@
 import os
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
 from plot import Renderer
@@ -25,7 +26,7 @@ def example_run(num_days):
     Mij = get_symmetric_Mij(CANTON_TO_INDEX)
 
     # Parameters.
-    params = libseiir.Parameters(beta=1.1, mu=0.4, alpha=0.2, Z=4.0, D=10.0, theta=1.3)
+    params = libseiir.Parameters(beta=1.1, mu=0., alpha=1., Z=4., D=4., theta=1.)
 
     # Initial state.
     N0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
@@ -34,7 +35,7 @@ def example_run(num_days):
     IR0 = [0] * NUM_CANTONS
     IU0 = [0] * NUM_CANTONS
     IR0[CANTON_TO_INDEX['TI']] = 1  # Ticino.
-    IU0[CANTON_TO_INDEX['TI']] = 10
+    IU0[CANTON_TO_INDEX['TI']] = 0
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
@@ -54,30 +55,58 @@ def plot_ode_results(results):
     """
 
     def frame_callback(rend):
-        print(rend.get_frame(), rend.get_max_frame())
-
-        state = results[rend.get_frame()]
+        t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
+        state = results[t]
         Ir_per_canton = extract_values_from_state(state, NUM_CANTONS, Values.Ir)
+
+        Ir_max = np.max([
+            extract_values_from_state(state, NUM_CANTONS, Values.Ir)
+            for state in results])
 
         values = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
             Ir = Ir_per_canton[CANTON_TO_INDEX[c]]
-            print(i, c, Ir)
-            values[c] = Ir
+            print("{:02d} {} {:.1f}".format(i, c, Ir))
+            values[c] = Ir / Ir_max * 2
             texts[c] = str(int(Ir))
         rend.set_values(values)
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)
+    #rend.save_image()
     rend.save_movie(frames=len(results))
-    rend.save_image()
 
+def plot_timeseries(results, cantons, var=Values.Ir):
+    if not isinstance(cantons, list):
+        cantons = [cantons]
+    fig = plt.figure(figsize=(6, 4))
+    ax = fig.gca()
+    ax.set_title("   ".join(
+        ["$N_{{{:}}}$={:.0f}K".format(c, CANTON_POPULATION[c]*1e-3) for c in cantons]))
+    vardesc = {
+            Values.Ir : "Infected Reported",
+            Values.Iu : "Infected Unreported",
+            }
+    ax.set_xlabel("days")
+    ax.set_ylabel(vardesc[var])
+    for canton in cantons:
+        u = [extract_values_from_state(state, NUM_CANTONS, var)
+                [CANTON_TO_INDEX[canton]] for state in results]
+        ax.plot(u,label=canton)
+    ax.legend()
+    varname = {
+            Values.Ir : "Ir",
+            Values.Iu : "Iu",
+            }
+    fig.tight_layout()
+    fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(cantons)))
 
 def main():
-    num_days = 30
+    num_days = 120
     results = example_run(num_days)
-    plot_ode_results(results)
+    #plot_ode_results(results)
+    plot_timeseries(results, ['ZH', 'AG', 'TI'])
 
 
 if __name__ == '__main__':
