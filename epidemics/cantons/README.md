@@ -17,10 +17,10 @@ Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1
 
 ## Usage
 
-`./plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
-`./plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
-`./build/solver`: to run Korali to determine the model parameters from measured data (WIP).
-`../../main.py --compModel cantons`: (DEPRECATED/BROKEN) run Korali from Python.
+- `./plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
+- `./plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
+- `./build/solver`: Run Korali (from C++) to determine the model parameters from measured data (WIP).
+- `../../main.py --compModel cantons`: Run Korali from Python (DEPRECATED/BROKEN).
 
 ## Installation
 
