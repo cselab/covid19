@@ -101,7 +101,7 @@ def get_Mij(cantons):
 def get_symmetric_Mij(cantons):
     N = len(cantons)
     Mij = get_Mij(cantons)
-    Mij = [[0.5 * (Mij[i][j] + Mij[j][i]) for j in range(N)] for i in range(N)]
+    Mij = [[Mij[i][j] + Mij[j][i] for j in range(N)] for i in range(N)]
     return Mij
 
 def prepare_data_for_cpp():

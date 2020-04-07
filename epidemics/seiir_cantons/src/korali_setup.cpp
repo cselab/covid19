@@ -59,6 +59,20 @@ std::vector<double> getStandardDeviationModel(
     return out;
 }
 
+void fixMij(int N, std::vector<double> &v) {
+    // Clear the diagonal.
+    for (int i = 0; i < N; ++i)
+        v[i * N + i] = 0.0;
+
+    // Symmetrize.
+    // The data probably says how many people in the region i work in region j.
+    // Since every person goes back and forth, we add i->j and j->i.
+    for (int i = 0; i < N; ++i)
+        for (int j = 0; j < i; ++j) {
+            v[i * N + j] = v[j * N + i] = 1.0 * (v[i * N + j] + v[j * N + i]);
+        }
+}
+
 CantonsData readCantonsData() {
     const char *filename = "data/cantons_data.dat";
     FILE *f = fopen(filename, "r");
@@ -91,6 +105,7 @@ CantonsData readCantonsData() {
             if (i == j)
                 out.Mij[i * N + j] = 0.0;
         }
+    fixMij(N, out.Mij);
 
     int M;
     if (fscanf(f, "%d", &M) != 1)
@@ -179,7 +194,7 @@ int main() {
     e["Problem"]["Computational Model"] = makeKoraliWrapper(data, solver, y0, numDays);
 
     e["Solver"]["Type"] = "TMCMC";
-    e["Solver"]["Population Size"] = 200;
+    e["Solver"]["Population Size"] = 2000;
     // e["Solver"]["Termination Criteria"]["Max Generations"] = 30;
 
     e["Distributions"][0]["Name"] = "Prior for beta";

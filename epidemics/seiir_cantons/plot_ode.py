@@ -2,6 +2,7 @@
 
 """Solve the ODE and plot."""
 
+import argparse
 import os
 import sys
 import numpy as np
@@ -78,6 +79,7 @@ def plot_ode_results(results):
     rend.save_image()
     rend.save_movie(frames=len(results))
 
+
 def plot_timeseries(results, cantons, var=Values.S, refdata=False):
     VAR_NmS = "N-S"
     VAR_S0mS = "S0-S"
@@ -125,15 +127,23 @@ def plot_timeseries(results, cantons, var=Values.S, refdata=False):
     fig.tight_layout()
     fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(cantons)))
 
-def main():
-    num_days = 60
-    results = example_run(num_days)
-    cc = ['TI', 'ZH', 'AG']
-    #plot_timeseries(results, cc, var=Values.Ir, refdata=True)
-    plot_timeseries(results, cc, var="N-S", refdata=True)
-    #plot_timeseries(results, cc, var="S0-S", refdata=True)
-    plot_ode_results(results)
+
+def main(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('type', type=str, choices=('video', 'timeseries'), help="Plot type.")
+    parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
+    args = parser.parse_args(argv)
+
+    results = example_run(args.days)
+
+    if args.type == 'video':
+        plot_ode_results(results)
+    elif args.type == 'timeseries':
+        cc = ['TI', 'ZH', 'AG']
+        #plot_timeseries(results, cc, var=Values.Ir, refdata=True)
+        plot_timeseries(results, cc, var="N-S", refdata=True)
+        #plot_timeseries(results, cc, var="S0-S", refdata=True)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
