@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <vector>
 
 /// Parameters to be optimized for.
@@ -17,53 +18,48 @@ struct Parameters {
 };
 
 /*
- * Using custom types with boost::odeint is not that simple. Instead, we use a
- * single std::vector<double> to store the whole state of the simulation.
+ * Using custom types with boost::odeint is not that simple.
+ * Instead, we use a single std::vector<double> to store the
+ * whole state of the simulation, and the wrapper below to
+ * access the data in a human-friendly way.
  */
-using State = std::vector<double>;
+using RawState = std::vector<double>;
 
-/*
- * The view classes for reading and writing the state vector in a human-readable way.
- */
-struct MultiRegionStateView {
-    double &S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double &E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double &Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double &Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double &N (size_t i) const { return p_[4 * numRegions_ + i]; }
+/// Human-friendly wrapper around RawState.
+struct State {
+    static constexpr int kVarsPerRegion = 5;
 
-    MultiRegionStateView(size_t numRegions, double *p) :
-        numRegions_{numRegions}, p_{p}
+    /// Create a state with all values set to 0.
+    explicit State(size_t numRegions) :
+        numRegions_{numRegions},
+        v_(kVarsPerRegion * numRegions, 0.0)
     { }
-    MultiRegionStateView(State &state) :
-        MultiRegionStateView{state.size() / 5, state.data()}
-    { }
+    explicit State(RawState state) :
+        numRegions_{state.size() / kVarsPerRegion},
+        v_{std::move(state)}
+    {
+        assert(v_.size() % kVarsPerRegion == 0);
+    }
+    double &S (size_t i) { return v_[0 * numRegions_ + i]; }
+    double &E (size_t i) { return v_[1 * numRegions_ + i]; }
+    double &Ir(size_t i) { return v_[2 * numRegions_ + i]; }
+    double &Iu(size_t i) { return v_[3 * numRegions_ + i]; }
+    double &N (size_t i) { return v_[4 * numRegions_ + i]; }
+
+    double S (size_t i) const { return v_[0 * numRegions_ + i]; }
+    double E (size_t i) const { return v_[1 * numRegions_ + i]; }
+    double Ir(size_t i) const { return v_[2 * numRegions_ + i]; }
+    double Iu(size_t i) const { return v_[3 * numRegions_ + i]; }
+    double N (size_t i) const { return v_[4 * numRegions_ + i]; }
+
+    size_t numRegions() const noexcept { return numRegions_; }
+    const RawState &raw() const & { return v_; }
+    RawState raw() && { return std::move(v_); }
 
 private:
     size_t numRegions_;
-    double *p_;
+    RawState v_;
 };
-
-struct MultiRegionStateConstView {
-    double S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double N (size_t i) const { return p_[4 * numRegions_ + i]; }
-
-    MultiRegionStateConstView(size_t numRegions, const double *p) :
-        numRegions_{numRegions}, p_{p}
-    {}
-    MultiRegionStateConstView(const State &state) :
-        MultiRegionStateConstView{state.size() / 5, state.data()}
-    { }
-
-private:
-    size_t numRegions_;
-    const double *p_;
-};
-
-State createEmptyState(int numRegions);
 
 class Solver {
 public:
@@ -76,13 +72,11 @@ public:
         return Mt_[to * numRegions_ + from];
     }
 
-    std::vector<State> solve(
-            Parameters parameters,
-            State initialState,
-            int days) const;
+    std::vector<State> solve(const Parameters &parameters, State initialState, int days) const;
+    std::vector<State> solve(const Parameters &parameters, RawState initialState, int days) const;
 
 private:
-    void deterministicRHS(Parameters p, const State &x, State &dxdt) const;
+    void deterministicRHS(Parameters p, const RawState &x, RawState &dxdt) const;
 
     size_t numRegions_;
     std::vector<double> M_;   // Flattened matrix Mij.

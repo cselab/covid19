@@ -82,7 +82,7 @@ def fetch_canton_data(cache=True):
     return {key: k for k, key in enumerate(cantons)}, data
 
 
-def get_Mij(cantons):
+def get_raw_Mij(cantons):
     """Returns a matrix M[i][j] which represents daily commute from i to j.
 
     Arguments:
@@ -100,18 +100,38 @@ def get_Mij(cantons):
 
 def get_symmetric_Mij(cantons):
     N = len(cantons)
-    Mij = get_Mij(cantons)
+    Mij = get_raw_Mij(cantons)
     Mij = [[Mij[i][j] + Mij[j][i] for j in range(N)] for i in range(N)]
     return Mij
 
 def prepare_data_for_cpp():
-    cantons, infected = fetch_canton_data()
-    Mij = get_Mij(cantons)
+    """Generate data/cantons_data.dat, used by CantonsData class in the C++ code.
+
+    File format:
+        <number of cantons N>
+        abbreviation1 ... abbreviationN
+        population1 ... populationN
+
+        M_11 ... M_1N
+        ...
+        M_N1 ... M_NN
+
+        <number of known data points M>
+        day1 canton_index1 number_of_infected1
+        ...
+        dayM canton_indexM number_of_infectedM
+
+    The known data points are all known values of numbers of infected.
+    Note that covid19_cases_switzerland_openzh.csv (see `fetch`) has many missing values.
+    """
+
+    canton_to_index, infected = fetch_canton_data()
+    Mij = get_raw_Mij(canton_to_index)
 
     with open('data/cantons_data.dat', 'w') as f:
-        f.write(str(len(cantons)) + '\n')
-        f.write(" ".join(cantons) + '\n')
-        f.write(" ".join(str(CANTON_POPULATION[c]) for c in cantons) + '\n\n')
+        f.write(str(len(canton_to_index)) + '\n')
+        f.write(" ".join(canton_to_index) + '\n')
+        f.write(" ".join(str(CANTON_POPULATION[c]) for c in canton_to_index) + '\n\n')
 
         for row in Mij:
             f.write(" ".join(str(x) for x in row) + '\n')
@@ -129,5 +149,4 @@ def prepare_data_for_cpp():
 
 
 if __name__ == '__main__':
-    fetch_canton_data()
     prepare_data_for_cpp()

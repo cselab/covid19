@@ -1,11 +1,12 @@
 #include "model.h"
+#include "utils.h"
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
-using Stepper = boost::numeric::odeint::runge_kutta_dopri5<State>;
+using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
 
 static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t N) {
@@ -14,10 +15,6 @@ static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t 
         for (size_t j = 0; j < N; ++j)
             out[i * N + j] = m[j * N + i];
     return out;
-}
-
-State createEmptyState(int numRegions) {
-    return State(5 * numRegions, 0.0);
 }
 
 Solver::Solver(std::vector<double> commuteMatrix) :
@@ -31,29 +28,32 @@ Solver::Solver(std::vector<double> commuteMatrix) :
     }
 }
 
-std::vector<State> Solver::solve(Parameters parameters, State initialState, int days) const {
-    const size_t NUM_VARS = 5;
-    if (initialState.size() != numRegions_ * NUM_VARS) {
+std::vector<State> Solver::solve(const Parameters &parameters, State initialState, int days) const {
+    return solve(parameters, std::move(initialState).raw(), days);
+}
+
+std::vector<State> Solver::solve(const Parameters &parameters, RawState initialState, int days) const {
+    if (initialState.size() != numRegions_ * State::kVarsPerRegion) {
         fprintf(stderr, "Expected %zu elements in initialState, got %zu\n",
-            numRegions_ * NUM_VARS, initialState.size());
+            numRegions_ * State::kVarsPerRegion, initialState.size());
         exit(1);
     }
 
     const int STEPS_PER_DAY = 10;
     const double dt = 1.0 / STEPS_PER_DAY;
-
-    auto rhs = [this, parameters](const State &x, State &dxdt, double /*t*/) {
-        deterministicRHS(parameters, x, dxdt);
-    };
-
     std::vector<State> result;
 
     // Observer gets called for each time step evaluated by the integrator.
     // We consider only every `STEPS_PER_DAY` steps (skipping the first one as well).
-    auto observer = [&result, cnt = 0](const State &y, double /*t*/) mutable {
+    auto observer = [&result, cnt = 0](const RawState &y, double /*t*/) mutable {
         if (cnt % STEPS_PER_DAY == 0 && cnt > 0)
-            result.push_back(y);
+            result.push_back(State{y});
         ++cnt;
+    };
+
+    auto rhs = [this, parameters](const RawState &x, RawState &dxdt, double /*t*/) {
+        // We move from and move back to x, so no change is made.
+        deterministicRHS(parameters, const_cast<RawState &>(x), dxdt);
     };
 
     boost::numeric::odeint::integrate_n_steps(
@@ -63,15 +63,17 @@ std::vector<State> Solver::solve(Parameters parameters, State initialState, int 
 
 void Solver::deterministicRHS(
         Parameters p,
-        const State &x_,
-        State &dxdt_) const {
+        const RawState &x_,
+        RawState &dxdt_) const {
     if (dxdt_.size() != x_.size())
         throw std::runtime_error("dxdt does not have the expected size.");
     if (x_.size() != numRegions_ * 5)
         throw std::runtime_error("x does not have the expected size.");
 
-    MultiRegionStateConstView x{numRegions_, x_.data()};
-    MultiRegionStateView dxdt{numRegions_, dxdt_.data()};
+    // This is a tricky part, we transform RawState to State during
+    // computation and then at the end transform it back.
+    State x{std::move(const_cast<RawState&>(x_))};
+    State dxdt{std::move(dxdt_)};
 
     for (size_t i = 0; i < numRegions_; ++i) {
         double A = p.beta * x.S(i) / x.N(i) * x.Ir(i);
@@ -102,4 +104,8 @@ void Solver::deterministicRHS(
         dxdt.Iu(i) = dIu;
         dxdt.N(i) = dN;
     }
+
+    /// Transform State back to RawState.
+    const_cast<RawState &>(x_) = std::move(x).raw();
+    dxdt_ = std::move(dxdt).raw();
 }

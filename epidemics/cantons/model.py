@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   31/3/2020
-# Email:  garampat@ethz.ch
+# Author: Ivica Kicci
+# Date:   2020-04-06
+# Email:  kicici@ethz.ch
+
+print("DEPRECATED!")
 
 import io
 import math
@@ -18,12 +20,12 @@ if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
 from  .data import fetch_canton_data, CANTON_POPULATION, get_symmetric_Mij
-import libseiisolver as libsolver
+import libsolver
 
 from ..std_models.std_models import standard_deviation_models, standardDeviationModelConst
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
-from .misc import Values, flatten, filter_out_nans_wrt, flatten_and_remove_nans, extract_values_from_state
+from .misc import Values, flatten, filter_out_nans_wrt, flatten_and_remove_nans
 
 
 class MultiSEIIRModel( epidemicsBase ):
@@ -152,7 +154,7 @@ class MultiSEIIRModel( epidemicsBase ):
         T = t[-1] + self.futureDays
         self.data['Propagation']['x-data'] = list(range(T))
 
-        self.multiseiin = libsolver.Solver(self.data['Raw']['Flat Mij'])
+        self.solver = libsolver.Solver(self.data['Raw']['Flat Mij'])
         save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
     def computational_model( self, s ):
@@ -162,8 +164,8 @@ class MultiSEIIRModel( epidemicsBase ):
 
         # beta, mu, alpha, Z, D, theta, [sigma]
         params = libsolver.Parameters(*p[:-1])
-        result_all = self.multiseiin.solve(params, y0, int(t[-1]))
-        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
+        result_all = self.solver.solve(params, y0, int(t[-1]))
+        result_Ir = [states.Ir() for state in result_all]
 
         y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
         s['Reference Evaluations'] = y
@@ -176,9 +178,9 @@ class MultiSEIIRModel( epidemicsBase ):
         y0 = self.data['Model']['Initial Condition']
 
         params = libsolver.Parameters(*p[:-1])
-        result_all = self.multiseiin.solve(params, y0, int(t[-1]))
-        result_S  = [extract_values_from_state(state, self.numCantons, Values.S)  for state in result_all]
-        result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
+        result_all = self.solver.solve(params, y0, int(t[-1]))
+        result_S  = [state.S()  for state in result_all]
+        result_Ir = [state.Ir() for state in result_all]
 
         js = {}
         js['Variables'] = [{}, {}]

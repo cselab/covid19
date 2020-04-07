@@ -11,8 +11,10 @@ The model keeps track of 5 values for each canton:
 - Iu - undocumented infected
 - N - canton population
 
-The paper did not treat N as a constant, that is, they allowed asymmetric Mij matrix.
-However, it is reasonable to assume that migrations are negligible in the time span of an infection and use only symmetric Mijs, which is what we do in the end.
+The paper does not treat N as a constant.
+However, it is reasonable to assume that migrations are negligible in the time span of an infection.
+Thus, we symmetrize the matrix `Mij` by modifying it as `M'ij = Mij + Mji`, which accounts that people living in `i` and working in `j` go back and forth.
+
 Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1, ... E26, ...]`.
 
 ## Usage
@@ -23,16 +25,10 @@ Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1
 - `./build/solver`: Run Korali (from C++) to determine the model parameters from measured data (WIP).
 - `../../main.py --compModel cantons`: Run Korali from Python (DEPRECATED/BROKEN).
 
-## Installation
+## Compilation
 
-Compile `./build/solver`, the C++-only code that uses Korali:
+Compile both the Python library `./build/libsolver*.so` and the C++ code `./build/solver` with:
 ```
-build -p build
-make -j4
-```
-
-Compile `libsolver`, the C++ code with Python bindings:
-```bash
 git submodule update --init --recursive
 mkdir -p build
 cd build
@@ -40,7 +36,7 @@ cmake ..
 make -j4
 ```
 
-# Links from Petros
+## Links from Petros
 
 Meeting on 2020-04-07.
 

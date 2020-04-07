@@ -1,150 +1,31 @@
 #include <korali.hpp>
 #include "model.h"
+#include "data.h"
+#include "utils.h"
 
 #include <cstdlib>
-#include <map>
-#include <string>
-#include <vector>
-
-void _die [[gnu::format(printf, 3, 4)]] (const char *filename, int line, const char *fmt, ...) {
-    fprintf(stderr, "%s:%d ", filename, line);
-
-    va_list args;
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
-
-    exit(1);
-}
-
-#define DIE(...) _die(__FILE__, __LINE__, __VA_ARGS__);
-
-struct DataPoint {
-    int day;
-    int country;
-    double value;
-};
-
-struct CantonsData {
-    int numCantons;
-    std::map<std::string, int> nameToIndex;
-    std::vector<int> population;
-    std::vector<double> Mij;  // Row-major.
-    std::vector<DataPoint> dataPoints;
-
-    std::vector<double> getReferenceData() const {
-        size_t N = dataPoints.size();
-        std::vector<double> out(N, 0.0);
-        for (size_t i = 0; i < N; ++i)
-            out[i] = dataPoints[i].value;
-        return out;
-    }
-    std::vector<double> getReferenceEvaluations(
-            const std::vector<std::vector<double>> &result) const {
-        size_t N = dataPoints.size();
-        std::vector<double> out(N, 0.0);
-        for (size_t i = 0; i < N; ++i)
-            out[i] = result[dataPoints[i].day][dataPoints[i].country];
-        return out;
-    }
-};
 
 // This does not really fit here...
 std::vector<double> getStandardDeviationModel(
         const CantonsData &data,
         double sigma,
-        const std::vector<std::vector<double>> &/*result*/) {
-    size_t N = data.dataPoints.size();
-    std::vector<double> out(N, sigma);
-    return out;
-}
-
-void fixMij(int N, std::vector<double> &v) {
-    // Clear the diagonal.
-    for (int i = 0; i < N; ++i)
-        v[i * N + i] = 0.0;
-
-    // Symmetrize.
-    // The data probably says how many people in the region i work in region j.
-    // Since every person goes back and forth, we add i->j and j->i.
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < i; ++j) {
-            v[i * N + j] = v[j * N + i] = 1.0 * (v[i * N + j] + v[j * N + i]);
-        }
-}
-
-CantonsData readCantonsData() {
-    const char *filename = "data/cantons_data.dat";
-    FILE *f = fopen(filename, "r");
-    if (f == nullptr)
-        DIE("Error opening file \"%s\". Aborting.\n", filename);
-
-    int N;
-    if (fscanf(f, "%d", &N) != 1)
-        DIE("Reading N failed.");
-
-    CantonsData out;
-    out.numCantons = N;
-    for (int i = 0; i < N; ++i) {
-        char name[16];
-        if (fscanf(f, "%s", name) != 1)
-            DIE("Reading name of the canton #%d failed.\n", i);
-        out.nameToIndex[name] = i;
-    }
-
-    out.population.resize(N);
-    for (int &pop : out.population)
-        if (fscanf(f, "%d", &pop) != 1)
-            DIE("Reading population failed.\n");
-
-    out.Mij.resize(N * N);
-    for (int i = 0; i < N; ++i)
-        for (int j = 0; j < N; ++j) {
-            if (fscanf(f, "%lf", &out.Mij[i * N + j]) != 1)
-                DIE("Reading Mij[%d][%d] failed.\n", i, j);
-            if (i == j)
-                out.Mij[i * N + j] = 0.0;
-        }
-    fixMij(N, out.Mij);
-
-    int M;
-    if (fscanf(f, "%d", &M) != 1)
-        DIE("Failed reading M.\n");
-    out.dataPoints.resize(M);
-    for (int i = 0; i < M; ++i) {
-        DataPoint &dp = out.dataPoints[i];
-        int tmp;
-        if ((tmp = fscanf(f, "%d%d%lf", &dp.day, &dp.country, &dp.value)) != 3)
-            DIE("Failed reading data point #%d/%d. tmp=%d\n", i, M, tmp);
-    }
-
-    fclose(f);
-
-    return out;
-}
-
-std::vector<double> processResult(const CantonsData &data, const std::vector<std::vector<double>> &result) {
-    std::vector<double> out;
-    out.reserve(data.dataPoints.size());
-    for (DataPoint dp : data.dataPoints)
-        out.push_back(result[dp.day][dp.country]);
-    return out;
+        const std::vector<State> &/*result*/) {
+    return std::vector<double>(data.dataPoints.size(), sigma);
 }
 
 State createInitialState(const CantonsData &data) {
-    auto y0 = createEmptyState(data.numCantons);
+    State y0{data.numCantons};
 
-    MultiRegionStateView view{y0};
-    for (int i = 0; i < data.numCantons; ++i) {
-        view.S(i) = data.population[i];
-        view.E(i) = 0;
-        view.Ir(i) = 0;
-        view.Iu(i) = 0;
-        view.N(i) = data.population[i];
+    for (size_t i = 0; i < data.numCantons; ++i) {
+        y0.S(i) = data.population[i];
+        y0.E(i) = 0;
+        y0.Ir(i) = 0;
+        y0.Iu(i) = 0;
+        y0.N(i) = data.population[i];
     }
 
     int ticino = data.nameToIndex.at("TI");
-    view.Ir(ticino) = 10;
+    y0.Ir(ticino) = 10;
 
     return y0;
 }

@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 
 from data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
 from plot import Renderer
-from misc import Values, flatten, extract_values_from_state
+from misc import Values, flatten
 
 BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
 if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
-import libseiisolver as libsolver
+import libsolver
 
 CANTON_TO_INDEX, REFDATA = fetch_canton_data()
 NUM_CANTONS = len(CANTON_TO_INDEX)
@@ -49,26 +49,19 @@ def example_run(num_days):
 def plot_ode_results(results):
     """Plot results from the ODE.
 
-    `results` is a list of vector states.
-    A vector state is a concatenated list of 5 x 26 elements:
-        [S..., E..., Ir..., Iu..., N...]
-    where
-        S... represents the S value for 26 cantons, in the order specified by CANTON_TO_INDEX.
+    Arguments:
+        results: A list of State objects.
     """
+    Ir_max = np.max([state.Ir() for state in results])
 
     def frame_callback(rend):
         t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
+
         state = results[t]
-        Ir_per_canton = extract_values_from_state(state, NUM_CANTONS, Values.Ir)
-
-        Ir_max = np.max([
-            extract_values_from_state(state, NUM_CANTONS, Values.Ir)
-            for state in results])
-
-        values = dict()
-        texts = dict()
+        values = {}
+        texts = {}
         for i, c in enumerate(rend.get_codes()):
-            Ir = Ir_per_canton[CANTON_TO_INDEX[c]]
+            Ir = state.Ir(CANTON_TO_INDEX[c])
             print("{:02d} {} {:.1f}".format(i, c, Ir))
             values[c] = Ir / Ir_max * 2
             texts[c] = str(int(Ir))
