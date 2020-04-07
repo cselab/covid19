@@ -17,6 +17,7 @@ Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1
 
 ## Usage
 
+- `./data.py`: Run once to prepare data for `./build/solver`.
 - `./plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
 - `./plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
 - `./build/solver`: Run Korali (from C++) to determine the model parameters from measured data (WIP).
