@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(libseiir, m)
+PYBIND11_MODULE(libseiisolver, m)
 {
     using namespace pybind11::literals;
 
@@ -18,9 +18,9 @@ PYBIND11_MODULE(libseiir, m)
         .def_readwrite("D", &Parameters::D)
         .def_readwrite("theta", &Parameters::theta);
 
-    py::class_<MultiSEIIR>(m, "MultiSEIIR")
+    py::class_<Solver>(m, "Solver")
         .def(py::init<std::vector<double>>(),
              "Mij"_a)
-        .def("solve", &MultiSEIIR::solve,
+        .def("solve", &Solver::solve,
              "parameters"_a, "initialState"_a, "days"_a);
 }

@@ -6,7 +6,7 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_subdirectory(${EXTERN_DIR}/pybind11 sir_pybind11)
 pybind11_add_module(
-    libseiir
+    libseiisolver
     ${SRC_DIR}/model.cpp
     ${SRC_DIR}/bindings.cpp)
 

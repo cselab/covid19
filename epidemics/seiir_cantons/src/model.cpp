@@ -5,42 +5,7 @@
 #include <cstdlib>
 #include <cmath>
 
-using Stepper = boost::numeric::odeint::runge_kutta_dopri5<MultiSEIIRState>;
-
-/*
- * The view classes for reading and writing the state vector in a human-readable way.
- */
-struct MultiSEIIRStateView {
-    double &S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double &E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double &Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double &Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double &N (size_t i) const { return p_[4 * numRegions_ + i]; }
-
-    MultiSEIIRStateView(size_t numRegions, double *p) :
-        numRegions_{numRegions}, p_{p}
-    { }
-
-private:
-    size_t numRegions_;
-    double *p_;
-};
-
-struct MultiSEIIRStateConstView {
-    double S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double N (size_t i) const { return p_[4 * numRegions_ + i]; }
-
-    MultiSEIIRStateConstView(size_t numRegions, const double *p) :
-        numRegions_{numRegions}, p_{p}
-    {}
-
-private:
-    size_t numRegions_;
-    const double *p_;
-};
+using Stepper = boost::numeric::odeint::runge_kutta_dopri5<State>;
 
 
 static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t N) {
@@ -51,7 +16,11 @@ static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t 
     return out;
 }
 
-MultiSEIIR::MultiSEIIR(std::vector<double> commuteMatrix) :
+State createEmptyState(int numRegions) {
+    return State(5 * numRegions, 0.0);
+}
+
+Solver::Solver(std::vector<double> commuteMatrix) :
     numRegions_{static_cast<size_t>(std::sqrt(commuteMatrix.size()) + 0.1)},
     M_{std::move(commuteMatrix)},
     Mt_{transposeMatrix(M_, numRegions_)}
@@ -62,7 +31,7 @@ MultiSEIIR::MultiSEIIR(std::vector<double> commuteMatrix) :
     }
 }
 
-std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIRState initialState, int days) const {
+std::vector<State> Solver::solve(Parameters parameters, State initialState, int days) const {
     const size_t NUM_VARS = 5;
     if (initialState.size() != numRegions_ * NUM_VARS) {
         fprintf(stderr, "Expected %zu elements in initialState, got %zu\n",
@@ -73,16 +42,15 @@ std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIR
     const int STEPS_PER_DAY = 10;
     const double dt = 1.0 / STEPS_PER_DAY;
 
-    auto rhs = [this, parameters](const MultiSEIIRState &x, MultiSEIIRState &dxdt, double /*t*/) {
+    auto rhs = [this, parameters](const State &x, State &dxdt, double /*t*/) {
         deterministicRHS(parameters, x, dxdt);
     };
 
-    std::vector<MultiSEIIRState> result;
-    result.reserve(days);
+    std::vector<State> result;
 
     // Observer gets called for each time step evaluated by the integrator.
     // We consider only every `STEPS_PER_DAY` steps (skipping the first one as well).
-    auto observer = [&result, cnt = 0](const MultiSEIIRState &y, double t) mutable {
+    auto observer = [&result, cnt = 0](const State &y, double /*t*/) mutable {
         if (cnt % STEPS_PER_DAY == 0 && cnt > 0)
             result.push_back(y);
         ++cnt;
@@ -93,14 +61,17 @@ std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIR
     return result;
 }
 
-void MultiSEIIR::deterministicRHS(
+void Solver::deterministicRHS(
         Parameters p,
-        const MultiSEIIRState &x_,
-        MultiSEIIRState &dxdt_) const {
-    dxdt_.resize(x_.size());
+        const State &x_,
+        State &dxdt_) const {
+    if (dxdt_.size() != x_.size())
+        throw std::runtime_error("dxdt does not have the expected size.");
+    if (x_.size() != numRegions_ * 5)
+        throw std::runtime_error("x does not have the expected size.");
 
-    MultiSEIIRStateConstView x{numRegions_, x_.data()};
-    MultiSEIIRStateView dxdt{numRegions_, dxdt_.data()};
+    MultiRegionStateConstView x{numRegions_, x_.data()};
+    MultiRegionStateView dxdt{numRegions_, dxdt_.data()};
 
     for (size_t i = 0; i < numRegions_; ++i) {
         double A = p.beta * x.S(i) / x.N(i) * x.Ir(i);

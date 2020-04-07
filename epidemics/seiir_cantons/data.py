@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 from datetime import datetime
 import json
+import math
 import numpy as np
 import os
 import urllib.request
@@ -101,5 +104,30 @@ def get_symmetric_Mij(cantons):
     Mij = [[0.5 * (Mij[i][j] + Mij[j][i]) for j in range(N)] for i in range(N)]
     return Mij
 
+def prepare_data_for_cpp():
+    cantons, infected = fetch_canton_data()
+    Mij = get_Mij(cantons)
+
+    with open('data/cantons_data.dat', 'w') as f:
+        f.write(str(len(cantons)) + '\n')
+        f.write(" ".join(cantons) + '\n')
+        f.write(" ".join(str(CANTON_POPULATION[c]) for c in cantons) + '\n\n')
+
+        for row in Mij:
+            f.write(" ".join(str(x) for x in row) + '\n')
+        f.write('\n')
+
+        known_data_points = [
+            (d, c, country_day_value)
+            for d, day_values in enumerate(infected)
+            for c, country_day_value in enumerate(day_values)
+            if not math.isnan(country_day_value)
+        ]
+        f.write(str(len(known_data_points)) + '\n')
+        for data_point in known_data_points:
+            f.write("{} {} {}\n".format(*data_point))
+
+
 if __name__ == '__main__':
     fetch_canton_data()
+    prepare_data_for_cpp()

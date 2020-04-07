@@ -18,7 +18,7 @@ if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
 from  .data import fetch_canton_data, CANTON_POPULATION, get_symmetric_Mij
-import libseiir
+import libseiisolver as libsolver
 
 from ..std_models.std_models import standard_deviation_models, standardDeviationModelConst
 from ..epidemics import epidemicsBase
@@ -32,15 +32,14 @@ class MultiSEIIRModel( epidemicsBase ):
         kwargs.pop('country')
         kwargs.pop('rawData')
         kwargs.pop('populationSize')
+        kwargs.pop('nPropagation')
+        kwargs.pop('stdModel')
 
-        self.modelName        = 'multi_seiir'
+        self.modelName        = 'multi_seiin'
         self.modelDescription = "Multi-region SEIIR model."
 
         defaultProperties = { **defaultProperties,
-            'stdModel': 0,
             'futureDays': 10,
-            'nPropagation': 100,
-            'logPlot': False,
             'dataFolder': './data/',
             'nValidation': 0
         }
@@ -149,12 +148,11 @@ class MultiSEIIRModel( epidemicsBase ):
             self.data['Validation']['y-data'] = flatten_and_remove_nans(y[-self.nValidation:])
 
         self.data['Model']['Initial Condition'] = y0
-        self.data['Model']['Standard Deviation Model'] = self.stdModel
 
         T = t[-1] + self.futureDays
-        self.data['Propagation']['x-data'] = np.linspace(0, T, self.nPropagation).tolist()
+        self.data['Propagation']['x-data'] = list(range(T))
 
-        self.multiseiir = libseiir.MultiSEIIR(self.data['Raw']['Flat Mij'])
+        self.multiseiin = libsolver.Solver(self.data['Raw']['Flat Mij'])
         save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
     def computational_model( self, s ):
@@ -163,8 +161,8 @@ class MultiSEIIRModel( epidemicsBase ):
         y0 = self.data['Model']['Initial Condition']
 
         # beta, mu, alpha, Z, D, theta, [sigma]
-        params = libseiir.Parameters(*p[:-1])
-        result_all = self.multiseiir.solve(params, y0, int(t[-1]))
+        params = libsolver.Parameters(*p[:-1])
+        result_all = self.multiseiin.solve(params, y0, int(t[-1]))
         result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
         y, d = filter_out_nans_wrt(flatten(result_Ir), self.data['Model']['Full y-data'])
@@ -177,8 +175,8 @@ class MultiSEIIRModel( epidemicsBase ):
         t  = self.data['Propagation']['x-data']
         y0 = self.data['Model']['Initial Condition']
 
-        params = libseiir.Parameters(*p[:-1])
-        result_all = self.multiseiir.solve(params, y0, int(t[-1]))
+        params = libsolver.Parameters(*p[:-1])
+        result_all = self.multiseiin.solve(params, y0, int(t[-1]))
         result_S  = [extract_values_from_state(state, self.numCantons, Values.S)  for state in result_all]
         result_Ir = [extract_values_from_state(state, self.numCantons, Values.Ir) for state in result_all]
 
@@ -199,66 +197,6 @@ class MultiSEIIRModel( epidemicsBase ):
     def set_variables_for_interval( self ):
         self.intervalVariables = {}
 
-        self.intervalVariables['Total Infected'] = {}
-        self.intervalVariables['Total Infected']['Formula'] = lambda v: self.populationSize - v['S']
-
-        self.intervalVariables['Infected Rate'] = {}
-        self.intervalVariables['Infected Rate']['Formula'] = lambda v: self.parameters[0]['Values'] * v['S'] * v['I'] / self.populationSize
-
-
-
-
     def plot_intervals( self ):
-        fig = plt.figure(figsize=(12, 8))
-        fig.suptitle(self.modelDescription)
-        ax  = fig.subplots(len(self.credibleIntervals))
-        ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label="Total Infected (data)", color='black')
-
-        if self.nValidation > 0:
-            ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label="Total Infected (validation data)", color='black')
-
-        z = np.asarray(self.data['Model']['y-data'])[1:] - np.asarray(self.data['Model']['y-data'])[0:-1]
-        ax[1].plot( self.data['Model']['x-data'][1:], z, 'o', lw=2, label="Infected Rate (data)", color='black')
-
-        for k,y in enumerate( self.credibleIntervals.keys() ):
-            ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label="Mean", color='blue' )
-            ax[k].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label="Median", color='black')
-
-            self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
-
-            for x in self.credibleIntervals[y]['Intervals']:
-                p1 = [ max(k,0) for k in x['Low Interval'] ]
-                p2 = x['High Interval']
-                p  = 100.*x['Percentage']
-                ax[k].fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f" {p:.1f}% credible interval" )
-
-            ax[k].legend(loc='upper left')
-            ax[k].set_ylabel( y )
-            ax[k].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
-            ax[k].grid()
-            if self.logPlot:
-                ax[k].set_yscale('log')
-
-        ax[-1].set_xlabel("time in days")
-
-        file = os.path.join(self.saveInfo['figures'],'prediction.png');
-        prepare_folder( os.path.dirname(file) )
-        fig.savefig(file)
-
-        plt.show()
-
-        plt.close(fig)
-
-
-        fig = plt.figure(figsize=(12, 8))
-        ax  = fig.subplots(1)
-
-        R0 = self.parameters[0]['Values'] / self.parameters[1]['Values']
-
-        ax.hist( R0 , 100, density=True, facecolor='g', alpha=0.75)
-        ax.set_xlabel("R0")
-        ax.grid()
-
-        file = os.path.join(self.saveInfo['figures'], 'R0.png')
-        prepare_folder( os.path.dirname(file), clean=False )
-        fig.savefig(file)
+        # TODO: Use the plotting script.
+        return

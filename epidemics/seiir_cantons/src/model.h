@@ -20,15 +20,54 @@ struct Parameters {
  * Using custom types with boost::odeint is not that simple. Instead, we use a
  * single std::vector<double> to store the whole state of the simulation.
  */
-using MultiSEIIRState = std::vector<double>;
+using State = std::vector<double>;
 
-std::vector<MultiSEIIRState> solve_seiir(
-        Parameters parameters, MultiSEIIRState initialState, int days);
+/*
+ * The view classes for reading and writing the state vector in a human-readable way.
+ */
+struct MultiRegionStateView {
+    double &S (size_t i) const { return p_[0 * numRegions_ + i]; }
+    double &E (size_t i) const { return p_[1 * numRegions_ + i]; }
+    double &Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
+    double &Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
+    double &N (size_t i) const { return p_[4 * numRegions_ + i]; }
 
+    MultiRegionStateView(size_t numRegions, double *p) :
+        numRegions_{numRegions}, p_{p}
+    { }
+    MultiRegionStateView(State &state) :
+        MultiRegionStateView{state.size() / 5, state.data()}
+    { }
 
-class MultiSEIIR {
+private:
+    size_t numRegions_;
+    double *p_;
+};
+
+struct MultiRegionStateConstView {
+    double S (size_t i) const { return p_[0 * numRegions_ + i]; }
+    double E (size_t i) const { return p_[1 * numRegions_ + i]; }
+    double Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
+    double Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
+    double N (size_t i) const { return p_[4 * numRegions_ + i]; }
+
+    MultiRegionStateConstView(size_t numRegions, const double *p) :
+        numRegions_{numRegions}, p_{p}
+    {}
+    MultiRegionStateConstView(const State &state) :
+        MultiRegionStateConstView{state.size() / 5, state.data()}
+    { }
+
+private:
+    size_t numRegions_;
+    const double *p_;
+};
+
+State createEmptyState(int numRegions);
+
+class Solver {
 public:
-    MultiSEIIR(std::vector<double> commuteMatrix);
+    Solver(std::vector<double> commuteMatrix);
 
     double M(int from, int to) const {
         return M_[from * numRegions_ + to];
@@ -37,13 +76,13 @@ public:
         return Mt_[to * numRegions_ + from];
     }
 
-    std::vector<MultiSEIIRState> solve(
+    std::vector<State> solve(
             Parameters parameters,
-            MultiSEIIRState initialState,
+            State initialState,
             int days) const;
 
 private:
-    void deterministicRHS(Parameters p, const MultiSEIIRState &x, MultiSEIIRState &dxdt) const;
+    void deterministicRHS(Parameters p, const State &x, State &dxdt) const;
 
     size_t numRegions_;
     std::vector<double> M_;   // Flattened matrix Mij.

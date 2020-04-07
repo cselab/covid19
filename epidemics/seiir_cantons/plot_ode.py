@@ -15,7 +15,7 @@ BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
 if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
-import libseiir
+import libseiisolver as libsolver
 
 CANTON_TO_INDEX, _ = fetch_canton_data()
 NUM_CANTONS = len(CANTON_TO_INDEX)
@@ -26,7 +26,7 @@ def example_run(num_days):
     Mij = get_symmetric_Mij(CANTON_TO_INDEX)
 
     # Parameters.
-    params = libseiir.Parameters(beta=1.1, mu=0., alpha=1., Z=4., D=4., theta=1.)
+    params = libsolver.Parameters(beta=1.1, mu=0., alpha=1., Z=4., D=4., theta=1.)
 
     # Initial state.
     N0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
@@ -39,7 +39,7 @@ def example_run(num_days):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libseiir.MultiSEIIR(flatten(Mij))
+    solver = libsolver.Solver(flatten(Mij))
     results = solver.solve(params, y0, num_days)
     return results
 
