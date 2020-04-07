@@ -63,6 +63,13 @@ MultiSEIIR::MultiSEIIR(std::vector<double> commuteMatrix) :
 }
 
 std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIRState initialState, int days) const {
+    const size_t NUM_VARS = 5;
+    if (initialState.size() != numRegions_ * NUM_VARS) {
+        fprintf(stderr, "Expected %zu elements in initialState, got %zu\n",
+            numRegions_ * NUM_VARS, initialState.size());
+        exit(1);
+    }
+
     const int STEPS_PER_DAY = 10;
     const double dt = 1.0 / STEPS_PER_DAY;
 
@@ -71,7 +78,7 @@ std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIR
     };
 
     std::vector<MultiSEIIRState> result;
-	result.reserve(days);
+    result.reserve(days);
 
     // Observer gets called for each time step evaluated by the integrator.
     // We consider only every `STEPS_PER_DAY` steps (skipping the first one as well).
