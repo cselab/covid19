@@ -17,7 +17,7 @@ if os.path.exists(BUILD_DIR):
 
 import libseiisolver as libsolver
 
-CANTON_TO_INDEX, _ = fetch_canton_data()
+CANTON_TO_INDEX, REFDATA = fetch_canton_data()
 NUM_CANTONS = len(CANTON_TO_INDEX)
 
 def example_run(num_days):
@@ -26,11 +26,12 @@ def example_run(num_days):
     Mij = get_symmetric_Mij(CANTON_TO_INDEX)
 
     # Parameters.
-    params = libsolver.Parameters(beta=1.1, mu=0., alpha=1., Z=4., D=4., theta=1.)
+    # Li2020, Table 1
+    params = libsolver.Parameters (beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
     N0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
-    S0 = N0
+    S0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
     E0 = [0] * NUM_CANTONS
     IR0 = [0] * NUM_CANTONS
     IU0 = [0] * NUM_CANTONS
@@ -74,10 +75,12 @@ def plot_ode_results(results):
         rend.set_texts(texts)
 
     rend = Renderer(frame_callback)
-    #rend.save_image()
+    rend.save_image()
     rend.save_movie(frames=len(results))
 
-def plot_timeseries(results, cantons, var=Values.Ir):
+def plot_timeseries(results, cantons, var=Values.S, refdata=False):
+    VAR_NmS = "N-S"
+    VAR_S0mS = "S0-S"
     if not isinstance(cantons, list):
         cantons = [cantons]
     fig = plt.figure(figsize=(6, 4))
@@ -87,26 +90,49 @@ def plot_timeseries(results, cantons, var=Values.Ir):
     vardesc = {
             Values.Ir : "Infected Reported",
             Values.Iu : "Infected Unreported",
+            VAR_NmS : "N - S(t)",
+            VAR_S0mS : "S(0) - S(t)",
             }
     ax.set_xlabel("days")
     ax.set_ylabel(vardesc[var])
-    for canton in cantons:
-        u = [extract_values_from_state(state, NUM_CANTONS, var)
-                [CANTON_TO_INDEX[canton]] for state in results]
-        ax.plot(u,label=canton)
+    for c in cantons:
+        if var == VAR_NmS:
+            u = np.array([extract_values_from_state(state, NUM_CANTONS, Values.S)
+                        [CANTON_TO_INDEX[c]] for state in results])
+            u = CANTON_POPULATION[c] - u
+        elif var == VAR_S0mS:
+            u = np.array([extract_values_from_state(state, NUM_CANTONS, Values.S)
+                        [CANTON_TO_INDEX[c]] for state in results])
+            u = u[0] - u
+        else:
+            u = [extract_values_from_state(state, NUM_CANTONS, var)
+                    [CANTON_TO_INDEX[c]] for state in results]
+        line, = ax.plot(u,label=c)
+        if refdata:
+            u = [d[CANTON_TO_INDEX[c]] for d in REFDATA]
+            ax.plot(u, c=line.get_color(), ls='', marker='.')
+
+    if refdata:
+        ax.set_ylim([1, 10 * np.nanmax([d[CANTON_TO_INDEX[c]] for c in cantons for d in REFDATA])])
+    ax.set_yscale('log')
     ax.legend()
     varname = {
             Values.Ir : "Ir",
             Values.Iu : "Iu",
+            VAR_NmS : "NmS",
+            VAR_S0mS : "S0mS",
             }
     fig.tight_layout()
     fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(cantons)))
 
 def main():
-    num_days = 120
+    num_days = 60
     results = example_run(num_days)
-    #plot_ode_results(results)
-    plot_timeseries(results, ['ZH', 'AG', 'TI'])
+    cc = ['TI', 'ZH', 'AG']
+    #plot_timeseries(results, cc, var=Values.Ir, refdata=True)
+    plot_timeseries(results, cc, var="N-S", refdata=True)
+    #plot_timeseries(results, cc, var="S0-S", refdata=True)
+    plot_ode_results(results)
 
 
 if __name__ == '__main__':
