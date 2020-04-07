@@ -4,8 +4,33 @@ Reference:
 
 Substantial undocumented infection facilitates the rapid dissemination of novel coronavirus (SARS-CoV2), Li et al (2020), https://science.sciencemag.org/content/early/2020/03/24/science.abb3221/
 
+The model keeps track of 5 values for each canton:
+- S -susceptible
+- E - exposed
+- Ir - documented (registered) infected
+- Iu - undocumented infected
+- N - canton population
+
+The paper did not treat N as a constant, that is, they allowed asymmetric Mij matrix.
+However, it is reasonable to assume that migrations are negligible in the time span of an infection and use only symmetric Mijs, which is what we do in the end.
+Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1, ... E26, ...]`.
+
+## Usage
+
+`./plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
+`./plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
+`./build/solver`: to run Korali to determine the model parameters from measured data (WIP).
+`../../main.py --compModel cantons`: (DEPRECATED/BROKEN) run Korali from Python.
+
 ## Installation
 
+Compile `./build/solver`, the C++-only code that uses Korali:
+```
+build -p build
+make -j4
+```
+
+Compile `libsolver`, the C++ code with Python bindings:
 ```bash
 git submodule update --init --recursive
 mkdir -p build
