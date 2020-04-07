@@ -13,3 +13,11 @@ cd build
 cmake ..
 make -j4
 ```
+
+# Links from Petros
+
+Meeting on 2020-04-07.
+
+<https://bsse.ethz.ch/cevo/research/sars-cov-2/real-time-monitoring-in-switzerland.html>
+<https://ispmbern.github.io/covid-19/swiss-epidemic-model/>
+<https://cmmid.github.io/topics/covid19/current-patterns-tranmission/global-time-varying-transmission.html>
