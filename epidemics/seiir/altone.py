@@ -52,10 +52,10 @@ class model( modelBase ):
     N = self.data['Raw']['Population Size']
 
     Ir0 = y[0]
-    S0 = N - Ir0
-    E0 = 0
+    S0  = N - Ir0
+    E0  = 0
     Iu0 = 0
-    y0 = S0, E0, Ir0, Iu0
+    y0  = S0, E0, Ir0, Iu0
 
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
@@ -79,25 +79,24 @@ class model( modelBase ):
 
 
   def incidence( self, sol, p, t1, t2 ):
-    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[2];
+    def f(t): y = sol.sol(t); return p[2]/p[3]*y[1];
     return quad(f,t1,t2)[0]
 
 
 
 
   def computational_model( self, s ):
-    p = s['Parameters']
+    p  = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
-
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
+    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
 
 
 
@@ -112,6 +111,8 @@ class model( modelBase ):
 
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
+    print(p)
+    
     js = {}
     js['Variables'] = [{}]
 
@@ -122,7 +123,7 @@ class model( modelBase ):
     js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
+    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
 
     s['Saved Results'] = js
 

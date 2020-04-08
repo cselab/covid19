@@ -124,7 +124,7 @@ class model( modelBase ):
 
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
+    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
 
 
 
@@ -150,7 +150,7 @@ class model( modelBase ):
     js['Length of Variables'] = len(t)
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
+    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
 
     s['Saved Results'] = js
 

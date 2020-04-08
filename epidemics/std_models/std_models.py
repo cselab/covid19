@@ -5,21 +5,20 @@
 import numpy as np
 
 
-# XXX Fix me
 
-def standardDeviationModelConst( p, t, d=[] ):
-  return [ p[2] for s in t];
+def standardDeviationModelConst( sigma, t, d=[] ):
+  return [ sigma for s in t];
 
-def standardDeviationModelLinear( p, t, d=[] ):
-  return [ p[2]*s for s in t];
+def standardDeviationModelLinear( sigma, t, d=[] ):
+  return [ sigma*s for s in t];
 
-def standardDeviationModelSqrt( p, t, d=[] ):
-  return [ np.sqrt(p[2])*s for s in t];
+def standardDeviationModelSqrt( sigma, t, d=[] ):
+  return [ np.sqrt(sigma)*s for s in t];
 
-def standardDeviationModelProportionalData( p, t, d ):
-  return [ np.sqrt(p[2])*s for s in d];
+def standardDeviationModelProportionalData( sigma, t, d ):
+  return [ np.sqrt(sigma)*s for s in d];
 
-def standardDeviationModelError( p, t, d=[] ):
+def standardDeviationModelError( sigma, t, d=[] ):
   sys.exit('Unknown Standard Deviation Model.')
 
 

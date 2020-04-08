@@ -74,38 +74,38 @@ class modelBase( epidemicsBase ):
     k=0
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 4
-    self.e['Distributions'][k]['Maximum'] = 4.5
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 5
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for mu'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 0.1
+    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for alpha'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.9
+    self.e['Distributions'][k]['Minimum'] = 0
     self.e['Distributions'][k]['Maximum'] = 1.0
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 0.3
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 5
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for D'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.2
-    self.e['Distributions'][k]['Maximum'] = 0.3
+    self.e['Distributions'][k]['Minimum'] = 2
+    self.e['Distributions'][k]['Maximum'] = 5
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 200
-    self.e['Distributions'][k]['Maximum'] = 250
+    self.e['Distributions'][k]['Minimum'] = 10
+    self.e['Distributions'][k]['Maximum'] = 600
 
 
 

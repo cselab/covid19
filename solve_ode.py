@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 import epidemics.seiir.modelBase as sir
 x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
 N = int(1e4)
-T = 30
+T = 10
 sol = x.solve_ode( [N-1,0,1,0], T, N, [ 5, 0.5, 0.3, 1, 4 ] )
 t = np.linspace(0,T,1000)
 S = sol.sol(t)[0]
@@ -45,6 +45,9 @@ ax.plot( t, S,  '-', lw=2, label='S'  )
 ax.plot( t, E,  '-', lw=2, label='E'  )
 ax.plot( t, Ir, '-', lw=2, label='Ir' )
 ax.plot( t, Iu, '-', lw=2, label='Iu' )
+
+
+
 ax.grid()
 ax.legend(loc='upper left')
 # ax[k].set_yscale('log')
