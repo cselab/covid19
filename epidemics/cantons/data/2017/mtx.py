@@ -3,32 +3,36 @@
 from matrixconverters.read_ptv import ReadPTVMatrix
 import numpy as np
 import os
+import cache
+import geopandas as gpd
 
-p = "DWV_2017_OeV_Wegematrizen_CH_bin.mtx"
-cache = os.path.splitext(p)[0] + ".npy"
 
-if not os.path.isfile(cache):
+def load_matrix(path):
+    cachename = path
+    r = cache.load(cachename)
+    if r is not None: return r
+
     m = ReadPTVMatrix(filename=p)
-    data = {}
+    matrix = m['matrix'].astype(np.float32)
+    zonenames = [str(z.data) for z in m['zone_name']]
 
-    f = "zone_name"
-    data[f] = m[f]
+    r = matrix, zonenames
+    return cache.save(cachename, r)
 
-    f = "matrix"
-    data[f] = m[f].astype(np.float32)
+def load_zones(path):
+    cachename = path
+    r = cache.load(cachename)
+    if r is not None: return r
 
-    np.save(cache, data)
-    print("cache to '{:}'".format(cache))
-else:
-    data = np.load(cache).item()
+    gdf = gpd.read_file(p)
+    zonenames = list(map(str, gdf.N_Gem))
+    cantons = list(map(str, gdf.N_KT))
 
-m = data['matrix']
-zz = data['zone_name']
+    r = zonenames, cantons
+    return cache.save(cachename, r)
 
-#names = [str(z.data) for z in zz]
-#coords = [int(z.coords['zone_no'].data) for z in zz]
-#ii = np.argsort(names)
+p = "public_transport.mtx"
+matrix, zonenames = load_matrix(p)
 
-with open("zones", 'w') as f:
-    for z in zz:
-        f.write("{:} {:}\n".format(z.data, z.coords['zone_no'].data))
+p = "zones.gpkg"
+zonenames, cantons = load_zones(p)

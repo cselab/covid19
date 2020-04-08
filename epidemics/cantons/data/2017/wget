@@ -22,5 +22,8 @@ if [ -f "$out" ] ; then
   echo "skip existing '$out'"
 else
   e wget -nv -c "https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip" -O "$zip"
-  e unzip -p "$zip" "Verkehrszonen_Schweiz_NPVM_2017_gpkg.zip" \> "$out"
+  tmp=$$.zip
+  e unzip -p "$zip" "Verkehrszonen_Schweiz_NPVM_2017_gpkg.zip" \> "$tmp"
+  e unzip -p "$tmp" "Verkehrszonen_Schweiz_NPVM_2017.gpkg" \> "$out"
+  rm "$tmp"
 fi
