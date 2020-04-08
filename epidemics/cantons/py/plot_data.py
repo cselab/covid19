@@ -25,9 +25,10 @@ def plot_data():
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback)
-    rend.save_movie(frames=len(IR), filename="data.mp4", fps=5)
+    #rend = Renderer(frame_callback)
+    rend = Renderer(frame_callback, matrix_json='2017/matrix.json')
     rend.save_image(filename="data.png")
+    #rend.save_movie(frames=len(IR), filename="data.mp4", fps=5)
 
 
 def main():
