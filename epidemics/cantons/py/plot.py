@@ -9,6 +9,8 @@ import matplotlib.colors
 import os
 import collections
 
+from data import DATA_DIR
+
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -101,10 +103,9 @@ class Renderer:
         self.code_to_text = {}
         self.codes = codes
 
-        basedir = os.path.dirname(__file__)
-        with open(os.path.join(basedir, "data/home_work_people.json")) as f:
+        with open(os.path.join(DATA_DIR, 'home_work_people.json')) as f:
             home_work_people = json.load(f)
-        fname = os.path.join(basedir, "data/canton_shapes.npy")
+        fname = os.path.join(DATA_DIR, 'canton_shapes.npy')
         d = np.load(fname, allow_pickle=True).item()
 
         # Compute shape centers.

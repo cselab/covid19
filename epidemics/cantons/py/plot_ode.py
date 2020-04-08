@@ -12,7 +12,7 @@ from data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
 from plot import Renderer
 from misc import Values, flatten
 
-BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
+BUILD_DIR = os.path.join(os.path.dirname(__file__), '..', 'build')
 if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 
@@ -73,7 +73,7 @@ def plot_ode_results(results):
     rend.save_movie(frames=len(results))
 
 
-def plot_timeseries(results, cantons, var=Values.S, refdata=False):
+def plot_timeseries(results, cantons, var='S', refdata=False):
     VAR_NmS = "N-S"
     VAR_S0mS = "S0-S"
     if not isinstance(cantons, list):
@@ -83,8 +83,8 @@ def plot_timeseries(results, cantons, var=Values.S, refdata=False):
     ax.set_title("   ".join(
         ["$N_{{{:}}}$={:.0f}K".format(c, CANTON_POPULATION[c]*1e-3) for c in cantons]))
     vardesc = {
-            Values.Ir : "Infected Reported",
-            Values.Iu : "Infected Unreported",
+            'Ir' : "Infected Reported",
+            'Iu' : "Infected Unreported",
             VAR_NmS : "N - S(t)",
             VAR_S0mS : "S(0) - S(t)",
             }
@@ -92,16 +92,13 @@ def plot_timeseries(results, cantons, var=Values.S, refdata=False):
     ax.set_ylabel(vardesc[var])
     for c in cantons:
         if var == VAR_NmS:
-            u = np.array([extract_values_from_state(state, NUM_CANTONS, Values.S)
-                        [CANTON_TO_INDEX[c]] for state in results])
+            u = np.array([state.S(CANTON_TO_INDEX[c]) for state in results])
             u = CANTON_POPULATION[c] - u
         elif var == VAR_S0mS:
-            u = np.array([extract_values_from_state(state, NUM_CANTONS, Values.S)
-                        [CANTON_TO_INDEX[c]] for state in results])
+            u = np.array([state.S(CANTON_TO_INDEX[c]) for state in results])
             u = u[0] - u
         else:
-            u = [extract_values_from_state(state, NUM_CANTONS, var)
-                    [CANTON_TO_INDEX[c]] for state in results]
+            u = [getattr(state, var)(CANTON_TO_INDEX[c]) for state in results]
         line, = ax.plot(u,label=c)
         if refdata:
             u = [d[CANTON_TO_INDEX[c]] for d in REFDATA]
@@ -112,8 +109,8 @@ def plot_timeseries(results, cantons, var=Values.S, refdata=False):
     ax.set_yscale('log')
     ax.legend()
     varname = {
-            Values.Ir : "Ir",
-            Values.Iu : "Iu",
+            'Ir' : "Ir",
+            'Iu' : "Iu",
             VAR_NmS : "NmS",
             VAR_S0mS : "S0mS",
             }
@@ -133,7 +130,7 @@ def main(argv):
         plot_ode_results(results)
     elif args.type == 'timeseries':
         cc = ['TI', 'ZH', 'AG']
-        #plot_timeseries(results, cc, var=Values.Ir, refdata=True)
+        #plot_timeseries(results, cc, var='Ir', refdata=True)
         plot_timeseries(results, cc, var="N-S", refdata=True)
         #plot_timeseries(results, cc, var="S0-S", refdata=True)
 

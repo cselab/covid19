@@ -15,7 +15,7 @@ import sys
 import random
 from scipy.integrate import solve_ivp
 
-BUILD_DIR = os.path.join(os.path.dirname(__file__), 'build')
+BUILD_DIR = os.path.join(os.path.dirname(__file__), '..', 'build')
 if os.path.exists(BUILD_DIR):
     sys.path.append(BUILD_DIR)
 

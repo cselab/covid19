@@ -1,1 +1,1 @@
-from .model_deprecated import MultiRegionModel as model
+from py.model_deprecated import MultiRegionModel as model

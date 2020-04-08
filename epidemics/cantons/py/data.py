@@ -7,7 +7,8 @@ import numpy as np
 import os
 import urllib.request
 
-MIJ_MATRIX_JSON = os.path.join(os.path.dirname(__file__), 'data', 'home_work_people.json')
+DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'data'))
+MIJ_MATRIX_JSON = os.path.join(DATA_DIR, 'home_work_people.json')
 
 CANTON_POPULATION = dict(zip(
     'ZH BE LU UR SZ OW NW GL ZG FR SO BS BL SH AR AI SG GR AG TG TI VD VS NE GE JU'.split(),
@@ -41,9 +42,8 @@ CANTON_POPULATION = dict(zip(
     ]))
 
 
-
 def fetch(cache=True):
-    fname = "covid19_cases_switzerland_openzh.csv"
+    fname = os.path.join(DATA_DIR, 'covid19_cases_switzerland_openzh.csv')
     if not cache or not os.path.isfile(fname):
         url = "https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master/covid19_cases_switzerland_openzh.csv"
         req = urllib.request.urlopen(url)
@@ -105,7 +105,7 @@ def get_symmetric_Mij(cantons):
     return Mij
 
 def prepare_data_for_cpp():
-    """Generate data/cantons_data.dat, used by CantonsData class in the C++ code.
+    """Generate ../data/cantons_data.dat, used by CantonsData class in the C++ code.
 
     File format:
         <number of cantons N>
@@ -128,7 +128,7 @@ def prepare_data_for_cpp():
     canton_to_index, infected = fetch_canton_data()
     Mij = get_raw_Mij(canton_to_index)
 
-    with open('data/cantons_data.dat', 'w') as f:
+    with open(os.path.join(DATA_DIR, 'cantons_data.dat'), 'w') as f:
         f.write(str(len(canton_to_index)) + '\n')
         f.write(" ".join(canton_to_index) + '\n')
         f.write(" ".join(str(CANTON_POPULATION[c]) for c in canton_to_index) + '\n\n')
