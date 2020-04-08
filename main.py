@@ -38,6 +38,8 @@ a = model( **vars(x) )
 
 a.sample( args.nSamples )
 
+a.save()
+
 a.propagate()
 
 a.compute_intervals()

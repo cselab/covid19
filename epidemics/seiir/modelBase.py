@@ -40,10 +40,14 @@ class modelBase( epidemicsBase ):
     if( self.rawData ):
       I = self.rawData
     else:
-      url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-      print(f'[Epidemics] Retrieve population data for {self.country} from: {url}')
+      if os.path.isfile(self.saveInfo['database']):
+          s = load_file(self.saveInfo['database'], 'Downloaded Database', 'pickle')
+      else:
+        url = 'https://hgis.uw.edu/virus/assets/virus.csv'
+        print(f'[Epidemics] Retrieve population data for {self.country} from: {url}')
+        s = requests.get(url).content
+        save_file( s, self.saveInfo['database'], 'Downloaded Database', 'pickle' )
 
-      s = requests.get(url).content
       df = pd.read_csv(io.StringIO(s.decode('utf-8')))
       if( not self.country in list( df.columns.values ) ):
         sys.exit('Country not in database.')
@@ -86,13 +90,13 @@ class modelBase( epidemicsBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for alpha'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Minimum'] = 0.1
     self.e['Distributions'][k]['Maximum'] = 1.0
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Minimum'] = 0.1
     self.e['Distributions'][k]['Maximum'] = 5
     k+=1
 
@@ -105,7 +109,7 @@ class modelBase( epidemicsBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 10
-    self.e['Distributions'][k]['Maximum'] = 600
+    self.e['Distributions'][k]['Maximum'] = 1000
 
 
 

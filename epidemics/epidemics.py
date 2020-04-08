@@ -172,7 +172,7 @@ class epidemicsBase(  ):
       self.parameters[j]['Name'] = self.e['Variables'][0]['Name']
       self.parameters[j]['Values'] = np.zeros((self.nSamples,1))
       for k in range(self.nSamples):
-        self.parameters[j]['Values'][k] = self.e['Samples'][k]['Parameters'][j]
+        self.parameters[j]['Values'][k] = self.e['Results']['Sample Database'][k][j]
 
     self.has_been_called['sample'] = True
     self.has_been_called['propagation'] = False

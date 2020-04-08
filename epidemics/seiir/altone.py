@@ -108,11 +108,8 @@ class model( modelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
-
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
-    print(p)
-    
     js = {}
     js['Variables'] = [{}]
 
@@ -126,8 +123,6 @@ class model( modelBase ):
     js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
 
     s['Saved Results'] = js
-
-
 
 
   def set_variables_for_interval( self ):
@@ -160,6 +155,7 @@ class model( modelBase ):
     for k in range(Nt):
       x = [ np.random.normal( self.propagatedVariables['Daily Reported Incidence'][:,k],self.propagatedVariables['Standard Deviation'][:,k]) for _ in range(ns) ]
       samples[:,k] = np.asarray(x).flatten()
+      samples[:,k] = np.maximum(samples[:,k],0)
 
     samples = np.cumsum(samples,axis=1)
 
@@ -177,7 +173,7 @@ class model( modelBase ):
       for k in range(Nt):
         q1[k] = np.quantile( samples[:,k],0.5-p/2)
         q2[k] = np.quantile( samples[:,k],0.5+p/2)
-      q1 = np.maximum(q1,0)
+
       ax[1].fill_between( self.data['Propagation']['x-data'], q1 , q2,  alpha=0.5, label=f' {100*p:.1f}% credible interval' )
 
 
