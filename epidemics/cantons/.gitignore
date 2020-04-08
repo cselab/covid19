@@ -3,3 +3,4 @@
 *.png
 /build
 _korali_result
+!data

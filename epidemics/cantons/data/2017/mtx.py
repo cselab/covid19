@@ -2,7 +2,6 @@
 
 from matrixconverters.read_ptv import ReadPTVMatrix
 import numpy as np
-import os
 import cache
 import geopandas as gpd
 
