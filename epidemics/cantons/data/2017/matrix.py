@@ -89,10 +89,9 @@ for c0,c1 in itertools.product(cantons, repeat=2):
     i0 = canton_to_idx[c0]
     i1 = canton_to_idx[c1]
     matrix[c0][c1] = int(bins[pair_to_hash(i0, i1)])
-    if c0 == c1:
-        print(c0, matrix[c0][c1])
 
 oname = 'matrix.json'
+print(oname)
 with open(oname, 'w') as o:
     json.dump(matrix, o)
 
