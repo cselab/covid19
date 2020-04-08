@@ -12,6 +12,7 @@ from scipy.integrate import solve_ivp
 
 from ..epidemics import epidemicsBase
 from ..tools.tools import save_file
+from ..tools.population_of import population_of
 
 
 class modelBase( epidemicsBase ):
@@ -40,7 +41,7 @@ class modelBase( epidemicsBase ):
       I = self.rawData
     else:
       url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-      print(f'Retrieve population data for {self.country} from: {url}')
+      print(f'[Epidemics] Retrieve population data for {self.country} from: {url}')
 
       s = requests.get(url).content
       df = pd.read_csv(io.StringIO(s.decode('utf-8')))
@@ -73,44 +74,44 @@ class modelBase( epidemicsBase ):
     k=0
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 10.0
+    self.e['Distributions'][k]['Minimum'] = 4
+    self.e['Distributions'][k]['Maximum'] = 4.5
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for mu'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 10.0
+    self.e['Distributions'][k]['Maximum'] = 0.1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for alpha'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 10.0
+    self.e['Distributions'][k]['Minimum'] = 0.9
+    self.e['Distributions'][k]['Maximum'] = 1.0
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 10.0
+    self.e['Distributions'][k]['Minimum'] = 0.1
+    self.e['Distributions'][k]['Maximum'] = 0.3
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for D'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 10.0
+    self.e['Distributions'][k]['Minimum'] = 0.2
+    self.e['Distributions'][k]['Maximum'] = 0.3
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.0
-    self.e['Distributions'][k]['Maximum'] = +600.0
+    self.e['Distributions'][k]['Minimum'] = 200
+    self.e['Distributions'][k]['Maximum'] = 250
 
 
 
 
-  # p = beta, mu, alpha, Z, D
-  def sir_rhs( self, t, y, N, p ):
+  # p = [ beta, mu, alpha, Z, D ]
+  def seiir_rhs( self, t, y, N, p ):
     S, E, Ir, Iu = y
 
     c1 = p[0] * S * Ir / N
@@ -129,5 +130,5 @@ class modelBase( epidemicsBase ):
 
 
   def solve_ode( self, y0, T, N, p ):
-    sol = solve_ivp( self.sir_rhs, t_span=[0, T], y0=y0, args=(N, p), dense_output=True)
+    sol = solve_ivp( self.seiir_rhs, t_span=[0, T], y0=y0, args=(N, p), dense_output=True)
     return sol

@@ -87,20 +87,20 @@ class model( modelBase ):
     k=0
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 30.
-    self.e['Distributions'][k]['Maximum'] = 60.
+    self.e['Distributions'][k]['Minimum'] = 1.
+    self.e['Distributions'][k]['Maximum'] = 40.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for gamma'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 30.
-    self.e['Distributions'][k]['Maximum'] = 60.
+    self.e['Distributions'][k]['Minimum'] = 1.
+    self.e['Distributions'][k]['Maximum'] = 40.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 450.
-    self.e['Distributions'][k]['Maximum'] = 1000.
+    self.e['Distributions'][k]['Minimum'] = 150.
+    self.e['Distributions'][k]['Maximum'] = 700.
 
 
 

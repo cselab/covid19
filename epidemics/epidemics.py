@@ -185,7 +185,7 @@ class epidemicsBase(  ):
   def propagate( self ):
 
     if not self.has_been_called['sample']:
-      print('Sample before propagation')
+      print('[Epidemics] Sample before propagation')
       return
 
     self.e = korali.Experiment()
@@ -212,7 +212,6 @@ class epidemicsBase(  ):
     k['Conduit']['Concurrent Jobs'] = self.nThreads
 
     k.run(self.e)
-
 
     Ns = self.nSamples
     Nv = self.e['Samples'][0]['Saved Results']['Number of Variables']
@@ -245,19 +244,19 @@ class epidemicsBase(  ):
   def compute_intervals( self ):
 
     if not self.has_been_called['propagation']:
-      print('Propagation before intervals')
+      print('[Epidemics] Propagation before intervals')
       return
 
     self.set_variables_for_interval()
 
-    if( self.silent==False ): print('Loading files...')
+    if( self.silent==False ): print('[Epidemics] Loading files...')
 
     for x in self.intervalVariables.keys():
       self.intervalVariables[x]['Values'] = self.intervalVariables[x]['Formula'](self.propagatedVariables)
 
     if( self.silent==False ):
-      print('Finished loading files.')
-      print('Calculate credible intervals...')
+      print('[Epidemics] Finished loading files.')
+      print('[Epidemics] Calculate credible intervals...')
 
     self.credibleIntervals = {}
     for x in self.intervalVariables.keys():
@@ -265,6 +264,6 @@ class epidemicsBase(  ):
                                                               self.propagatedVariables['Standard Deviation'],
                                                               self.percentages );
 
-    if( self.silent==False ): print('Finished calculating credible intervals...')
+    if( self.silent==False ): print('[Epidemics] Finished calculating credible intervals...')
 
     self.has_been_called['intervals'] = True

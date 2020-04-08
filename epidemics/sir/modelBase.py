@@ -45,7 +45,7 @@ class modelBase( epidemicsBase ):
           s = load_file(self.saveInfo['database'], 'Downloaded Database', 'pickle')
       else:
         url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-        print(f'Retrieve population data for {self.country} from: {url}')
+        print(f'[Epidemics] Retrieve population data for {self.country} from: {url}')
         s = requests.get(url).content
         save_file( s, self.saveInfo['database'], 'Downloaded Database', 'pickle' )
 

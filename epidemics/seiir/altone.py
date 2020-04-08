@@ -20,8 +20,8 @@ class model( modelBase ):
 
   def __init__( self, fileName=[], **kwargs ):
 
-    self.modelName        = 'sir_altone'
-    self.modelDescription = 'Fit SIR on Daily Infected Data'
+    self.modelName        = 'seiir_altone'
+    self.modelDescription = 'Fit SEIIR on Daily Infected Data'
 
     defaultProperties = {
         'stdModel': 0,
@@ -50,9 +50,12 @@ class model( modelBase ):
     y = self.data['Raw']['Infected']
     t = self.data['Raw']['Time']
     N = self.data['Raw']['Population Size']
-    I0 = y[0]
-    S0 = N - I0
-    y0 = S0, I0
+
+    Ir0 = y[0]
+    S0 = N - Ir0
+    E0 = 0
+    Iu0 = 0
+    y0 = S0, E0, Ir0, Iu0
 
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
@@ -75,38 +78,8 @@ class model( modelBase ):
 
 
 
-  def set_variables_and_distributions( self ):
-
-    p = ['beta','gamma','[Sigma]']
-    for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
-
-    self.nParameters = len(p)
-
-    k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 20.
-    self.e['Distributions'][k]['Maximum'] = 80.
-
-
-
-
   def incidence( self, sol, p, t1, t2 ):
-    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[1];
+    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[2];
     return quad(f,t1,t2)[0]
 
 
@@ -118,7 +91,7 @@ class model( modelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
 
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
@@ -135,19 +108,18 @@ class model( modelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
 
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
     js = {}
-    js['Variables'] = []
+    js['Variables'] = [{}]
 
-    js['Variables'].append({})
-    js['Variables'][0]['Name']   = 'Daily Incidence'
+    js['Variables'][0]['Name']   = 'Daily Reported Incidence'
     js['Variables'][0]['Values'] = y
 
     js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = len(t)
+    js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
     d = self.data['Model']['y-data']
     js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p,t,d);
@@ -161,8 +133,8 @@ class model( modelBase ):
 
     self.intervalVariables = {}
 
-    self.intervalVariables['Daily Infected'] = {}
-    self.intervalVariables['Daily Infected']['Formula'] = lambda v: v['Daily Incidence']
+    self.intervalVariables['Daily Reported Incidence'] = {}
+    self.intervalVariables['Daily Reported Incidence']['Formula'] = lambda v: v['Daily Reported Incidence']
 
 
 
@@ -178,14 +150,14 @@ class model( modelBase ):
 
 
     z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Infected(data)', color='black')
+    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Reported Infected(data)', color='black')
 
-    Ns = self.propagatedVariables['Daily Incidence'].shape[0]
-    Nt = self.propagatedVariables['Daily Incidence'].shape[1]
+    Ns = self.propagatedVariables['Daily Reported Incidence'].shape[0]
+    Nt = self.propagatedVariables['Daily Reported Incidence'].shape[1]
     ns = 10;
     samples = np.zeros((Ns*ns,Nt))
     for k in range(Nt):
-      x = [ np.random.normal( self.propagatedVariables['Daily Incidence'][:,k],self.propagatedVariables['Standard Deviation'][:,k]) for _ in range(ns) ]
+      x = [ np.random.normal( self.propagatedVariables['Daily Reported Incidence'][:,k],self.propagatedVariables['Standard Deviation'][:,k]) for _ in range(ns) ]
       samples[:,k] = np.asarray(x).flatten()
 
     samples = np.cumsum(samples,axis=1)
@@ -217,13 +189,14 @@ class model( modelBase ):
     ax[1].set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
     ax[1].grid()
 
+
     #----------------------------------------------------------------------------------------------------------------------------------
     ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected(data)', color='black')
 
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    y = 'Daily Infected'
+    y = 'Daily Reported Incidence'
     ax[0].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
     ax[0].plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
 
