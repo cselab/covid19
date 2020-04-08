@@ -46,10 +46,3 @@ def flatten_and_remove_nans(matrix):
         for value in row
         if not math.isnan(value)
     ]
-
-
-def extract_values_from_state(state, numCantons, value_idx):
-    """Given a state vector representing a single day, extract the given value."""
-    assert isinstance(state, list)
-    assert len(state) == 5 * numCantons, len(state)
-    return state[value_idx * numCantons : (value_idx + 1) * numCantons]

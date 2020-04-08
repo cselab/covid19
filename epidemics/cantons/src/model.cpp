@@ -1,46 +1,12 @@
 #include "model.h"
+#include "utils.h"
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
-using Stepper = boost::numeric::odeint::runge_kutta_dopri5<MultiSEIIRState>;
-
-/*
- * The view classes for reading and writing the state vector in a human-readable way.
- */
-struct MultiSEIIRStateView {
-    double &S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double &E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double &Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double &Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double &N (size_t i) const { return p_[4 * numRegions_ + i]; }
-
-    MultiSEIIRStateView(size_t numRegions, double *p) :
-        numRegions_{numRegions}, p_{p}
-    { }
-
-private:
-    size_t numRegions_;
-    double *p_;
-};
-
-struct MultiSEIIRStateConstView {
-    double S (size_t i) const { return p_[0 * numRegions_ + i]; }
-    double E (size_t i) const { return p_[1 * numRegions_ + i]; }
-    double Ir(size_t i) const { return p_[2 * numRegions_ + i]; }
-    double Iu(size_t i) const { return p_[3 * numRegions_ + i]; }
-    double N (size_t i) const { return p_[4 * numRegions_ + i]; }
-
-    MultiSEIIRStateConstView(size_t numRegions, const double *p) :
-        numRegions_{numRegions}, p_{p}
-    {}
-
-private:
-    size_t numRegions_;
-    const double *p_;
-};
+using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
 
 static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t N) {
@@ -51,7 +17,7 @@ static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t 
     return out;
 }
 
-MultiSEIIR::MultiSEIIR(std::vector<double> commuteMatrix) :
+Solver::Solver(std::vector<double> commuteMatrix) :
     numRegions_{static_cast<size_t>(std::sqrt(commuteMatrix.size()) + 0.1)},
     M_{std::move(commuteMatrix)},
     Mt_{transposeMatrix(M_, numRegions_)}
@@ -62,23 +28,32 @@ MultiSEIIR::MultiSEIIR(std::vector<double> commuteMatrix) :
     }
 }
 
-std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIRState initialState, int days) const {
+std::vector<State> Solver::solve(const Parameters &parameters, State initialState, int days) const {
+    return solve(parameters, std::move(initialState).raw(), days);
+}
+
+std::vector<State> Solver::solve(const Parameters &parameters, RawState initialState, int days) const {
+    if (initialState.size() != numRegions_ * State::kVarsPerRegion) {
+        fprintf(stderr, "Expected %zu elements in initialState, got %zu\n",
+            numRegions_ * State::kVarsPerRegion, initialState.size());
+        exit(1);
+    }
+
     const int STEPS_PER_DAY = 10;
     const double dt = 1.0 / STEPS_PER_DAY;
-
-    auto rhs = [this, parameters](const MultiSEIIRState &x, MultiSEIIRState &dxdt, double /*t*/) {
-        deterministicRHS(parameters, x, dxdt);
-    };
-
-    std::vector<MultiSEIIRState> result;
-	result.reserve(days);
+    std::vector<State> result;
 
     // Observer gets called for each time step evaluated by the integrator.
     // We consider only every `STEPS_PER_DAY` steps (skipping the first one as well).
-    auto observer = [&result, cnt = 0](const MultiSEIIRState &y, double t) mutable {
+    auto observer = [&result, cnt = 0](const RawState &y, double /*t*/) mutable {
         if (cnt % STEPS_PER_DAY == 0 && cnt > 0)
-            result.push_back(y);
+            result.push_back(State{y});
         ++cnt;
+    };
+
+    auto rhs = [this, parameters](const RawState &x, RawState &dxdt, double /*t*/) {
+        // We move from and move back to x, so no change is made.
+        deterministicRHS(parameters, const_cast<RawState &>(x), dxdt);
     };
 
     boost::numeric::odeint::integrate_n_steps(
@@ -86,14 +61,19 @@ std::vector<MultiSEIIRState> MultiSEIIR::solve(Parameters parameters, MultiSEIIR
     return result;
 }
 
-void MultiSEIIR::deterministicRHS(
+void Solver::deterministicRHS(
         Parameters p,
-        const MultiSEIIRState &x_,
-        MultiSEIIRState &dxdt_) const {
-    dxdt_.resize(x_.size());
+        const RawState &x_,
+        RawState &dxdt_) const {
+    if (dxdt_.size() != x_.size())
+        throw std::runtime_error("dxdt does not have the expected size.");
+    if (x_.size() != numRegions_ * 5)
+        throw std::runtime_error("x does not have the expected size.");
 
-    MultiSEIIRStateConstView x{numRegions_, x_.data()};
-    MultiSEIIRStateView dxdt{numRegions_, dxdt_.data()};
+    // This is a tricky part, we transform RawState to State during
+    // computation and then at the end transform it back.
+    State x{std::move(const_cast<RawState&>(x_))};
+    State dxdt{std::move(dxdt_)};
 
     for (size_t i = 0; i < numRegions_; ++i) {
         double A = p.beta * x.S(i) / x.N(i) * x.Ir(i);
@@ -124,4 +104,8 @@ void MultiSEIIR::deterministicRHS(
         dxdt.Iu(i) = dIu;
         dxdt.N(i) = dN;
     }
+
+    /// Transform State back to RawState.
+    const_cast<RawState &>(x_) = std::move(x).raw();
+    dxdt_ = std::move(dxdt).raw();
 }

@@ -1,10 +1,14 @@
+#!/usr/bin/env python3
+
 from datetime import datetime
 import json
+import math
 import numpy as np
 import os
 import urllib.request
 
-MIJ_MATRIX_JSON = os.path.join(os.path.dirname(__file__), 'data', 'home_work_people.json')
+DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'data'))
+MIJ_MATRIX_JSON = os.path.join(DATA_DIR, 'home_work_people.json')
 
 CANTON_POPULATION = dict(zip(
     'ZH BE LU UR SZ OW NW GL ZG FR SO BS BL SH AR AI SG GR AG TG TI VD VS NE GE JU'.split(),
@@ -38,16 +42,15 @@ CANTON_POPULATION = dict(zip(
     ]))
 
 
-
 def fetch(cache=True):
-    fname = "covid19_cases_switzerland_openzh.csv"
+    fname = os.path.join(DATA_DIR, 'covid19_cases_switzerland_openzh.csv')
     if not cache or not os.path.isfile(fname):
         url = "https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master/covid19_cases_switzerland_openzh.csv"
         req = urllib.request.urlopen(url)
         data = req.read()
         with open(fname, 'wb') as f:
             f.write(data)
-        return data
+        return data.decode('utf8')
     with open(fname) as f:
         return f.read()
 
@@ -79,7 +82,7 @@ def fetch_canton_data(cache=True):
     return {key: k for k, key in enumerate(cantons)}, data
 
 
-def get_Mij(cantons):
+def get_raw_Mij(cantons):
     """Returns a matrix M[i][j] which represents daily commute from i to j.
 
     Arguments:
@@ -97,9 +100,53 @@ def get_Mij(cantons):
 
 def get_symmetric_Mij(cantons):
     N = len(cantons)
-    Mij = get_Mij(cantons)
-    Mij = [[0.5 * (Mij[i][j] + Mij[j][i]) for j in range(N)] for i in range(N)]
+    Mij = get_raw_Mij(cantons)
+    Mij = [[Mij[i][j] + Mij[j][i] for j in range(N)] for i in range(N)]
     return Mij
 
+def prepare_data_for_cpp():
+    """Generate ../data/cantons_data.dat, used by CantonsData class in the C++ code.
+
+    File format:
+        <number of cantons N>
+        abbreviation1 ... abbreviationN
+        population1 ... populationN
+
+        M_11 ... M_1N
+        ...
+        M_N1 ... M_NN
+
+        <number of known data points M>
+        day1 canton_index1 number_of_infected1
+        ...
+        dayM canton_indexM number_of_infectedM
+
+    The known data points are all known values of numbers of infected.
+    Note that covid19_cases_switzerland_openzh.csv (see `fetch`) has many missing values.
+    """
+
+    canton_to_index, infected = fetch_canton_data()
+    Mij = get_raw_Mij(canton_to_index)
+
+    with open(os.path.join(DATA_DIR, 'cantons_data.dat'), 'w') as f:
+        f.write(str(len(canton_to_index)) + '\n')
+        f.write(" ".join(canton_to_index) + '\n')
+        f.write(" ".join(str(CANTON_POPULATION[c]) for c in canton_to_index) + '\n\n')
+
+        for row in Mij:
+            f.write(" ".join(str(x) for x in row) + '\n')
+        f.write('\n')
+
+        known_data_points = [
+            (d, c, country_day_value)
+            for d, day_values in enumerate(infected)
+            for c, country_day_value in enumerate(day_values)
+            if not math.isnan(country_day_value)
+        ]
+        f.write(str(len(known_data_points)) + '\n')
+        for data_point in known_data_points:
+            f.write("{} {} {}\n".format(*data_point))
+
+
 if __name__ == '__main__':
-    fetch_canton_data()
+    prepare_data_for_cpp()
