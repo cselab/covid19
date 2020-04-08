@@ -1,4 +1,4 @@
-# Multi-regional SEIIR model.
+# Multi-regional SEII model.
 
 Reference:
 
