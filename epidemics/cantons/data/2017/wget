@@ -1,4 +1,26 @@
+#!/bin/bash
 
-#wget "https://zenodo.org/record/3716134/files/DWV_2017_OeV_Wegematrizen_bin%C3%A4r.zip"
+e () {
+  echo "$@"
+  eval "$@"
+}
 
-wget "https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip"
+set -eu
+
+zip=public_transport.zip
+out=public_transport.mtx
+if [ -f "$out" ] ; then
+  echo "skip existing '$out'"
+else
+  e wget -nv -c "https://zenodo.org/record/3716134/files/DWV_2017_OeV_Wegematrizen_bin%C3%A4r.zip" -O "$zip"
+  e unzip -p "$zip" "DWV_ЩV_2017_CH_binДr.mtx" \> "$out"
+fi
+
+zip=zones.zip
+out=zones.gpkg
+if [ -f "$out" ] ; then
+  echo "skip existing '$out'"
+else
+  e wget -nv -c "https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip" -O "$zip"
+  e unzip -p "$zip" "Verkehrszonen_Schweiz_NPVM_2017_gpkg.zip" \> "$out"
+fi
