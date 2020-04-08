@@ -1,0 +1,4 @@
+
+#wget "https://zenodo.org/record/3716134/files/DWV_2017_OeV_Wegematrizen_bin%C3%A4r.zip"
+
+wget "https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip"
