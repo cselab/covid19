@@ -29,6 +29,7 @@ PYBIND11_MODULE(libsolver, m)
         .def_readwrite("theta", &Parameters::theta);
 
     py::class_<State>(m, "State")
+        .def(py::init<std::vector<double>>())
         .def("tolist", [](const State &state) -> std::vector<double> {
             return state.raw();
         }, "Convert to a Python list of floats.")
