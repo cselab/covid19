@@ -10,9 +10,9 @@ import os
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from epidemics.data.population import get_country_population
 from epidemics.epidemics import EpidemicsBase
 from epidemics.tools.tools import save_file, load_file
-from epidemics.tools.population_of import population_of
 
 
 class ModelBase( EpidemicsBase ):
@@ -56,7 +56,7 @@ class ModelBase( EpidemicsBase ):
 
     N  = len(I)
     if self.populationSize < 0:
-      self.populationSize = population_of( self.country )
+      self.populationSize = get_country_population( self.country )
     self.data['Raw']['Population Size'] = self.populationSize
     self.data['Raw']['Time'] = np.asarray( [ i for i in range(N) ] )
     self.data['Raw']['Infected'] = np.asarray(I)

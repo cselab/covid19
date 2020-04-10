@@ -1,11 +1,13 @@
-import os
-import io
-import requests
-import pandas as pd
 import numpy as np
+import pandas as pd
+import requests
+
+import io
+import os
+import sys
 
 from epidemics.tools.tools import load_file, save_file
-from epidemics.tools.population_of import population_of
+from epidemics.data.population import get_country_population
 
 
 class regionalData( ):
@@ -31,7 +33,7 @@ class regionalData( ):
     N  = len(I)
 
     self.country  = country
-    self.populationSize = population_of( country )
+    self.populationSize = get_country_population( country )
     self.time     = np.asarray( [ i for i in range(N) ] )
     self.infected = np.asarray(I)
     self.deaths     = np.asarray(D)

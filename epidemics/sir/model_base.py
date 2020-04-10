@@ -11,7 +11,6 @@ from scipy.integrate import solve_ivp
 
 from epidemics.epidemics import EpidemicsBase
 from epidemics.tools.tools import save_file, load_file
-from epidemics.tools.population_of import population_of
 from epidemics.tools.database import regionalData
 
 
