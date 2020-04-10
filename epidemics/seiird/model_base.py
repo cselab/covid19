@@ -19,13 +19,11 @@ from epidemics.tools.database import regionalData
 class ModelBase( EpidemicsBase ):
 
 
-  def __init__( self, defaultProperties={}, **kwargs ):
+  def __init__( self, **kwargs ):
 
-    defaultProperties = { **defaultProperties,
-        'country': 'switzerland'
-    }
+    self.country = kwargs.pop('country', 'switzerland')
 
-    super().__init__( defaultProperties=defaultProperties, **kwargs )
+    super().__init__( **kwargs )
 
     self.regionalData = regionalData( self.saveInfo['database'], self.country )
     self.propagationData={}

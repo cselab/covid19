@@ -23,15 +23,13 @@ class Model( ModelBase ):
     self.modelName        = 'seiird_altone'
     self.modelDescription = 'Fit SEIIRD on Daily Infected and Deaths Data'
 
-    defaultProperties = {
-        'stdModel': 0,
-        'futureDays': 2,
-        'nPropagation': 100,
-        'logPlot': False,
-        'nValidation': 0
-    }
+    self.stdModel     = kwargs.pop('stdModel', 0)
+    self.futureDays   = kwargs.pop('futureDays', 2)
+    self.nPropagation = kwargs.pop('nPropagation', 100)
+    self.logPlot      = kwargs.pop('logPlot', False)
+    self.nValidation  = kwargs.pop('nValidation', 0)
 
-    super().__init__( defaultProperties=defaultProperties, **kwargs )
+    super().__init__( **kwargs )
 
     self.process_data()
 

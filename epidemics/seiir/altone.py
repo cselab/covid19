@@ -23,15 +23,7 @@ class Model( ModelBase ):
     self.modelName        = 'seiir_altone'
     self.modelDescription = 'Fit SEIIR on Daily Infected Data'
 
-    defaultProperties = {
-        'stdModel': 0,
-        'futureDays': 2,
-        'nPropagation': 100,
-        'logPlot': False,
-        'nValidation': 0
-    }
-
-    super().__init__( defaultProperties=defaultProperties, **kwargs )
+    super().__init__( **kwargs )
 
     self.process_data()
 

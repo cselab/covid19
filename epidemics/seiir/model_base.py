@@ -18,15 +18,19 @@ from epidemics.tools.tools import save_file, load_file
 class ModelBase( EpidemicsBase ):
 
 
-  def __init__( self, defaultProperties={}, **kwargs ):
+  def __init__( self, **kwargs ):
 
-    defaultProperties = { **defaultProperties,
-        'country': 'switzerland',
-        'populationSize': -1,
-        'rawData': []
-    }
+    self.country        = kwargs.pop('country', 'switzerland')
+    self.populationSize = kwargs.pop('populationSize', -1)
+    self.rawData        = kwargs.pop('rawData', [])
 
-    super().__init__( defaultProperties=defaultProperties, **kwargs )
+    self.stdModel       = kwargs.pop('stdModel', 0)
+    self.futureDays     = kwargs.pop('futureDays', 2)
+    self.nPropagation   = kwargs.pop('nPropagation', 100)
+    self.logPlot        = kwargs.pop('logPlot', False)
+    self.nValidation    = kwargs.pop('nValidation', 0)
+
+    super().__init__( **kwargs )
 
     self.download_raw_data()
     self.propagationData={}

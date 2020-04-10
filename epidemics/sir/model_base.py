@@ -17,16 +17,19 @@ from epidemics.tools.database import regionalData
 class ModelBase( EpidemicsBase ):
 
 
-  def __init__( self, defaultProperties={}, **kwargs ):
+  def __init__( self, **kwargs ):
 
-    defaultProperties = { **defaultProperties,
-        'country': 'switzerland'
-    }
+    self.country      = kwargs.pop('country', 'switzerland')
+    self.stdModel     = kwargs.pop('stdModel', 0)
+    self.futureDays   = kwargs.pop('futureDays', 2)
+    self.nPropagation = kwargs.pop('nPropagation', 100)
+    self.logPlot      = kwargs.pop('logPlot', False)
+    self.nValidation  = kwargs.pop('nValidation', 0)
 
-    super().__init__( defaultProperties=defaultProperties, **kwargs )
+    super().__init__( **kwargs )
 
     self.regionalData = regionalData( self.saveInfo['database'], self.country )
-    self.propagationData={}
+    self.propagationData = {}
 
 
 

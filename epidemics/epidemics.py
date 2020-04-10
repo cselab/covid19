@@ -17,24 +17,18 @@ from epidemics.tools.compute_credible_intervals import compute_credible_interval
 
 class EpidemicsBase:
 
-  def __init__( self, defaultProperties={}, **kwargs ):
+  def __init__( self, **kwargs ):
 
     self.moduleName = self.__class__.__module__
 
-    defaultProperties = { **defaultProperties,
-        'nThreads': 1,
-        'silent': False,
-        'noSave': False,
-        'percentages': [0.5, 0.95, 0.99],
-        'dataFolder': './data/'
-    }
+    self.nThreads    = kwargs.pop('nThreads', 1)
+    self.silent      = kwargs.pop('silent', False)
+    self.noSave      = kwargs.pop('noSave', False)
+    self.percentages = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.dataFolder  = kwargs.pop('dataFolder', './data/')
 
-    for x in kwargs:
-      if x not in defaultProperties:
-        sys.exit(f'\n[epidemics] Unknown input argument: {x}\n')
-
-    for key, value in defaultProperties.items():
-      setattr( self, key, kwargs.get(key, value) )
+    if kwargs:
+        sys.exit(f"\n[epidemics] Unknown input arguments: {kwargs}\n")
 
     self.saveInfo ={
       'initials': 'initials.pickle',
