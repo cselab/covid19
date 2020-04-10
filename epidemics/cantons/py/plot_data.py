@@ -2,12 +2,15 @@
 
 """Plot reference data."""
 
-import os
-import sys
 import numpy as np
 
-from data import fetch_canton_data
-from plot import Renderer
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+from epidemics.cantons.py.data import fetch_canton_data
+from epidemics.cantons.py.plot import Renderer
 
 CANTON_TO_INDEX, IR = fetch_canton_data()
 IR_MAX = np.nanmax(IR)

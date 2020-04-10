@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
-import numpy as np
-import matplotlib.pyplot as plt
-import json
-import itertools
 from matplotlib import animation
 import matplotlib.colors
-import os
-import collections
+import matplotlib.pyplot as plt
+import numpy as np
 
-from data import DATA_DIR
+import collections
+import itertools
+import json
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+from epidemics.cantons.py.data import DATA_DIR
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)

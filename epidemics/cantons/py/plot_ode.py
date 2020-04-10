@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
-"""Solve the ODE and plot."""
+"""Solve the ODE and plot the results."""
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 import argparse
 import os
 import sys
-import numpy as np
-import matplotlib.pyplot as plt
 
-from data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
-from plot import Renderer
-from misc import Values, flatten
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'build'))
 
-BUILD_DIR = os.path.join(os.path.dirname(__file__), '..', 'build')
-if os.path.exists(BUILD_DIR):
-    sys.path.append(BUILD_DIR)
-
-import libsolver
+from epidemics.cantons.py.data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
+from epidemics.cantons.py.plot import Renderer
+from epidemics.tools.tools import flatten
+try:
+    import libsolver
+except ModuleNotFoundError:
+    sys.exit("libsolver not found. Did you forget to compile the C++ code?")
 
 CANTON_TO_INDEX, REFDATA = fetch_canton_data()
 NUM_CANTONS = len(CANTON_TO_INDEX)

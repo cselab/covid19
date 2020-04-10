@@ -12,6 +12,17 @@ import pickle # XXX use cpickle
 import json
 
 
+def flatten(matrix):
+    """
+    >>> flatten([[10, 20, 30], [40, 50]])
+    [10, 20, 30, 40, 50]
+    """
+    return [
+        value
+        for row in matrix
+        for value in row
+    ]
+
 
 def prepare_folder( dir, clean=True ):
   dir = os.path.relpath( dir )

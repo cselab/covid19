@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import numpy as np
+
 from datetime import datetime
 import json
 import math
-import numpy as np
 import os
 import urllib.request
 
