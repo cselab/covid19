@@ -4,19 +4,18 @@
 # Email:  garampat@ethz.ch
 
 import requests
-import pandas as pd
 import io
 import os
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from ..epidemics import epidemicsBase
-from ..tools.tools import save_file, load_file
-from ..tools.population_of import population_of
-from ..tools.database import regionalData
+from epidemics.epidemics import EpidemicsBase
+from epidemics.tools.tools import save_file, load_file
+from epidemics.tools.population_of import population_of
+from epidemics.tools.database import regionalData
 
 
-class modelBase( epidemicsBase ):
+class ModelBase( EpidemicsBase ):
 
 
   def __init__( self, fileName=None, defaultProperties={}, **kwargs ):

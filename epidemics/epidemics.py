@@ -9,11 +9,11 @@ import sys
 import numpy as np
 import korali
 
-from .tools.tools import prepare_folder, save_file, load_file, make_path
-from .tools.compute_credible_intervals import compute_credible_intervals
+from epidemics.tools.tools import prepare_folder, save_file, load_file, make_path
+from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
 
-class epidemicsBase(  ):
+class EpidemicsBase:
 
   def __init__( self, fileName=None, defaultProperties={}, **kwargs ):
 

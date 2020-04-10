@@ -7,8 +7,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import epidemics.sir.modelBase as sir
-# x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
+# import epidemics.sir.model_base as sir
+# x = sir.ModelBase(rawData=[1,2,3],populationSize=1000)
 # N = int(1e4)
 # T = 12
 # sol = x.solve_ode( [N-1,1], T, N, [5,0.6] )
@@ -28,8 +28,8 @@ import matplotlib.pyplot as plt
 
 
 
-import epidemics.seiir.modelBase as sir
-x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
+import epidemics.seiir.model_base as sir
+x = sir.ModelBase(rawData=[1,2,3],populationSize=1000)
 N = int(1e4)
 T = 10
 sol = x.solve_ode( [N-1,0,1,0], T, N, [ 5, 0.5, 0.3, 1, 4 ] )

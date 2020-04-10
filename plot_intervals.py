@@ -18,11 +18,11 @@ file = os.path.join(args.dataFolder,'initials.pickle')
 
 x = load_file(file,'','pickle')
 
-model = import_from( x['moduleName'], 'model' )
+model_class = import_from( x['moduleName'], 'Model' )
 
 file = os.path.join(args.dataFolder,'state.pickle')
 
-a = model( file )
+a = model_class( file )
 
 # a.propagate()
 # a.compute_intervals()

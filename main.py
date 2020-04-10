@@ -27,9 +27,9 @@ x = copy.deepcopy(args)
 del x.compModel
 del x.nSamples
 
-model = import_from( 'epidemics.' + args.compModel, 'model')
+model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
-a = model( **vars(x) )
+a = model_class( **vars(x) )
 
 a.sample( args.nSamples )
 
