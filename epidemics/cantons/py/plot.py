@@ -90,7 +90,7 @@ for code,name in code_to_name.items():
 codes = code_to_name.keys()
 
 class Renderer:
-    def __init__(self, frame_callback):
+    def __init__(self, frame_callback, matrix_json='home_work_people.json'):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
@@ -103,7 +103,7 @@ class Renderer:
         self.code_to_text = {}
         self.codes = codes
 
-        with open(os.path.join(DATA_DIR, 'home_work_people.json')) as f:
+        with open(os.path.join(DATA_DIR, matrix_json)) as f:
             home_work_people = json.load(f)
         fname = os.path.join(DATA_DIR, 'canton_shapes.npy')
         d = np.load(fname, allow_pickle=True).item()
