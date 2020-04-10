@@ -17,17 +17,16 @@ from epidemics.tools.database import regionalData
 class ModelBase( EpidemicsBase ):
 
 
-  def __init__( self, fileName=None, defaultProperties={}, **kwargs ):
+  def __init__( self, defaultProperties={}, **kwargs ):
 
     defaultProperties = { **defaultProperties,
         'country': 'switzerland'
     }
 
-    super().__init__( fileName=fileName, defaultProperties=defaultProperties, **kwargs )
+    super().__init__( defaultProperties=defaultProperties, **kwargs )
 
-    if not fileName:
-      self.regionalData = regionalData( self.saveInfo['database'], self.country )
-      self.propagationData={}
+    self.regionalData = regionalData( self.saveInfo['database'], self.country )
+    self.propagationData={}
 
 
 

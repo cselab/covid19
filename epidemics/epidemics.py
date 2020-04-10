@@ -3,19 +3,21 @@
 # Date:   27/3/2020
 # Email:  garampat@ethz.ch
 
-import json
-import os
-import sys
 import numpy as np
 import korali
 
-from epidemics.tools.tools import prepare_folder, save_file, load_file, make_path
+import json
+import os
+import pickle
+import sys
+
+from epidemics.tools.tools import prepare_folder, make_path
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
 
 class EpidemicsBase:
 
-  def __init__( self, fileName=None, defaultProperties={}, **kwargs ):
+  def __init__( self, defaultProperties={}, **kwargs ):
 
     self.moduleName = self.__class__.__module__
 
@@ -27,75 +29,65 @@ class EpidemicsBase:
         'dataFolder': './data/'
     }
 
-    if not fileName:
+    for x in kwargs:
+      if x not in defaultProperties:
+        sys.exit(f'\n[epidemics] Unknown input argument: {x}\n')
 
-      for x in kwargs:
-        if x not in defaultProperties:
-          sys.exit(f'\n[epidemics] Unknown input argument: {x}\n')
+    for key, value in defaultProperties.items():
+      setattr( self, key, kwargs.get(key, value) )
 
-      for key, value in defaultProperties.items():
-        setattr( self, key, kwargs.get(key, value) )
+    self.saveInfo ={
+      'initials': 'initials.pickle',
+      'database': 'data_base.pickle',
+      'state': 'state.pickle',
+      'korali samples': './_korali_samples/',
+      'korali propagation': './_korali_propagation/',
+      'inference data': './data_for_inference.pickle',
+      'figures': './figures/'
+    }
 
-      self.saveInfo ={
-        'initials': 'initials.pickle',
-        'database': 'data_base.pickle',
-        'state': 'state.pickle',
-        'korali samples': './_korali_samples/',
-        'korali propagation': './_korali_propagation/',
-        'inference data': './data_for_inference.pickle',
-        'figures': './figures/'
-      }
+    for x in self.saveInfo.keys():
+      self.saveInfo[x] = make_path( *self.save_data_path(), self.saveInfo[x] )
 
-      for x in self.saveInfo.keys():
-        self.saveInfo[x] = make_path( *self.save_data_path(), self.saveInfo[x] )
+    self.data = {}
+    self.data['Model'] = {}
+    self.data['Propagation'] = {}
+    self.data['Validation'] = {}
 
-      self.save( fileName=self.saveInfo['initials'] )
+    self.has_been_called = {
+      'sample': False,
+      'propagate': False,
+      'intervals': False
+    }
 
-      self.data = {}
-      self.data['Model'] = {}
-      self.data['Propagation'] = {}
-      self.data['Validation'] = {}
+    self.nParameters = 0
+    self.parameters = []
 
-      self.has_been_called = {
-        'sample': False,
-        'propagate': False,
-        'intervals': False
-      }
+    self.propagatedVariables = {}
+    self.standardDeviation = []
 
-      self.nParameters = 0
-      self.parameters = []
-
-      self.propagatedVariables = {}
-      self.standardDeviation = []
-
-      self.credibleIntervals = {}
-
-    else:
-      self.load(fileName)
+    self.credibleIntervals = {}
 
     # these variables cannot be pickled
     self.intervalVariables = []
     self.e = korali.Experiment()
 
 
+  def save( self, fileName=None ):
+    """Pickle itself to the given target file."""
+    if not fileName:
+      fileName = self.saveInfo['state']
+    with open(fileName, 'wb') as f:
+      pickle.dump(self, f)
 
-
-  def save( self, fileName=[] ):
-    x = dict(self.__dict__)
-    if 'e' in x: del x['e']
-    if 'intervalVariables' in x: del x['intervalVariables']
-    if fileName==[]: fileName = self.saveInfo['state']
-    save_file( x, fileName, 'State', 'pickle')
-
-
-
-
-  def load( self, file ):
-    state = load_file( file, 'State', fileType='pickle' )
-
-    for key, value in state.items():
-      setattr( self, key, value )
-
+  def __getstate__(self):
+    """Return the state for pickling."""
+    state = self.__dict__.copy()
+    if 'e' in state:
+      del state['e']
+    if 'intervalVariables' in state:
+      del state['intervalVariables']
+    return state
 
 
 

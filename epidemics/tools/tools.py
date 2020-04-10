@@ -3,13 +3,13 @@
 # Date:   16/3/2020
 # Email:  garampat@ethz.ch
 
-import os
-import sys
-import shutil
 import glob
 import importlib
-import pickle # XXX use cpickle
 import json
+import os
+import pickle
+import shutil
+import sys
 
 
 def flatten(matrix):
@@ -76,6 +76,12 @@ def load_file( file, str, fileType='pickle' ):
 
   return data
 
+
+def load_model(path):
+    """Unpickle a model instance from the given path."""
+    with open(path, 'rb') as f:
+        model = pickle.load(f)
+    return model
 
 
 

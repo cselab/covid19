@@ -18,7 +18,7 @@ from .model_base import *
 class Model( ModelBase ):
 
 
-  def __init__( self, fileName=None, **kwargs ):
+  def __init__( self, **kwargs ):
 
     self.modelName        = 'sir_basic'
     self.modelDescription = 'Fit SIR on Cummu Infected Data'
@@ -31,12 +31,9 @@ class Model( ModelBase ):
         'nValidation': 0
     }
 
-    super().__init__( fileName=fileName, defaultProperties=defaultProperties, **kwargs )
+    super().__init__( defaultProperties=defaultProperties, **kwargs )
 
-
-
-    if not fileName:
-      self.process_data()
+    self.process_data()
 
 
   def process_data( self ):

@@ -18,7 +18,7 @@ from epidemics.tools.tools import save_file, load_file
 class ModelBase( EpidemicsBase ):
 
 
-  def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
+  def __init__( self, defaultProperties={}, **kwargs ):
 
     defaultProperties = { **defaultProperties,
         'country': 'switzerland',
@@ -26,11 +26,10 @@ class ModelBase( EpidemicsBase ):
         'rawData': []
     }
 
-    super().__init__( fileName=fileName, defaultProperties=defaultProperties, **kwargs )
+    super().__init__( defaultProperties=defaultProperties, **kwargs )
 
-    if fileName == []:
-      self.download_raw_data()
-      self.propagationData={}
+    self.download_raw_data()
+    self.propagationData={}
 
 
 

@@ -30,7 +30,7 @@ def cache(func):
 
 
 def cache_to_file(target, dependencies=[]):
-    """Factory for a decorator that caches the result of a no-argument function and stores them in a target file.
+    """Factory for a decorator that caches the result of a no-argument function and stores it to a target file.
 
     Arguments:
         target: The target cache filename.
