@@ -6,15 +6,12 @@
 
 import argparse
 import copy
-
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--compModel', '-cm', default='sir.basic', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
-parser.add_argument('--rawData', '-d', default=[], nargs='+', type=float, help='Infected population.')
-parser.add_argument('--populationSize', '-ps', type=int, default=-1, help='Total population.')
 parser.add_argument('--stdModel', '-sm', type=int, default=0, help='Standard deviation model. 0-Constant, 1-Sqrt, 2-Linear')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
@@ -24,8 +21,6 @@ parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that 
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 args = parser.parse_args()
-
-
 
 
 x = copy.deepcopy(args)

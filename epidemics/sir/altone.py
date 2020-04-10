@@ -100,7 +100,7 @@ class model( modelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 20.
-    self.e['Distributions'][k]['Maximum'] = 80.
+    self.e['Distributions'][k]['Maximum'] = 1000.
 
 
 
@@ -172,7 +172,7 @@ class model( modelBase ):
 
     fig = plt.figure(figsize=(12, 8))
 
-    fig.suptitle(self.modelDescription)
+    fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
     ax  = fig.subplots( 2 )
 

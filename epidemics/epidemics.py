@@ -15,7 +15,7 @@ from .tools.compute_credible_intervals import compute_credible_intervals
 
 class epidemicsBase(  ):
 
-  def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
+  def __init__( self, fileName=None, defaultProperties={}, **kwargs ):
 
     self.moduleName = self.__class__.__module__
 
@@ -27,7 +27,7 @@ class epidemicsBase(  ):
         'dataFolder': './data/'
     }
 
-    if fileName == []:
+    if not fileName:
 
       for x in kwargs:
         if x not in defaultProperties:
@@ -52,7 +52,6 @@ class epidemicsBase(  ):
       self.save( fileName=self.saveInfo['initials'] )
 
       self.data = {}
-      self.data['Raw'] = {}
       self.data['Model'] = {}
       self.data['Propagation'] = {}
       self.data['Validation'] = {}
@@ -107,8 +106,6 @@ class epidemicsBase(  ):
     return os.path.split(path)[1][:-3]
 
 
-  def download_raw_data( self, args ):
-    pass
 
   def computational_model( s ):
     pass

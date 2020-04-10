@@ -140,7 +140,7 @@ class model( modelBase ):
 
     fig = plt.figure(figsize=(12, 8))
 
-    fig.suptitle(self.modelDescription)
+    fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
     ax  = fig.subplots( 2 )
 

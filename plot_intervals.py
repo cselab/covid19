@@ -24,8 +24,8 @@ file = os.path.join(args.dataFolder,'state.pickle')
 
 a = model( file )
 
-a.propagate()
-a.compute_intervals()
-a.save()
+# a.propagate()
+# a.compute_intervals()
+# a.save()
 
 a.plot_intervals()

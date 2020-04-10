@@ -18,10 +18,10 @@ from ..tools.tools import prepare_folder
 class model( modelBase ):
 
 
-  def __init__( self, fileName=[], **kwargs ):
+  def __init__( self, fileName=None, **kwargs ):
 
     self.modelName        = 'sir_basic'
-    self.modelDescription = 'Fit SIR on Total Infected Data'
+    self.modelDescription = 'Fit SIR on Cummu Infected Data'
 
     defaultProperties = {
         'stdModel': 0,
@@ -33,23 +33,18 @@ class model( modelBase ):
 
     super().__init__( fileName=fileName, defaultProperties=defaultProperties, **kwargs )
 
-    if fileName == []:
+
+
+    if not fileName:
       self.process_data()
-
-
-
-
-  def save_data_path( self ):
-      return ( self.dataFolder, self.country, self.modelName )
-
-
 
 
   def process_data( self ):
 
-    y = self.data['Raw']['Infected']
-    t = self.data['Raw']['Time']
-    N = self.data['Raw']['Population Size']
+    y = self.regionalData.infected
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
+
     I0 = y[0]
     S0 = N - I0
     y0 = S0, I0
@@ -64,14 +59,13 @@ class model( modelBase ):
       self.data['Validation']['y-data'] = y[-self.nValidation:]
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.populationSize
+    self.data['Model']['Population Size'] = N
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = t[-1] + self.futureDays
     self.data['Propagation']['x-data'] = np.linspace(0,T,self.nPropagation).tolist()
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
 
 
 
@@ -113,6 +107,7 @@ class model( modelBase ):
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
     y = ( N - sol.y[0]).tolist()
+
 
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']
@@ -156,10 +151,8 @@ class model( modelBase ):
     self.intervalVariables = {}
 
     self.intervalVariables['Total Infected'] = {}
-    self.intervalVariables['Total Infected']['Formula'] = lambda v: self.populationSize - v['S']
+    self.intervalVariables['Total Infected']['Formula'] = lambda v: self.regionalData.populationSize - v['S']
 
-    # self.intervalVariables['Infected Rate'] = {}
-    # self.intervalVariables['Infected Rate']['Formula'] = lambda v: self.parameters[0]['Values'] * v['S'] * v['I'] / self.populationSize
 
 
 
