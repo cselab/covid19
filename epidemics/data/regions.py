@@ -1,4 +1,4 @@
-NORMALIZED_COUNTRY_NAMES = {
+NORMALIZED_REGION_NAMES = {
     # https://github.com/samayo/country-json/blob/master/src/country-by-population.json
     "holy see (vatican city state)": "Vatican City",
     "hongkong": "Hong Kong",
@@ -9,5 +9,8 @@ NORMALIZED_COUNTRY_NAMES = {
     "uk": "United Kingdom",
 }
 
-def normalize_country_name(name):
-    return NORMALIZED_COUNTRY_NAMES.get(name.lower(), name)
+def normalize_region_name(name):
+    return NORMALIZED_REGION_NAMES.get(name.lower(), name)
+
+def region_to_key(name):
+    return normalize_region_name(name).lower()

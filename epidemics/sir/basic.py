@@ -11,8 +11,8 @@ plt.ioff()
 from scipy.integrate import solve_ivp
 
 from epidemics.std_models.std_models import *
-from epidemics.tools.tools import prepare_folder
-from .model_base import *
+from epidemics.tools.tools import prepare_folder, save_file
+from .model_base import ModelBase
 
 
 class Model( ModelBase ):

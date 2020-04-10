@@ -1,5 +1,5 @@
 from epidemics.data import DATA_FILES_DIR
-from epidemics.data.countries import normalize_country_name 
+from epidemics.data.regions import region_to_key
 from epidemics.tools.cache import cache
 import json
 
@@ -24,18 +24,16 @@ def load_samayo_population_data():
 def get_population_of_all_countries():
     """Returns a dictionary {country key: population}."""
     raw = load_samayo_population_data()
-    countries = {}
-    for name, population in raw.items():
-        name = normalize_country_name(name)
-        key = name.lower()
-        countries[key] = population
+    countries = {region_to_key(name): population for name, population in raw.items()}
 
-    countries['kosovo'] = 1810463
-    countries['montenegro'] = 631219
-    countries['serbia'] = 6963764
+    countries[region_to_key('Kosovo')] = 1810463
+    countries[region_to_key('Montenegro')] = 631219
+    countries[region_to_key('Serbia')] = 6963764
     return countries
 
 
-def get_country_population(country):
-    """Return the population of the given country."""
-    return get_population_of_all_countries()[country.lower()]
+def get_region_population(region):
+    """Return the population of the given region."""
+    # Currently we only have country population.
+    data = get_population_of_all_countries()
+    return data[region_to_key(region)]

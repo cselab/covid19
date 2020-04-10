@@ -9,9 +9,8 @@ import os
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import save_file, load_file
-from epidemics.tools.database import regionalData
 
 
 class ModelBase( EpidemicsBase ):
@@ -28,7 +27,7 @@ class ModelBase( EpidemicsBase ):
 
     super().__init__( **kwargs )
 
-    self.regionalData = regionalData( self.saveInfo['database'], self.country )
+    self.regionalData = RegionalData( self.country )
     self.propagationData = {}
 
 
