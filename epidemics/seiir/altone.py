@@ -10,31 +10,22 @@ plt.ioff()
 
 from scipy.integrate import solve_ivp, quad
 
-from  .modelBase import *
-from ..std_models.std_models import *
-from ..tools.tools import prepare_folder
+from epidemics.std_models.std_models import *
+from epidemics.tools.tools import prepare_folder
+from .model_base import *
 
 
-class model( modelBase ):
+class Model( ModelBase ):
 
 
-  def __init__( self, fileName=[], **kwargs ):
+  def __init__( self, **kwargs ):
 
     self.modelName        = 'seiir_altone'
     self.modelDescription = 'Fit SEIIR on Daily Infected Data'
 
-    defaultProperties = {
-        'stdModel': 0,
-        'futureDays': 2,
-        'nPropagation': 100,
-        'logPlot': False,
-        'nValidation': 0
-    }
+    super().__init__( **kwargs )
 
-    super().__init__( fileName=fileName, defaultProperties=defaultProperties, **kwargs )
-
-    if fileName == []:
-      self.process_data()
+    self.process_data()
 
 
 
@@ -140,7 +131,7 @@ class model( modelBase ):
 
     fig = plt.figure(figsize=(12, 8))
 
-    fig.suptitle(self.modelDescription)
+    fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
     ax  = fig.subplots( 2 )
 

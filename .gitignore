@@ -1,6 +1,7 @@
 *.swp
 .DS_Store
+/data/
+/epidemics/data/cache
+/epidemics/data/downloads
 __pycache__
-
-data/
 covid19_cases_switzerland_openzh.csv

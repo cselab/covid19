@@ -3,29 +3,24 @@
 # Date:   27/3/2020
 # Email:  garampat@ethz.ch
 
-from epidemics.tools.tools import import_from, load_file
+from epidemics.tools.tools import load_model
 
+from pathlib import Path
 import argparse
 import os
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataFolder', '-df', help='Load model data from this directory.', required=True)
+parser.add_argument('--dataFolder', '-df', type=Path, help='Load model data from this directory.', required=True)
 args = parser.parse_args()
 
 
-file = os.path.join(args.dataFolder,'initials.pickle')
+file = args.dataFolder / 'state.pickle'
 
-x = load_file(file,'','pickle')
+a = load_model( file )
 
-model = import_from( x['moduleName'], 'model' )
-
-file = os.path.join(args.dataFolder,'state.pickle')
-
-a = model( file )
-
-a.propagate()
-a.compute_intervals()
-a.save()
+# a.propagate()
+# a.compute_intervals()
+# a.save()
 
 a.plot_intervals()

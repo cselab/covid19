@@ -63,7 +63,7 @@ class Solver:
             Iu = y[3 * num_cantons : 4 * num_cantons]
             N  = y[4 * num_cantons : 5 * num_cantons]
 
-            # Here we try to avoid any duplicate computation...
+            # Here we try to avoid repeating any computation...
             tmpI = beta * S / N * (Ir + mu * Iu)
             tmpE_Z = E / Z
             tmpalphaE_Z = alpha * tmpE_Z

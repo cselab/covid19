@@ -3,100 +3,84 @@
 # Date:   27/3/2020
 # Email:  garampat@ethz.ch
 
-import json
-import os
-import sys
 import numpy as np
 import korali
 
-from .tools.tools import prepare_folder, save_file, load_file, make_path
-from .tools.compute_credible_intervals import compute_credible_intervals
+import json
+import os
+import pickle
+import sys
+
+from epidemics.tools.tools import prepare_folder, make_path
+from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
 
-class epidemicsBase(  ):
+class EpidemicsBase:
 
-  def __init__( self, fileName=[], defaultProperties={}, **kwargs ):
+  def __init__( self, **kwargs ):
 
     self.moduleName = self.__class__.__module__
 
-    defaultProperties = { **defaultProperties,
-        'nThreads': 1,
-        'silent': False,
-        'noSave': False,
-        'percentages': [0.5, 0.95, 0.99],
-        'dataFolder': './data/'
+    self.nThreads    = kwargs.pop('nThreads', 1)
+    self.silent      = kwargs.pop('silent', False)
+    self.noSave      = kwargs.pop('noSave', False)
+    self.percentages = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.dataFolder  = kwargs.pop('dataFolder', './data/')
+
+    if kwargs:
+        sys.exit(f"\n[epidemics] Unknown input arguments: {kwargs}\n")
+
+    self.saveInfo ={
+      'initials': 'initials.pickle',
+      'database': 'data_base.pickle',
+      'state': 'state.pickle',
+      'korali samples': './_korali_samples/',
+      'korali propagation': './_korali_propagation/',
+      'inference data': './data_for_inference.pickle',
+      'figures': './figures/'
     }
 
-    if fileName == []:
+    for x in self.saveInfo.keys():
+      self.saveInfo[x] = make_path( *self.save_data_path(), self.saveInfo[x] )
 
-      for x in kwargs:
-        if x not in defaultProperties:
-          sys.exit(f'\n[epidemics] Unknown input argument: {x}\n')
+    self.data = {}
+    self.data['Model'] = {}
+    self.data['Propagation'] = {}
+    self.data['Validation'] = {}
 
-      for key, value in defaultProperties.items():
-        setattr( self, key, kwargs.get(key, value) )
+    self.has_been_called = {
+      'sample': False,
+      'propagate': False,
+      'intervals': False
+    }
 
-      self.saveInfo ={
-        'initials': 'initials.pickle',
-        'database': 'data_base.pickle',
-        'state': 'state.pickle',
-        'korali samples': './_korali_samples/',
-        'korali propagation': './_korali_propagation/',
-        'inference data': './data_for_inference.pickle',
-        'figures': './figures/'
-      }
+    self.nParameters = 0
+    self.parameters = []
 
-      for x in self.saveInfo.keys():
-        self.saveInfo[x] = make_path( *self.save_data_path(), self.saveInfo[x] )
+    self.propagatedVariables = {}
+    self.standardDeviation = []
 
-      self.save( fileName=self.saveInfo['initials'] )
-
-      self.data = {}
-      self.data['Raw'] = {}
-      self.data['Model'] = {}
-      self.data['Propagation'] = {}
-      self.data['Validation'] = {}
-
-      self.has_been_called = {
-        'sample': False,
-        'propagate': False,
-        'intervals': False
-      }
-
-      self.nParameters = 0
-      self.parameters = []
-
-      self.propagatedVariables = {}
-      self.standardDeviation = []
-
-      self.credibleIntervals = {}
-
-    else:
-      self.load(fileName)
+    self.credibleIntervals = {}
 
     # these variables cannot be pickled
     self.intervalVariables = []
     self.e = None  #korali.Experiment()
 
-
-
-  # XXX replace with get_state and set_state
   def save( self, fileName=None ):
-    x = dict(self.__dict__)
-    if 'e' in x: del x['e']
-    if 'intervalVariables' in x: del x['intervalVariables']
-    if not fileName: fileName = self.saveInfo['state']
-    save_file( x, fileName, 'State', 'pickle')
+    """Pickle itself to the given target file."""
+    if not fileName:
+      fileName = self.saveInfo['state']
+    with open(fileName, 'wb') as f:
+      pickle.dump(self, f)
 
-
-
-
-  def load( self, file ):
-    state = load_file( file, 'State', fileType='pickle' )
-
-    for key, value in state.items():
-      setattr( self, key, value )
-
+  def __getstate__(self):
+    """Return the state for pickling."""
+    state = self.__dict__.copy()
+    if 'e' in state:
+      del state['e']
+    if 'intervalVariables' in state:
+      del state['intervalVariables']
+    return state
 
 
 
@@ -107,8 +91,6 @@ class epidemicsBase(  ):
     return os.path.split(path)[1][:-3]
 
 
-  def download_raw_data( self, args ):
-    pass
 
   def computational_model( s ):
     pass
@@ -145,7 +127,7 @@ class epidemicsBase(  ):
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
     self.e['Problem']['Likelihood Model'] = 'Additive Normal General'
-    self.e['Problem']['Reference Data']   = list(self.data['Model']['y-data'])
+    self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
     self.e['Solver']['Type'] = 'TMCMC'

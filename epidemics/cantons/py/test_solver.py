@@ -2,9 +2,14 @@
 
 import torch
 
-from data import CANTON_POPULATION, fetch_canton_data
-from solver import Solver
-from plot_ode import plot_ode_results
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+from epidemics.cantons.py.data import CANTON_POPULATION, fetch_canton_data
+from epidemics.cantons.py.solver import Solver
+from epidemics.cantons.py.plot_ode import plot_ode_results
 import libsolver  # Must be AFTER .plot_ode (because of sys.path...).
 
 CANTON_TO_INDEX, REFDATA = fetch_canton_data()
