@@ -125,7 +125,7 @@ class modelBase( epidemicsBase ):
 
 
     dSdt  = - c1 - c2
-    dEdt  =   c1 + c2 - (c3 + c4)
+    dEdt  =   c1 + c2 - 2*(c3 + c4)
     dIrdt =   c3 - Ir/p[4]
     dIudt =   c4 - Iu/p[4]
     return dSdt, dEdt, dIrdt, dIudt

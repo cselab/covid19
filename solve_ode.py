@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 # import epidemics.sir.modelBase as sir
 # x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
-# N = int(1e4)
-# T = 12
-# sol = x.solve_ode( [N-1,1], T, N, [5,0.6] )
+# N = int(1e3)
+# T = 50
+# sol = x.solve_ode( [N-100,100], T, N, [0.5,0.1] )
 # t = np.linspace(0,T,1000)
 # S = sol.sol(t)[0]
 # I = sol.sol(t)[1]
@@ -30,9 +30,9 @@ import matplotlib.pyplot as plt
 
 import epidemics.seiir.modelBase as sir
 x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
-N = int(1e4)
-T = 10
-sol = x.solve_ode( [N-1,0,1,0], T, N, [ 5, 0.5, 0.3, 1, 4 ] )
+N = int(1e3)
+T = 30
+sol = x.solve_ode( [N-100,0,100,0], T, N, [ 1.5, 0.5, 0.2, 3, 5 ] )
 t = np.linspace(0,T,1000)
 S = sol.sol(t)[0]
 E = sol.sol(t)[1]

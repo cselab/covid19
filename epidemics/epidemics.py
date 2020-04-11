@@ -76,16 +76,16 @@ class epidemicsBase(  ):
 
     # these variables cannot be pickled
     self.intervalVariables = []
-    self.e = korali.Experiment()
+    self.e = None  #korali.Experiment()
 
 
 
-
-  def save( self, fileName=[] ):
+  # XXX replace with get_state and set_state
+  def save( self, fileName=None ):
     x = dict(self.__dict__)
     if 'e' in x: del x['e']
     if 'intervalVariables' in x: del x['intervalVariables']
-    if fileName==[]: fileName = self.saveInfo['state']
+    if not fileName: fileName = self.saveInfo['state']
     save_file( x, fileName, 'State', 'pickle')
 
 

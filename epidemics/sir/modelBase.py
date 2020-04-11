@@ -34,7 +34,7 @@ class modelBase( epidemicsBase ):
 
 
 
-
+  # XXX region_data
   def download_raw_data( self ):
 
     if( self.rawData ):
@@ -62,6 +62,7 @@ class modelBase( epidemicsBase ):
     self.data['Raw']['Time'] = np.asarray( [ i for i in range(N) ] )
     self.data['Raw']['Infected'] = np.asarray(I)
     self.data['Raw']['Country'] = self.country
+
 
 
 
