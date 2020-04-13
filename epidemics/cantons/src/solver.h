@@ -14,7 +14,7 @@ public:
     std::vector<State> solve(const Parameters &parameters, RawState initialState, int days) const;
 
 private:
-    void deterministicRHS(Parameters p, const RawState &x, RawState &dxdt) const;
+    void deterministicRHS(int day, Parameters p, const RawState &x, RawState &dxdt) const;
 
     ModelData modelData_;
 };

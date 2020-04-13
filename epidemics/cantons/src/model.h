@@ -67,6 +67,12 @@ struct ModelData {
     std::map<std::string, int> regionNameToIndex;
     std::vector<int> regionPopulation;
     std::vector<double> Mij;  // Row-major.
+    std::vector<double> externalCases;  // Row-major [day][canton].
+
+    double getExternalCasesAt(int day, int canton) const noexcept {
+        int idx = day * (int)numRegions + canton;
+        return idx < 0 || idx >= externalCases.size() ? 0 : externalCases[idx];
+    }
 };
 
 /// A data value for the given region and day.

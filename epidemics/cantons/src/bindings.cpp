@@ -30,7 +30,8 @@ PYBIND11_MODULE(libsolver, m)
         .def_readwrite("theta", &Parameters::theta);
 
     py::class_<ModelData>(m, "ModelData")
-        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>, std::vector<double>>());
+        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>,
+                      std::vector<double>, std::vector<double>>());
     m.def("readModelData", &readModelData, "filename");
 
     py::class_<State>(m, "State")

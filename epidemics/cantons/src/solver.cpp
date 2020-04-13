@@ -44,9 +44,11 @@ std::vector<State> Solver::solve(const Parameters &parameters, RawState initialS
         ++cnt;
     };
 
-    auto rhs = [this, parameters](const RawState &x, RawState &dxdt, double /*t*/) {
-        // We move from and move back to x, so no change is made.
-        deterministicRHS(parameters, const_cast<RawState &>(x), dxdt);
+    auto rhs = [this, parameters](const RawState &x, RawState &dxdt, double t) {
+        int day = static_cast<int>(t);
+        // const_cast is (kind of) valid, because we move from and move back to
+        // x, so no change is made in the end.
+        deterministicRHS(day, parameters, const_cast<RawState &>(x), dxdt);
     };
 
     boost::numeric::odeint::integrate_n_steps(
@@ -55,6 +57,7 @@ std::vector<State> Solver::solve(const Parameters &parameters, RawState initialS
 }
 
 void Solver::deterministicRHS(
+        int day,
         Parameters p,
         const RawState &x_,
         RawState &dxdt_) const {
@@ -69,7 +72,8 @@ void Solver::deterministicRHS(
     State dxdt{std::move(dxdt_)};
 
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
-        double A = p.beta * x.S(i) / x.N(i) * x.Ir(i);
+        double external_cases = modelData_.getExternalCasesAt(day, i);
+        double A = p.beta * x.S(i) / x.N(i) * (x.Ir(i) + external_cases);
         double B = p.beta * x.S(i) / x.N(i) * p.mu * x.Iu(i);
         double E_Z = x.E(i) / p.Z;
 

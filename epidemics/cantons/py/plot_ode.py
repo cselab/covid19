@@ -18,11 +18,13 @@ from epidemics.cantons.py.plot import Renderer
 import libsolver
 
 CANTON_TO_INDEX = {key: k for k, key in enumerate(CANTON_KEYS_ALPHABETICAL)}
-MODEL_DATA = get_model_data()
 VALIDATION_DATA = get_validation_data()
 
-def example_run(num_days):
+def example_run(num_days, include_foreign=True):
     """Runs the SEIIR model for some set of parameters and some initial conditions."""
+    # Start date is needed to compute properly the inflow of foreign infected people.
+    model_data = get_model_data(include_foreign=include_foreign)
+
     # Parameters.
     # Li2020, Table 1
     params = libsolver.Parameters (beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
@@ -39,7 +41,7 @@ def example_run(num_days):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.Solver(MODEL_DATA.to_cpp())
+    solver = libsolver.Solver(model_data.to_cpp())
     results = solver.solve(params, y0, num_days)
     return results
 
@@ -120,9 +122,10 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('type', type=str, choices=('video', 'timeseries'), help="Plot type.")
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
+    parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
     args = parser.parse_args(argv)
 
-    results = example_run(args.days)
+    results = example_run(args.days, include_foreign=not args.no_foreign)
 
     if args.type == 'video':
         plot_ode_results(results)

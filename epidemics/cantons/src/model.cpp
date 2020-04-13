@@ -24,9 +24,9 @@ ModelData readModelData(const char *filename) {
     if (f == nullptr)
         DIE("Error opening file \"%s\". Did you forget to run ./py/data.py?\n", filename);
 
-    int N;
+    int N;  // Number of regions.
     if (fscanf(f, "%d", &N) != 1)
-        DIE("Reading N failed.");
+        DIE("Reading number of regions failed.");
 
     ModelData out;
     out.numRegions = N;
@@ -50,6 +50,15 @@ ModelData readModelData(const char *filename) {
             if (i == j)
                 out.Mij[i * N + j] = 0.0;
         }
+
+    int numDays;
+    if (fscanf(f, "%d", &numDays) != 1)
+        DIE("Reading numDays for external cases failed.\n");
+    out.externalCases.resize(N * numDays);
+    for (int i = 0; i < numDays; ++i)
+        for (int j = 0; j < N; ++j)
+            if (fscanf(f, "%lf", &out.externalCases[i * N + j]) != 1)
+                DIE("Reading externalCases[day=%d][canton=%d] failed.\n", i, j);
 
     fclose(f);
 }

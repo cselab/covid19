@@ -12,6 +12,10 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+from epidemics.data import DATA_CACHE_DIR
+
+# TODO: Move to epidemics/data/**
 DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
 
 def hide_axis(ax):
@@ -93,7 +97,7 @@ for code,name in code_to_name.items():
 codes = code_to_name.keys()
 
 class Renderer:
-    def __init__(self, frame_callback, matrix_json='home_work_people.json'):
+    def __init__(self, frame_callback, matrix_json=DATA_CACHE_DIR / 'home_work_people.json'):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
