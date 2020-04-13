@@ -26,8 +26,8 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Files common to .so and to the executable.
 SET(COMMON_SRC_FILES
-    ${SRC_DIR}/data.cpp
     ${SRC_DIR}/model.cpp
+    ${SRC_DIR}/solver.cpp
     ${SRC_DIR}/utils.cpp)
 
 # Set up the Python .so code.

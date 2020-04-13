@@ -12,8 +12,7 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-
-from epidemics.cantons.py.data import DATA_DIR
+DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)

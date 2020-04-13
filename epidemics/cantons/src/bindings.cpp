@@ -1,4 +1,5 @@
 #include "model.h"
+#include "solver.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -28,6 +29,10 @@ PYBIND11_MODULE(libsolver, m)
         .def_readwrite("D", &Parameters::D)
         .def_readwrite("theta", &Parameters::theta);
 
+    py::class_<ModelData>(m, "ModelData")
+        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>, std::vector<double>>());
+    m.def("readModelData", &readModelData, "filename");
+
     py::class_<State>(m, "State")
         .def(py::init<std::vector<double>>())
         .def("tolist", [](const State &state) -> std::vector<double> {
@@ -45,8 +50,7 @@ PYBIND11_MODULE(libsolver, m)
         .def("N", py::overload_cast<size_t>(&State::N, py::const_)), "Get N_i.";
 
     py::class_<Solver>(m, "Solver")
-        .def(py::init<std::vector<double>>(),
-             "Mij"_a)
+        .def(py::init<ModelData>(), "model_data"_a)
         .def("solve", py::overload_cast<const Parameters &, RawState, int>(&Solver::solve, py::const_),
-             "parameters"_a, "initialState"_a, "days"_a);
+             "parameters"_a, "initial_state"_a, "days"_a);
 }

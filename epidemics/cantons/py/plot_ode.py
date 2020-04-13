@@ -10,40 +10,36 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'build'))
 
-from epidemics.cantons.py.data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
+from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
+from epidemics.cantons.py.model import get_model_data, get_validation_data
 from epidemics.cantons.py.plot import Renderer
-from epidemics.tools.tools import flatten
-try:
-    import libsolver
-except ModuleNotFoundError:
-    sys.exit("libsolver not found. Did you forget to compile the C++ code?")
 
-CANTON_TO_INDEX, REFDATA = fetch_canton_data()
-NUM_CANTONS = len(CANTON_TO_INDEX)
+import libsolver
+
+CANTON_TO_INDEX = {key: k for k, key in enumerate(CANTON_KEYS_ALPHABETICAL)}
+MODEL_DATA = get_model_data()
+VALIDATION_DATA = get_validation_data()
 
 def example_run(num_days):
     """Runs the SEIIR model for some set of parameters and some initial conditions."""
-    # Data.
-    Mij = get_symmetric_Mij(CANTON_TO_INDEX)
-
     # Parameters.
     # Li2020, Table 1
     params = libsolver.Parameters (beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
     N0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
-    S0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
-    E0 = [0] * NUM_CANTONS
-    IR0 = [0] * NUM_CANTONS
-    IU0 = [0] * NUM_CANTONS
+    E0 = [0] * len(CANTON_TO_INDEX)
+    IR0 = [0] * len(CANTON_TO_INDEX)
+    IU0 = [0] * len(CANTON_TO_INDEX)
     IR0[CANTON_TO_INDEX['TI']] = 1  # Ticino.
     IU0[CANTON_TO_INDEX['TI']] = 0
+
+    S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.Solver(flatten(Mij))
+    solver = libsolver.Solver(MODEL_DATA.to_cpp())
     results = solver.solve(params, y0, num_days)
     return results
 
@@ -103,11 +99,11 @@ def plot_timeseries(results, cantons, var='S', refdata=False):
             u = [getattr(state, var)(CANTON_TO_INDEX[c]) for state in results]
         line, = ax.plot(u,label=c)
         if refdata:
-            u = [d[CANTON_TO_INDEX[c]] for d in REFDATA]
+            u = VALIDATION_DATA.cases_per_country[c]
             ax.plot(u, c=line.get_color(), ls='', marker='.')
 
     if refdata:
-        ax.set_ylim([1, 10 * np.nanmax([d[CANTON_TO_INDEX[c]] for c in cantons for d in REFDATA])])
+        ax.set_ylim([1, 10 * np.nanmax(VALIDATION_DATA.cases_per_country[c])])
     ax.set_yscale('log')
     ax.legend()
     varname = {
