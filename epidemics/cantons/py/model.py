@@ -148,5 +148,5 @@ def get_validation_data():
 
 
 if __name__ == '__main__':
-    make_model_data().save_cpp_dat()
-    make_validation_data().save_cpp_dat()
+    get_model_data().save_cpp_dat()
+    get_validation_data().save_cpp_dat()
