@@ -21,6 +21,7 @@ from epidemics.data import DATA_CACHE_DIR
 from epidemics.data.cases import get_region_cases
 from epidemics.tools.tools import flatten
 import epidemics.data.swiss_cantons as swiss_cantons
+import epidemics.data.swiss_municipalities as swiss_municipalities
 
 
 class ModelData:
@@ -147,6 +148,32 @@ def get_canton_validation_data():
     return ValidationData(keys, cases_per_country)
 
 
+def get_municipality_model_data():
+    namepop = swiss_municipalities.get_name_and_population()
+    commute = swiss_municipalities.get_commute()
+
+    # TODO: Comparison with validation data requires aggregation wrt cantons,
+    # since that's the only validation data we have.
+    # cantons = swiss_municipalities.get_municipality_commute()
+
+    key_to_index = {key: k for k, key in enumerate(namepop['key'])}
+    N = len(key_to_index)
+    Mij = np.zeros((N, N))
+    for key1, key2, num_people in zip(
+            commute['key1'],
+            commute['key2'],
+            commute['num_people']):
+        idx1 = key_to_index.get(key1)
+        idx2 = key_to_index.get(key2)
+        if idx1 is None or idx2 is None:
+            continue
+        Mij[idx1, idx2] += num_people
+        Mij[idx2, idx1] += num_people
+
+    return ModelData(namepop['key'], namepop['population'], Mij)
+
+
 if __name__ == '__main__':
     get_canton_model_data().save_cpp_dat()
     get_canton_validation_data().save_cpp_dat()
+    # get_municipality_model_data().save_cpp_dat()
