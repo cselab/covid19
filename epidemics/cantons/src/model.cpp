@@ -61,6 +61,8 @@ ModelData readModelData(const char *filename) {
                 DIE("Reading externalCases[day=%d][canton=%d] failed.\n", i, j);
 
     fclose(f);
+
+    return out;
 }
 
 ValidationData readValidationData(const char *filename) {
