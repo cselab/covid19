@@ -11,7 +11,7 @@ def download(url):
     return data
 
 
-def download_and_save(url, path, cache_duration=0):
+def download_and_save(url, path, cache_duration=1000000000):
     """Download the URL, store to a file, and return its content.
 
     Arguments:

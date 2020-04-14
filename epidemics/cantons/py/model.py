@@ -24,22 +24,22 @@ import epidemics.data.swiss_cantons as swiss_cantons
 
 
 class ModelData:
-    """Model data such as canton population and Mij matrix.
+    """Model data such as region population and Mij matrix.
 
     For conveniece, we store parameters beta, mu, alpha and other scalars
     separately (as libsolver.Parameters).
 
     Arguments:
-        canton_keys: List of canton abbreviated names
-        canton_population: List of population size of corresponding cantons.
-        Mij: A numpy matrix of canton-canton number of commuters.
-        external_cases: A matrix [day][canton] of estimated number of foreign
-                        infected people visiting given canton at given day.
+        region_keys: List of region names.
+        region_population: List of population size of corresponding regions.
+        Mij: A numpy matrix of region-region number of commuters.
+        external_cases: A matrix [day][region] of estimated number of foreign
+                        infected people visiting given region at given day.
     """
-    def __init__(self, canton_keys, canton_population, Mij, external_cases):
-        self.num_cantons = len(canton_keys)
-        self.canton_keys = canton_keys
-        self.canton_population = canton_population
+    def __init__(self, region_keys, region_population, Mij, *, external_cases=[]):
+        self.num_regions = len(region_keys)
+        self.region_keys = region_keys
+        self.region_population = region_population
         self.Mij = Mij
         self.external_cases = external_cases
 
@@ -47,8 +47,8 @@ class ModelData:
         """Return the libsolver.ModelData instance.
 
         Needed when running the model from Python using the C++ implementation."""
-        keys = {key: k for k, key in enumerate(self.canton_keys)}
-        return libsolver.ModelData(self.num_cantons, keys, self.canton_population,
+        keys = {key: k for k, key in enumerate(self.region_keys)}
+        return libsolver.ModelData(self.num_regions, keys, self.region_population,
                                    flatten(self.Mij), flatten(self.external_cases))
 
     def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
@@ -57,7 +57,7 @@ class ModelData:
         Needed when running Korali from C++, when `to_cpp` is not available.
 
         File format:
-            <number of cantons N>
+            <number of regions N>
             abbreviation1 ... abbreviationN
             population1 ... populationN
 
@@ -66,14 +66,14 @@ class ModelData:
             M_N1 ... M_NN
 
             <number of days D for external cases>
-            <external cases for day 1 for canton 1> ... <external cases for day 1 for canton N>
+            <external cases for day 1 for region 1> ... <external cases for day 1 for region N>
             ...
-            <external cases for day D for canton 1> ... <external cases for day D for canton N>
+            <external cases for day D for region 1> ... <external cases for day D for region N>
         """
         with open(path, 'w') as f:
-            f.write(str(self.num_cantons) + '\n')
-            f.write(' '.join(self.canton_keys) + '\n')
-            f.write(' '.join(str(p) for p in self.canton_population) + '\n\n')
+            f.write(str(self.num_regions) + '\n')
+            f.write(' '.join(self.region_keys) + '\n')
+            f.write(' '.join(str(p) for p in self.region_population) + '\n\n')
 
             for row in self.Mij:
                 f.write(' '.join(str(x) for x in row) + '\n')
@@ -87,17 +87,17 @@ class ModelData:
 
 class ValidationData:
     """Measured data that the model is predicting."""
-    def __init__(self, canton_keys, cases_per_country):
-        self.canton_keys = canton_keys
+    def __init__(self, region_keys, cases_per_country):
+        self.region_keys = region_keys
         self.cases_per_country = cases_per_country
-        self.canton_to_index = {key: k for k, key in enumerate(canton_keys)}
+        self.region_to_index = {key: k for k, key in enumerate(region_keys)}
 
         # Not all elements of the `cases_per_country` matrix are known, so we
-        # create a list of tuples (day, canton index, number of cases).
+        # create a list of tuples (day, region index, number of cases).
         self.cases_data_points = [
-            (d, self.canton_to_index[c], day_value)
-            for c, canton_values in cases_per_country.items()
-            for d, day_value in enumerate(canton_values)
+            (d, self.region_to_index[c], day_value)
+            for c, region_values in cases_per_country.items()
+            for d, day_value in enumerate(region_values)
             if not math.isnan(day_value)
         ]
 
@@ -106,12 +106,12 @@ class ValidationData:
 
         File format:
             <number of known data points M>
-            day1 canton_index1 number_of_cases1
+            day1 region_index1 number_of_cases1
             ...
-            dayM canton_indexM number_of_casesM
+            dayM region_indexM number_of_casesM
 
         The known data points are all known values of numbers of cases. The
-        canton index refers to the order in cpp_model_data.dat
+        region index refers to the order in cpp_model_data.dat
         Note that covid19_cases_switzerland_openzh.csv (see `fetch`) has many missing values.
         """
         with open(path, 'w') as f:
@@ -121,7 +121,7 @@ class ValidationData:
         print(f"Stored validation data to {path}.")
 
 
-def get_model_data(include_foreign=True):
+def get_canton_model_data(include_foreign=True):
     """Creates the ModelData instance with default data."""
     keys = swiss_cantons.CANTON_KEYS_ALPHABETICAL
     population = [swiss_cantons.CANTON_POPULATION[c] for c in keys]
@@ -138,15 +138,15 @@ def get_model_data(include_foreign=True):
     else:
         external_cases = [[] for c in keys]
 
-    return ModelData(keys, population, Mij, external_cases)
+    return ModelData(keys, population, Mij, external_cases=external_cases)
 
 
-def get_validation_data():
+def get_canton_validation_data():
     keys = swiss_cantons.CANTON_KEYS_ALPHABETICAL
     cases_per_country = swiss_cantons.fetch_openzh_covid_data()
     return ValidationData(keys, cases_per_country)
 
 
 if __name__ == '__main__':
-    get_model_data().save_cpp_dat()
-    get_validation_data().save_cpp_dat()
+    get_canton_model_data().save_cpp_dat()
+    get_canton_validation_data().save_cpp_dat()

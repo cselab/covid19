@@ -9,11 +9,11 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.model import get_validation_data
+from epidemics.cantons.py.model import get_canton_validation_data
 from epidemics.cantons.py.plot import Renderer
 from epidemics.tools.tools import flatten
 
-IR = get_validation_data().cases_per_country
+IR = get_canton_validation_data().cases_per_country
 IR_MAX = np.nanmax(flatten(IR.values()))
 
 def plot_data():
