@@ -1,10 +1,12 @@
-#include "model.h"
-#include "solver.h"
+#include "common.hh"
+#include "data.h"
+#include "model_seiin.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
 
+template <typename State>
 auto makeValuesGetter(int valueIndex) {
     assert(0 <= valueIndex && valueIndex < kVarsPerRegion);
     /// Extract a subvector of the state corresponding to the given value.
@@ -29,9 +31,9 @@ public:
     }
 };
 
-PYBIND11_MODULE(libsolver, m)
-{
+void exportSEIIN(py::module &m) {
     using namespace pybind11::literals;
+    using namespace seiin;
 
     py::class_<Parameters>(m, "Parameters")
         .def(py::init<double, double, double, double, double, double>(),
@@ -43,21 +45,16 @@ PYBIND11_MODULE(libsolver, m)
         .def_readwrite("D", &Parameters::D)
         .def_readwrite("theta", &Parameters::theta);
 
-    py::class_<ModelData>(m, "ModelData")
-        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>,
-                      std::vector<double>, std::vector<double>>());
-    m.def("readModelData", &readModelData, "filename");
-
     py::class_<State>(m, "State")
         .def(py::init<std::vector<double>>())
         .def("tolist", [](const State &state) -> std::vector<double> {
             return state.raw();
         }, "Convert to a Python list of floats.")
-        .def("S", makeValuesGetter(0), "Get a list of S for each region.")
-        .def("E", makeValuesGetter(1), "Get a list of E for each region.")
-        .def("Ir", makeValuesGetter(2), "Get a list of Ir for each region.")
-        .def("Iu", makeValuesGetter(3), "Get a list of Iu for each region.")
-        .def("N", makeValuesGetter(4), "Get a list of N for each region.")
+        .def("S", makeValuesGetter<State>(0), "Get a list of S for each region.")
+        .def("E", makeValuesGetter<State>(1), "Get a list of E for each region.")
+        .def("Ir", makeValuesGetter<State>(2), "Get a list of Ir for each region.")
+        .def("Iu", makeValuesGetter<State>(3), "Get a list of Iu for each region.")
+        .def("N", makeValuesGetter<State>(4), "Get a list of N for each region.")
         .def("S", py::overload_cast<size_t>(&State::S, py::const_), "Get S_i.")
         .def("E", py::overload_cast<size_t>(&State::E, py::const_), "Get E_i.")
         .def("Ir", py::overload_cast<size_t>(&State::Ir, py::const_), "Get Ir_i.")
@@ -75,4 +72,17 @@ PYBIND11_MODULE(libsolver, m)
                 return solver.solve(params, std::move(state), num_days);
             },
             "parameters"_a, "initial_state"_a, "days"_a);
+}
+
+PYBIND11_MODULE(libsolver, m)
+{
+    auto solvers = m.def_submodule("solvers");
+    auto seiin = solvers.def_submodule("seiin");
+    exportSEIIN(seiin);
+
+    py::class_<ModelData>(m, "ModelData")
+        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>,
+                      std::vector<double>, std::vector<double>>());
+    m.def("readModelData", &readModelData, "filename");
+
 }

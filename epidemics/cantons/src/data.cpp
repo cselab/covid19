@@ -1,4 +1,4 @@
-#include "model.h"
+#include "data.h"
 #include "utils.h"
 
 std::vector<double> ReferenceData::getReferenceData() const {
@@ -9,6 +9,7 @@ std::vector<double> ReferenceData::getReferenceData() const {
     return out;
 }
 
+/*
 std::vector<double> ReferenceData::getReferenceEvaluations(
         const std::vector<State> &states) const {
     size_t N = cases.size();
@@ -18,6 +19,7 @@ std::vector<double> ReferenceData::getReferenceEvaluations(
     }
     return out;
 }
+*/
 
 ModelData readModelData(const char *filename) {
     FILE *f = fopen(filename, "r");

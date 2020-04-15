@@ -19,13 +19,14 @@ from epidemics.cantons.py.plot import Renderer
 
 import libsolver
 
-def example_run(model_data, num_days):
-    """Runs the SEIIR model for some set of parameters and some initial conditions."""
+def example_run_seiin(model_data, num_days):
+    """Runs the SEIIN model for some set of parameters and some initial conditions."""
     key_to_index = {key: k for k, key in enumerate(model_data.region_keys)}
 
     # Parameters.
     # Li2020, Table 1
-    params = libsolver.Parameters (beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
+    params = libsolver.solvers.seiin.Parameters(
+            beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
     N0 = list(model_data.region_population)
@@ -44,7 +45,8 @@ def example_run(model_data, num_days):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.Solver(model_data.to_cpp(), verbose=True)
+    solver = libsolver.solvers.seiin.Solver(
+            model_data.to_cpp(), verbose=True)
     results = solver.solve(params, y0, num_days)
     return results
 
@@ -140,7 +142,7 @@ def main(argv):
         model_data = get_municipality_model_data()
         ref_data = None
 
-    results = example_run(model_data, args.days)
+    results = example_run_seiin(model_data, args.days)
 
     if args.type == 'video':
         plot_ode_results(model_data, results)

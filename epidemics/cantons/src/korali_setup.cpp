@@ -1,15 +1,16 @@
-#include <korali.hpp>
-#include "model.h"
-#include "solver.h"
-#include "utils.h"
+// #include <korali.hpp>
+// #include "data.h"
+// #include "model_seiin.h"
+// #include "utils.h"
 
-#include <cstdlib>
+// #include <cstdlib>
 
+/*
 // This does not really fit here...
 std::vector<double> getStandardDeviationModel(
         const ReferenceData &data,
         double sigma,
-        const std::vector<State> &/*result*/) {
+        const std::vector<State> & [[maybe_unused]] result) {
     return std::vector<double>(data.cases.size(), sigma);
 }
 
@@ -29,7 +30,6 @@ State createInitialState(const ModelData &data) {
 
     return y0;
 }
-
 
 auto makeKoraliWrapper(
         const ReferenceData &data,
@@ -59,9 +59,11 @@ auto makeKoraliWrapper(
         k["Standard Deviation Model"] = getStandardDeviationModel(data, sigma, result);
     };
 }
+*/
 
 
 int main() {
+    /*
     korali::Engine k;
     korali::Experiment e;
     ModelData modelData = readModelData();
@@ -124,6 +126,7 @@ int main() {
     k["Conduit"]["Concurrent Jobs"] = 8;
 
     k.run(e);
+    */
 
     return 0;
 }
