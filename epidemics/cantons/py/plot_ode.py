@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
 from epidemics.cantons.py.model import \
-        get_canton_model_data, get_canton_validation_data, \
+        get_canton_model_data, get_canton_reference_data, \
         get_municipality_model_data
 from epidemics.cantons.py.plot import Renderer
 
@@ -135,7 +135,7 @@ def main(argv):
 
     if args.level == 'canton':
         model_data = get_canton_model_data(include_foreign=not args.no_foreign)
-        ref_data = get_canton_validation_data()
+        ref_data = get_canton_reference_data()
     else:
         model_data = get_municipality_model_data()
         ref_data = None

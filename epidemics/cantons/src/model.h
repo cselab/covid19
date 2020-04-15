@@ -83,8 +83,8 @@ struct DataPoint {
 };
 
 /// UQ-specific data
-struct ValidationData {
-    // Note: py/model.py:ValidationData.to_cpp depends on this structure.
+struct ReferenceData {
+    // Note: py/model.py:ReferenceData.to_cpp depends on this structure.
 
     /// List of known number of cases.
     std::vector<DataPoint> cases;
@@ -101,4 +101,4 @@ struct ValidationData {
 };
 
 ModelData readModelData(const char *filename = "data/cpp_model_data.dat");
-ValidationData readValidationData(const char *filename = "data/cpp_validation_data.dat");
+ReferenceData readReferenceData(const char *filename = "data/cpp_reference_data.dat");

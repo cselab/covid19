@@ -7,7 +7,7 @@
 
 // This does not really fit here...
 std::vector<double> getStandardDeviationModel(
-        const ValidationData &data,
+        const ReferenceData &data,
         double sigma,
         const std::vector<State> &/*result*/) {
     return std::vector<double>(data.cases.size(), sigma);
@@ -32,7 +32,7 @@ State createInitialState(const ModelData &data) {
 
 
 auto makeKoraliWrapper(
-        const ValidationData &data,
+        const ReferenceData &data,
         const Solver &solver,
         const State &y0,
         int numDays) {
@@ -65,15 +65,15 @@ int main() {
     korali::Engine k;
     korali::Experiment e;
     ModelData modelData = readModelData();
-    ValidationData validationData = readValidationData();
+    ReferenceData referenceData = readReferenceData();
     State y0 = createInitialState(modelData);
     Solver solver{std::move(modelData)};
     int numDays = 50;
 
     e["Problem"]["Type"] = "Bayesian/Reference";
     e["Problem"]["Likelihood Model"] = "Additive Normal General";
-    e["Problem"]["Reference Data"] = validationData.getReferenceData();
-    e["Problem"]["Computational Model"] = makeKoraliWrapper(validationData, solver, y0, numDays);
+    e["Problem"]["Reference Data"] = referenceData.getReferenceData();
+    e["Problem"]["Computational Model"] = makeKoraliWrapper(referenceData, solver, y0, numDays);
 
     e["Solver"]["Type"] = "TMCMC";
     e["Solver"]["Population Size"] = 2000;

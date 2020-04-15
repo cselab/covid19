@@ -1,7 +1,7 @@
 #include "model.h"
 #include "utils.h"
 
-std::vector<double> ValidationData::getReferenceData() const {
+std::vector<double> ReferenceData::getReferenceData() const {
     size_t N = cases.size();
     std::vector<double> out(N, 0.0);
     for (size_t i = 0; i < N; ++i)
@@ -9,7 +9,7 @@ std::vector<double> ValidationData::getReferenceData() const {
     return out;
 }
 
-std::vector<double> ValidationData::getReferenceEvaluations(
+std::vector<double> ReferenceData::getReferenceEvaluations(
         const std::vector<State> &states) const {
     size_t N = cases.size();
     std::vector<double> out(N, 0.0);
@@ -65,12 +65,12 @@ ModelData readModelData(const char *filename) {
     return out;
 }
 
-ValidationData readValidationData(const char *filename) {
+ReferenceData readReferenceData(const char *filename) {
     FILE *f = fopen(filename, "r");
     if (f == nullptr)
         DIE("Error opening file \"%s\". Did you forget to run ./py/data.py?\n", filename);
 
-    ValidationData out;
+    ReferenceData out;
     int M;
     if (fscanf(f, "%d", &M) != 1)
         DIE("Failed reading M.\n");

@@ -7,7 +7,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.model import get_canton_model_data, get_canton_validation_data
+from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data
 from epidemics.cantons.py.solver import Solver
 from epidemics.cantons.py.plot_ode import plot_ode_results
 import libsolver  # Must be AFTER .plot_ode (because of sys.path...).
@@ -16,7 +16,7 @@ import libsolver  # Must be AFTER .plot_ode (because of sys.path...).
 MODEL_DATA = get_canton_model_data()
 CANTON_TO_INDEX = {key: k for k, key in enumerate(MODEL_DATA.region_keys)}
 CANTON_POPULATION = dict(zip(MODEL_DATA.region_keys, MODEL_DATA.region_population))
-REFDATA = get_canton_validation_data()
+REFDATA = get_canton_reference_data()
 
 def get_params():
     """Get the 6 model parameters."""

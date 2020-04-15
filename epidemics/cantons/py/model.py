@@ -86,7 +86,7 @@ class ModelData:
         print(f"Stored model data to {path}.")
 
 
-class ValidationData:
+class ReferenceData:
     """Measured data that the model is predicting."""
     def __init__(self, region_keys, cases_per_country):
         self.region_keys = region_keys
@@ -102,8 +102,8 @@ class ValidationData:
             if not math.isnan(day_value)
         ]
 
-    def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_validation_data.dat'):
-        """Generate cpp_validation_data.dat, the data for the C++ ValidationData class.
+    def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_reference_data.dat'):
+        """Generate cpp_reference_data.dat, the data for the C++ ReferenceData class.
 
         File format:
             <number of known data points M>
@@ -119,7 +119,7 @@ class ValidationData:
             f.write(str(len(self.cases_data_points)) + '\n')
             for data_point in self.cases_data_points:
                 f.write('{} {} {}\n'.format(*data_point))
-        print(f"Stored validation data to {path}.")
+        print(f"Stored reference data to {path}.")
 
 
 def get_canton_model_data(include_foreign=True):
@@ -142,18 +142,18 @@ def get_canton_model_data(include_foreign=True):
     return ModelData(keys, population, Mij, external_cases=external_cases)
 
 
-def get_canton_validation_data():
+def get_canton_reference_data():
     keys = swiss_cantons.CANTON_KEYS_ALPHABETICAL
     cases_per_country = swiss_cantons.fetch_openzh_covid_data()
-    return ValidationData(keys, cases_per_country)
+    return ReferenceData(keys, cases_per_country)
 
 
 def get_municipality_model_data():
     namepop = swiss_municipalities.get_name_and_population()
     commute = swiss_municipalities.get_commute()
 
-    # TODO: Comparison with validation data requires aggregation wrt cantons,
-    # since that's the only validation data we have.
+    # TODO: Comparison with reference data requires aggregation wrt cantons,
+    # since that's the only reference data we have.
     # cantons = swiss_municipalities.get_municipality_commute()
 
     key_to_index = {key: k for k, key in enumerate(namepop['key'])}
@@ -175,5 +175,5 @@ def get_municipality_model_data():
 
 if __name__ == '__main__':
     get_canton_model_data().save_cpp_dat()
-    get_canton_validation_data().save_cpp_dat()
+    get_canton_reference_data().save_cpp_dat()
     # get_municipality_model_data().save_cpp_dat()
