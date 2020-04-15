@@ -17,17 +17,9 @@ Thus, we symmetrize the matrix `Mij` by modifying it as `M'ij = Mij + Mji`, whic
 
 Internally, the state is stored as a vector of 5 * 26 values, `[S1, ..., S26, E1, ... E26, ...]`.
 
-## Usage
-
-- `./py/data.py`: Run once to prepare data for `./build/solver`.
-- `./py/plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
-- `./py/plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
-- `./build/solver`: Run Korali (from C++) to determine the model parameters from measured data (WIP).
-- `../../main.py --compModel cantons`: Run Korali from Python (DEPRECATED/BROKEN).
-
 ## Compilation
 
-Compile both the Python library `./build/libsolver*.so` and the C++ code `./build/solver` with:
+To run the `plot_ode.py` or `build/solver`, first compile the C++ code with:
 ```
 git submodule update --init --recursive
 mkdir -p build
@@ -35,6 +27,18 @@ cd build
 cmake ..
 make -j4
 ```
+
+Compilation requires Korali to be installed.
+In principle, Korali is required only by `build/solver`, but `CMakeLists.txt` does not handle the case when Korali is not available.
+
+## Usage
+
+- `./py/plot_ode.py video <num_days>`: Generate an animation. See `example_run` function for setting up the initial state and the model parameters.
+- `./py/plot_ode.py timeseries <num_days>`: Generate a timeseries plot. See `example_run` and `main`.
+- `./build/solver`: Run Korali (from C++) to determine the model parameters from measured data (WIP / NOT TESTED).
+- `./py/model.py`: Run once to prepare data for `./build/solver`.
+- `./py/test_solver.py`: Pytorch-based simulation (see `py/solver.py`). Compilation of the C++ code NOT needed.
+
 
 ## Links from Petros
 
