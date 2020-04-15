@@ -16,6 +16,9 @@ from epidemics.tools.tools import flatten
 IR = get_canton_reference_data().cases_per_country
 IR_MAX = np.nanmax(flatten(IR.values()))
 
+# TODO: Move to epidemics/data/**
+DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
+
 def plot_data():
     def frame_callback(rend):
         values = rend.get_values()
@@ -33,7 +36,7 @@ def plot_data():
     rend.save_image(filename="data.png")
     rend.save_movie(frames=len(next(iter(IR.values()))), filename="data.mp4", fps=5)
 
-    rend = Renderer(frame_callback, matrix_json='2017/matrix.json')
+    rend = Renderer(frame_callback, matrix_json=os.path.join(DATA_DIR, '2017/matrix.json'))
     rend.save_image(filename="data_2017.png")
 
 
