@@ -23,6 +23,7 @@ set(CMAKE_CXX_COMPILER "${KORALI_COMPILER}")
 project(COVID19 LANGUAGES CXX)
 set(EXTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/extern")
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
 # Files common to .so and to the executable.
 SET(COMMON_SRC_FILES
@@ -36,6 +37,7 @@ pybind11_add_module(
     libsolver
     ${COMMON_SRC_FILES}
     ${SRC_DIR}/bindings.cpp)
+target_compile_options(libsolver PUBLIC ${CUSTOM_CXXFLAGS})
 
 # Set up the C++-only code.
 add_executable(
@@ -44,6 +46,7 @@ add_executable(
     ${SRC_DIR}/korali_setup.cpp)
 
 target_compile_options(solver PUBLIC ${KORALI_CXXFLAGS})
+target_compile_options(solver PUBLIC ${CUSTOM_CXXFLAGS} -Wno-unused-parameter)
 target_link_options(solver PUBLIC ${KORALI_LINKERFLAGS})
 
 # Make Release mode the default.

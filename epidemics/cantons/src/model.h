@@ -71,7 +71,7 @@ struct ModelData {
 
     double getExternalCasesAt(int day, int canton) const noexcept {
         int idx = day * (int)numRegions + canton;
-        return idx < 0 || idx >= externalCases.size() ? 0 : externalCases[idx];
+        return idx < 0 || idx >= (int)externalCases.size() ? 0 : externalCases[idx];
     }
 };
 

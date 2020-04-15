@@ -62,7 +62,7 @@ PYBIND11_MODULE(libsolver, m)
         .def("E", py::overload_cast<size_t>(&State::E, py::const_), "Get E_i.")
         .def("Ir", py::overload_cast<size_t>(&State::Ir, py::const_), "Get Ir_i.")
         .def("Iu", py::overload_cast<size_t>(&State::Iu, py::const_), "Get Iu_i.")
-        .def("N", py::overload_cast<size_t>(&State::N, py::const_)), "Get N_i.";
+        .def("N", py::overload_cast<size_t>(&State::N, py::const_), "Get N_i.");
 
     py::class_<Solver>(m, "Solver")
         .def(py::init<ModelData, bool>(), "model_data"_a, "verbose"_a=false)

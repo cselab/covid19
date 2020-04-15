@@ -10,14 +10,6 @@ using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
 CheckSignalsFunc check_signals_func = nullptr;
 
-static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t N) {
-    std::vector<double> out(N * N, 0.0);
-    for (size_t i = 0; i < N; ++i)
-        for (size_t j = 0; j < N; ++j)
-            out[i * N + j] = m[j * N + i];
-    return out;
-}
-
 Solver::Solver(ModelData modelData, bool verbose) :
     modelData_{std::move(modelData)},
     verbose_{verbose}
