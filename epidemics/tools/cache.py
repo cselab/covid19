@@ -1,3 +1,5 @@
+import pandas
+
 from pathlib import Path
 import functools
 import json
@@ -32,6 +34,8 @@ def cache(func):
 def cache_to_file(target, dependencies=[]):
     """Factory for a decorator that caches the result of a no-argument function and stores it to a target file.
 
+    Handles JSON, pickle and pandas.DataFrame CSV files.
+
     Arguments:
         target: The target cache filename.
         dependencies: The list of files that the result depends on.
@@ -41,7 +45,9 @@ def cache_to_file(target, dependencies=[]):
     target = Path(target)
     dependencies = [Path(d) for d in dependencies]
 
-    if target.suffix == '.json':
+    target_str = str(target)
+
+    if target_str.endswith('.json'):
         def load(path):
             with open(path) as f:
                 return json.load(f)
@@ -50,7 +56,7 @@ def cache_to_file(target, dependencies=[]):
             with open(path, 'w') as f:
                 json.dump(content, f)
 
-    elif target.suffix == '.pickle':
+    elif target_str.endswith('.pickle'):
         def load(path):
             with open(path, 'rb') as f:
                 return pickle.load(f)
@@ -58,6 +64,13 @@ def cache_to_file(target, dependencies=[]):
         def save(content, path):
             with open(path, 'wb') as f:
                 pickle.dump(content, f)
+
+    elif target_str.endswith('.df.csv'):
+        load = pandas.read_csv
+
+        def save(content, path):
+            with open(path, 'w') as f:
+                f.write(content.to_csv(index=False))
 
     else:
         raise ValueError(f"Unrecognized extension '{target.suffix}'. "

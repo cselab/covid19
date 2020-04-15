@@ -4,8 +4,34 @@ from epidemics.tools.cache import cache
 from epidemics.tools.io import download_and_save
 
 from collections import namedtuple
+import datetime
 
-RegionCasesData = namedtuple('RegionCasesData', ('confirmed', 'recovered', 'deaths'))
+class RegionCasesData:
+    """Daily data of number of confirmed cases, recovered cases and death for one region."""
+    __slots__ = ('start_date', 'confirmed', 'recovered', 'deaths')
+
+    def __init__(self, start_date, confirmed, recovered, deaths):
+        self.start_date = start_date
+        self.confirmed = confirmed
+        self.recovered = recovered
+        self.deaths = deaths
+
+    def __repr__(self):
+        return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(
+                self.__class__.__name__, self.start_date, self.confirmed,
+                self.recovered, self.deaths)
+
+    def get_confirmed_at_date(self, date):
+        idx = (date - self.start_date).days
+        if idx < 0 or idx >= len(self.confirmed):
+            return 0
+        return self.confirmed[idx]
+
+    def get_date_of_first_confirmed(self):
+        for day, value in enumerate(self.confirmed):
+            if value:
+                return self.start_date + datetime.timedelta(days=day)
+        raise Exception("Region does not even have confirmed cases.")
 
 
 @cache
@@ -26,6 +52,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
     header, *rows = data.split('\n')
 
     # First column is a date.
+    start_date = datetime.date.fromisoformat(rows[0].split(',', 1)[0])
     days_cells = [row.split(',')[1:] for row in rows[:-days_to_remove]]
     _, *regions = header.split(',')
 
@@ -42,6 +69,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
 
         # The meaning of cell[2] is unknown (it seems to be 0 everywhere).
         out[region_to_key(name)] = RegionCasesData(
+                start_date=start_date,
                 confirmed=[cell[0] for cell in values],
                 recovered=[cell[2] for cell in values],
                 deaths=[cell[3] for cell in values])

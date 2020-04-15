@@ -19,9 +19,8 @@ Converted to 2D WGS84 coordinates using QGIS (required by Basemap.readshapefile)
 
 `je-e-11.04.04.05.xlsx`: original
 
-`commute.csv`: extraction of
+`epidemics/data/files/switzerland_commute_admih_ch.csv`: extraction of
 
 * `Canton initials` for `Commune of residence`
 * `Canton initials` for `Commune of work`
 * `Number of employed persons`
-

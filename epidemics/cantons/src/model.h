@@ -1,21 +1,9 @@
 #pragma once
 
 #include <cassert>
+#include <map>
+#include <string>
 #include <vector>
-
-/// Parameters to be optimized for.
-struct Parameters {
-    double beta;   // Transmission rate.
-    double mu;     // Reduction factor for transmission rate of undocumented individuals.
-    double alpha;  // Fraction of documented infections.
-    double Z;      // Average latency period.
-    double D;      // Average duration of infection.
-    double theta;  // Corrective multiplicative factor for Mij.
-
-    double computeRe() const {
-        return alpha * beta * D + (1 - alpha) * mu * beta * D;
-    }
-};
 
 /*
  * Using custom types with boost::odeint is not that simple.
@@ -61,25 +49,56 @@ private:
     RawState v_;
 };
 
-class Solver {
-public:
-    Solver(std::vector<double> commuteMatrix);
 
-    double M(int from, int to) const {
-        return M_[from * numRegions_ + to];
-    }
-    double Mt(int to, int from) const {
-        return Mt_[to * numRegions_ + from];
-    }
-
-    std::vector<State> solve(const Parameters &parameters, State initialState, int days) const;
-    std::vector<State> solve(const Parameters &parameters, RawState initialState, int days) const;
-
-private:
-    void deterministicRHS(Parameters p, const RawState &x, RawState &dxdt) const;
-
-    size_t numRegions_;
-    std::vector<double> M_;   // Flattened matrix Mij.
-    std::vector<double> Mt_;  // Flattened matrix Mji.
-    int R_;                  // Number of regions.
+/// Lightweight parameters (optimized for).
+struct Parameters {
+    double beta;   // Transmission rate.
+    double mu;     // Reduction factor for transmission rate of undocumented individuals.
+    double alpha;  // Fraction of documented infections.
+    double Z;      // Average latency period.
+    double D;      // Average duration of infection.
+    double theta;  // Corrective multiplicative factor for Mij.
 };
+
+/// Model bulk parameters (not optimized for).
+struct ModelData {
+    // Note: py/model.py:ModelData.to_cpp depends on this structure.
+    size_t numRegions;
+    std::map<std::string, int> regionNameToIndex;
+    std::vector<int> regionPopulation;
+    std::vector<double> Mij;  // Row-major.
+    std::vector<double> externalCases;  // Row-major [day][canton].
+
+    double getExternalCasesAt(int day, int canton) const noexcept {
+        int idx = day * (int)numRegions + canton;
+        return idx < 0 || idx >= (int)externalCases.size() ? 0 : externalCases[idx];
+    }
+};
+
+/// A data value for the given region and day.
+struct DataPoint {
+    int day;
+    int region;
+    double value;
+};
+
+/// UQ-specific data
+struct ReferenceData {
+    // Note: py/model.py:ReferenceData.to_cpp depends on this structure.
+
+    /// List of known number of cases.
+    std::vector<DataPoint> cases;
+
+    /// Represent all known data point values into a single vector.
+    /// Used for setting up Korali.
+    std::vector<double> getReferenceData() const;
+
+    /// Extract number of infected people for days and regions for which we
+    /// have measured data, in the same order as the values returned by
+    /// `getReferenceData()`.
+    std::vector<double> getReferenceEvaluations(
+            const std::vector<State> &states) const;
+};
+
+ModelData readModelData(const char *filename = "data/cpp_model_data.dat");
+ReferenceData readReferenceData(const char *filename = "data/cpp_reference_data.dat");

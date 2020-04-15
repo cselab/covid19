@@ -1,4 +1,5 @@
 #include "model.h"
+#include "solver.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -14,6 +15,20 @@ auto makeValuesGetter(int valueIndex) {
     };
 }
 
+class SignalRAII {
+public:
+    SignalRAII() {
+        check_signals_func = []() {
+            // https://stackoverflow.com/questions/14707049/allowing-ctrl-c-to-interrupt-a-python-c-extension
+            if (PyErr_CheckSignals() != 0)
+                throw std::runtime_error("Signal received. Breaking.");
+        };
+    }
+    ~SignalRAII() {
+        check_signals_func = nullptr;
+    }
+};
+
 PYBIND11_MODULE(libsolver, m)
 {
     using namespace pybind11::literals;
@@ -27,6 +42,11 @@ PYBIND11_MODULE(libsolver, m)
         .def_readwrite("Z", &Parameters::Z)
         .def_readwrite("D", &Parameters::D)
         .def_readwrite("theta", &Parameters::theta);
+
+    py::class_<ModelData>(m, "ModelData")
+        .def(py::init<size_t, std::map<std::string, int>, std::vector<int>,
+                      std::vector<double>, std::vector<double>>());
+    m.def("readModelData", &readModelData, "filename");
 
     py::class_<State>(m, "State")
         .def(py::init<std::vector<double>>())
@@ -42,11 +62,17 @@ PYBIND11_MODULE(libsolver, m)
         .def("E", py::overload_cast<size_t>(&State::E, py::const_), "Get E_i.")
         .def("Ir", py::overload_cast<size_t>(&State::Ir, py::const_), "Get Ir_i.")
         .def("Iu", py::overload_cast<size_t>(&State::Iu, py::const_), "Get Iu_i.")
-        .def("N", py::overload_cast<size_t>(&State::N, py::const_)), "Get N_i.";
+        .def("N", py::overload_cast<size_t>(&State::N, py::const_), "Get N_i.");
 
     py::class_<Solver>(m, "Solver")
-        .def(py::init<std::vector<double>>(),
-             "Mij"_a)
-        .def("solve", py::overload_cast<const Parameters &, RawState, int>(&Solver::solve, py::const_),
-             "parameters"_a, "initialState"_a, "days"_a);
+        .def(py::init<ModelData, bool>(), "model_data"_a, "verbose"_a=false)
+        .def("solve", [](const Solver &solver,
+                         const Parameters &params,
+                         RawState state,
+                         int num_days)
+            {
+                SignalRAII break_raii;
+                return solver.solve(params, std::move(state), num_days);
+            },
+            "parameters"_a, "initial_state"_a, "days"_a);
 }

@@ -1,30 +1,30 @@
 #include <korali.hpp>
 #include "model.h"
-#include "data.h"
+#include "solver.h"
 #include "utils.h"
 
 #include <cstdlib>
 
 // This does not really fit here...
 std::vector<double> getStandardDeviationModel(
-        const CantonsData &data,
+        const ReferenceData &data,
         double sigma,
         const std::vector<State> &/*result*/) {
-    return std::vector<double>(data.dataPoints.size(), sigma);
+    return std::vector<double>(data.cases.size(), sigma);
 }
 
-State createInitialState(const CantonsData &data) {
-    State y0{data.numCantons};
+State createInitialState(const ModelData &data) {
+    State y0{data.numRegions};
 
-    for (size_t i = 0; i < data.numCantons; ++i) {
-        y0.S(i) = data.population[i];
+    for (size_t i = 0; i < data.numRegions; ++i) {
+        y0.S(i) = data.regionPopulation[i];
         y0.E(i) = 0;
         y0.Ir(i) = 0;
         y0.Iu(i) = 0;
-        y0.N(i) = data.population[i];
+        y0.N(i) = data.regionPopulation[i];
     }
 
-    int ticino = data.nameToIndex.at("TI");
+    int ticino = data.regionNameToIndex.at("TI");
     y0.Ir(ticino) = 10;
 
     return y0;
@@ -32,7 +32,7 @@ State createInitialState(const CantonsData &data) {
 
 
 auto makeKoraliWrapper(
-        const CantonsData &data,
+        const ReferenceData &data,
         const Solver &solver,
         const State &y0,
         int numDays) {
@@ -64,15 +64,16 @@ auto makeKoraliWrapper(
 int main() {
     korali::Engine k;
     korali::Experiment e;
-    CantonsData data = readCantonsData();
-    Solver solver{data.Mij};
-    State y0 = createInitialState(data);
+    ModelData modelData = readModelData();
+    ReferenceData referenceData = readReferenceData();
+    State y0 = createInitialState(modelData);
+    Solver solver{std::move(modelData)};
     int numDays = 50;
 
     e["Problem"]["Type"] = "Bayesian/Reference";
     e["Problem"]["Likelihood Model"] = "Additive Normal General";
-    e["Problem"]["Reference Data"] = data.getReferenceData();
-    e["Problem"]["Computational Model"] = makeKoraliWrapper(data, solver, y0, numDays);
+    e["Problem"]["Reference Data"] = referenceData.getReferenceData();
+    e["Problem"]["Computational Model"] = makeKoraliWrapper(referenceData, solver, y0, numDays);
 
     e["Solver"]["Type"] = "TMCMC";
     e["Solver"]["Population Size"] = 2000;

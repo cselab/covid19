@@ -13,7 +13,10 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.data import DATA_DIR
+from epidemics.data import DATA_CACHE_DIR
+
+# TODO: Move to epidemics/data/**
+DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
@@ -94,13 +97,19 @@ for code,name in code_to_name.items():
 codes = code_to_name.keys()
 
 class Renderer:
-    def __init__(self, frame_callback, matrix_json='home_work_people.json'):
+    def __init__(self, frame_callback, matrix_json=None):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
             It can use `set_values()` and `set_texts()` to update the state,
             and `get_frame()` and `get_max_frame()` to get current frame index.
         '''
+
+        if not matrix_json:
+            # Trigger generation of `home_work_people.json`.
+            from epidemics.data.swiss_cantons import get_Mij_home_work_admin_ch_json
+            get_Mij_home_work_admin_ch_json()
+            matrix_json = DATA_CACHE_DIR / 'home_work_people.json'
 
         self.frame_callback = frame_callback
         self.code_to_value = {}

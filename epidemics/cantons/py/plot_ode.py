@@ -10,50 +10,52 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'build'))
 
-from epidemics.cantons.py.data import CANTON_POPULATION, get_symmetric_Mij, fetch_canton_data
+from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
+from epidemics.cantons.py.model import \
+        get_canton_model_data, get_canton_reference_data, \
+        get_municipality_model_data
 from epidemics.cantons.py.plot import Renderer
-from epidemics.tools.tools import flatten
-try:
-    import libsolver
-except ModuleNotFoundError:
-    sys.exit("libsolver not found. Did you forget to compile the C++ code?")
 
-CANTON_TO_INDEX, REFDATA = fetch_canton_data()
-NUM_CANTONS = len(CANTON_TO_INDEX)
+import libsolver
 
-def example_run(num_days):
+def example_run(model_data, num_days):
     """Runs the SEIIR model for some set of parameters and some initial conditions."""
-    # Data.
-    Mij = get_symmetric_Mij(CANTON_TO_INDEX)
+    key_to_index = {key: k for k, key in enumerate(model_data.region_keys)}
 
     # Parameters.
     # Li2020, Table 1
     params = libsolver.Parameters (beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
-    N0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
-    S0 = [CANTON_POPULATION[canton] for canton in CANTON_TO_INDEX]
-    E0 = [0] * NUM_CANTONS
-    IR0 = [0] * NUM_CANTONS
-    IU0 = [0] * NUM_CANTONS
-    IR0[CANTON_TO_INDEX['TI']] = 1  # Ticino.
-    IU0[CANTON_TO_INDEX['TI']] = 0
+    N0 = list(model_data.region_population)
+    E0 = [0] * len(key_to_index)
+    IR0 = [0] * len(key_to_index)
+    IU0 = [0] * len(key_to_index)
+
+    if 'TI' in key_to_index:
+        IR0[key_to_index['TI']] = 1  # Ticino.
+        IU0[key_to_index['TI']] = 0
+    else:
+        IR0[key_to_index['MUN-5192']] = 1  # Lugano.
+        IU0[key_to_index['MUN-5192']] = 0
+
+    S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.Solver(flatten(Mij))
+    solver = libsolver.Solver(model_data.to_cpp(), verbose=True)
     results = solver.solve(params, y0, num_days)
     return results
 
 
-def plot_ode_results(results):
+def plot_ode_results(model_data, results):
     """Plot results from the ODE.
 
     Arguments:
         results: A list of State objects.
     """
+    key_to_index = {key: k for k, key in enumerate(model_data.region_keys)}
     Ir_max = np.max([state.Ir() for state in results])
 
     def frame_callback(rend):
@@ -62,11 +64,11 @@ def plot_ode_results(results):
         state = results[t]
         values = {}
         texts = {}
-        for i, c in enumerate(rend.get_codes()):
-            Ir = state.Ir(CANTON_TO_INDEX[c])
-            print("{:02d} {} {:.1f}".format(i, c, Ir))
-            values[c] = Ir / Ir_max * 2
-            texts[c] = str(int(Ir))
+        for i, key in enumerate(rend.get_codes()):
+            Ir = state.Ir(key_to_index[key])
+            print("{:02d} {} {:.1f}".format(i, key, Ir))
+            values[key] = Ir / Ir_max * 2
+            texts[key] = str(int(Ir))
         rend.set_values(values)
         rend.set_texts(texts)
 
@@ -75,15 +77,18 @@ def plot_ode_results(results):
     rend.save_movie(frames=len(results))
 
 
-def plot_timeseries(results, cantons, var='S', refdata=False):
+def plot_timeseries(model_data, results, keys, var='S', ref_data=None):
+    key_to_index = {key: k for k, key in enumerate(model_data.region_keys)}
+    key_to_population = dict(zip(model_data.region_keys, model_data.region_population))
+
     VAR_NmS = "N-S"
     VAR_S0mS = "S0-S"
-    if not isinstance(cantons, list):
-        cantons = [cantons]
+    if not isinstance(keys, list):
+        keys = [keys]
     fig = plt.figure(figsize=(6, 4))
     ax = fig.gca()
     ax.set_title("   ".join(
-        ["$N_{{{:}}}$={:.0f}K".format(c, CANTON_POPULATION[c]*1e-3) for c in cantons]))
+        ["$N_{{{:}}}$={:.0f}K".format(key, key_to_population[key]*1e-3) for key in keys]))
     vardesc = {
             'Ir' : "Infected Reported",
             'Iu' : "Infected Unreported",
@@ -92,22 +97,22 @@ def plot_timeseries(results, cantons, var='S', refdata=False):
             }
     ax.set_xlabel("days")
     ax.set_ylabel(vardesc[var])
-    for c in cantons:
+    for key in keys:
         if var == VAR_NmS:
-            u = np.array([state.S(CANTON_TO_INDEX[c]) for state in results])
-            u = CANTON_POPULATION[c] - u
+            u = np.array([state.S(key_to_index[key]) for state in results])
+            u = key_to_population[key] - u
         elif var == VAR_S0mS:
-            u = np.array([state.S(CANTON_TO_INDEX[c]) for state in results])
+            u = np.array([state.S(key_to_index[key]) for state in results])
             u = u[0] - u
         else:
-            u = [getattr(state, var)(CANTON_TO_INDEX[c]) for state in results]
-        line, = ax.plot(u,label=c)
-        if refdata:
-            u = [d[CANTON_TO_INDEX[c]] for d in REFDATA]
+            u = [getattr(state, var)(key_to_index[key]) for state in results]
+        line, = ax.plot(u,label=key)
+        if ref_data:
+            u = ref_data.cases_per_country[key]
             ax.plot(u, c=line.get_color(), ls='', marker='.')
 
-    if refdata:
-        ax.set_ylim([1, 10 * np.nanmax([d[CANTON_TO_INDEX[c]] for c in cantons for d in REFDATA])])
+    if ref_data:
+        ax.set_ylim([1, 10 * np.nanmax(ref_data.cases_per_country[key])])
     ax.set_yscale('log')
     ax.legend()
     varname = {
@@ -117,24 +122,33 @@ def plot_timeseries(results, cantons, var='S', refdata=False):
             VAR_S0mS : "S0mS",
             }
     fig.tight_layout()
-    fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(cantons)))
+    fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(keys)))
 
 
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('type', type=str, choices=('video', 'timeseries'), help="Plot type.")
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
+    parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
+    parser.add_argument('--level', type=str, choices=('canton', 'municipality'), default='canton', help="Level of details.")
     args = parser.parse_args(argv)
 
-    results = example_run(args.days)
+    if args.level == 'canton':
+        model_data = get_canton_model_data(include_foreign=not args.no_foreign)
+        ref_data = get_canton_reference_data()
+    else:
+        model_data = get_municipality_model_data()
+        ref_data = None
+
+    results = example_run(model_data, args.days)
 
     if args.type == 'video':
-        plot_ode_results(results)
+        plot_ode_results(model_data, results)
     elif args.type == 'timeseries':
-        cc = ['TI', 'ZH', 'AG']
-        #plot_timeseries(results, cc, var='Ir', refdata=True)
-        plot_timeseries(results, cc, var="N-S", refdata=True)
-        #plot_timeseries(results, cc, var="S0-S", refdata=True)
+        keys = ['TI', 'ZH', 'AG']
+        #plot_timeseries(model_data, results, keys, var='Ir', ref_data=ref_data)
+        plot_timeseries(model_data, results, keys, var="N-S", ref_data=ref_data)
+        #plot_timeseries(model_data, results, keys, var="S0-S", ref_data=ref_data)
 
 
 if __name__ == '__main__':
