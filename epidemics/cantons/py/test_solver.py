@@ -7,12 +7,16 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.data import CANTON_POPULATION, fetch_canton_data
+from epidemics.cantons.py.model import get_canton_model_data, get_canton_validation_data
 from epidemics.cantons.py.solver import Solver
 from epidemics.cantons.py.plot_ode import plot_ode_results
 import libsolver  # Must be AFTER .plot_ode (because of sys.path...).
 
-CANTON_TO_INDEX, REFDATA = fetch_canton_data()
+
+MODEL_DATA = get_canton_model_data()
+CANTON_TO_INDEX = {key: k for k, key in enumerate(MODEL_DATA.region_keys)}
+CANTON_POPULATION = dict(zip(MODEL_DATA.region_keys, MODEL_DATA.region_population))
+REFDATA = get_canton_validation_data()
 
 def get_params():
     """Get the 6 model parameters."""
@@ -57,7 +61,7 @@ def solve_and_visualize(y0, params, Mij, num_days):
 
     # Convert to C++ State object, expected by `plot_ode_results`.
     states = [libsolver.State(state.tolist()) for state in states]
-    plot_ode_results(states)
+    plot_ode_results(MODEL_DATA, states)
 
 
 def main():
