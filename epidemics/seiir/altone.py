@@ -11,7 +11,7 @@ plt.ioff()
 from scipy.integrate import solve_ivp, quad
 
 from epidemics.std_models.std_models import *
-from epidemics.tools.tools import prepare_folder
+from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import *
 
 
@@ -38,9 +38,9 @@ class Model( ModelBase ):
 
   def process_data( self ):
 
-    y = self.data['Raw']['Infected']
-    t = self.data['Raw']['Time']
-    N = self.data['Raw']['Population Size']
+    y = self.regionalData.infected
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
 
     Ir0 = y[0]
     S0  = N - Ir0
@@ -58,7 +58,7 @@ class Model( ModelBase ):
       self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.populationSize
+    self.data['Model']['Population Size'] = self.regionalData.populationSize
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = np.ceil( t[-1] + self.futureDays )
@@ -87,7 +87,7 @@ class Model( ModelBase ):
 
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
 
 
@@ -111,7 +111,7 @@ class Model( ModelBase ):
     js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
     s['Saved Results'] = js
 

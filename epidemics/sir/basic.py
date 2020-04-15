@@ -21,7 +21,7 @@ class Model( ModelBase ):
   def __init__( self, **kwargs ):
 
     self.modelName        = 'sir_basic'
-    self.modelDescription = 'Fit SIR on Cummu Infected Data'
+    self.modelDescription = 'Fit SIR on Cummulative Infected Data'
 
     super().__init__( **kwargs )
 
@@ -71,19 +71,19 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
+    self.e['Distributions'][k]['Maximum'] = 50.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for gamma'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
+    self.e['Distributions'][k]['Maximum'] = 50.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 150.
-    self.e['Distributions'][k]['Maximum'] = 700.
+    self.e['Distributions'][k]['Maximum'] = 800.
 
 
 

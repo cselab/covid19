@@ -66,12 +66,31 @@ class EpidemicsBase:
     self.intervalVariables = []
     self.e = None  #korali.Experiment()
 
+
+
+
+
+  def computational_model( s ):
+    pass
+
+  def computational_model_propagate( s ):
+    pass
+
+  def set_variables_for_interval( s ):
+    pass
+
+
+
+
   def save( self, fileName=None ):
     """Pickle itself to the given target file."""
     if not fileName:
       fileName = self.saveInfo['state']
     with open(fileName, 'wb') as f:
       pickle.dump(self, f)
+
+
+
 
   def __getstate__(self):
     """Return the state for pickling."""
@@ -84,22 +103,16 @@ class EpidemicsBase:
 
 
 
+
   def get_module_name(self,path):
     return 'epidemics.' + path.split('/epidemics/')[1][:-3].replace( '/','.')
+
+
+
 
   def get_model_name(self,path):
     return os.path.split(path)[1][:-3]
 
-
-
-  def computational_model( s ):
-    pass
-
-  def computational_model_propagate( s ):
-    pass
-
-  def set_variables_for_interval( s ):
-    pass
 
 
   def save_data_path( self ):

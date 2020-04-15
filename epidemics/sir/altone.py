@@ -11,7 +11,7 @@ plt.ioff()
 from scipy.integrate import solve_ivp, quad
 
 from epidemics.std_models.std_models import *
-from epidemics.tools.tools import prepare_folder
+from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import *
 
 
@@ -29,6 +29,7 @@ class Model( ModelBase ):
 
 
 
+
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
@@ -37,9 +38,9 @@ class Model( ModelBase ):
 
   def process_data( self ):
 
-    y = self.data['Raw']['Infected']
-    t = self.data['Raw']['Time']
-    N = self.data['Raw']['Population Size']
+    y = self.regionalData.infected
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
     I0 = y[0]
     S0 = N - I0
     y0 = S0, I0
@@ -54,7 +55,7 @@ class Model( ModelBase ):
       self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.populationSize
+    self.data['Model']['Population Size'] = self.regionalData.populationSize
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = np.ceil( t[-1] + self.futureDays )
@@ -78,25 +79,25 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
+    self.e['Distributions'][k]['Maximum'] = 100.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for gamma'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 40.
+    self.e['Distributions'][k]['Maximum'] = 100.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 20.
-    self.e['Distributions'][k]['Maximum'] = 1000.
+    self.e['Distributions'][k]['Minimum'] = 1.
+    self.e['Distributions'][k]['Maximum'] = 100.
 
 
 
 
   def incidence( self, sol, p, t1, t2 ):
-    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.populationSize)*y[1];
+    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.regionalData.populationSize)*y[1];
     return quad(f,t1,t2)[0]
 
 
@@ -113,8 +114,7 @@ class Model( ModelBase ):
     y = [ self.incidence(sol,p,s-1,s) for s in t ]
 
     s['Reference Evaluations'] = y
-    d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
 
 
@@ -139,8 +139,7 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
     s['Saved Results'] = js
 
@@ -180,13 +179,11 @@ class Model( ModelBase ):
 
     samples = np.cumsum(samples,axis=1)
 
-
     mean   = np.zeros((Nt,1))
     median = np.zeros((Nt,1))
     for k in range(Nt):
       median[k] = np.quantile( samples[:,k],0.5)
       mean[k] = np.mean( samples[:,k] )
-
 
     for p in np.sort(self.percentages)[::-1]:
       q1 = np.zeros((Nt,));

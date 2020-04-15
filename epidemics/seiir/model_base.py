@@ -10,9 +10,9 @@ import os
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from epidemics.data.population import get_country_population
+from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import save_file, load_file
+
 
 
 class ModelBase( EpidemicsBase ):
@@ -21,8 +21,6 @@ class ModelBase( EpidemicsBase ):
   def __init__( self, **kwargs ):
 
     self.country        = kwargs.pop('country', 'switzerland')
-    self.populationSize = kwargs.pop('populationSize', -1)
-    self.rawData        = kwargs.pop('rawData', [])
 
     self.stdModel       = kwargs.pop('stdModel', 0)
     self.futureDays     = kwargs.pop('futureDays', 2)
@@ -32,38 +30,8 @@ class ModelBase( EpidemicsBase ):
 
     super().__init__( **kwargs )
 
-    self.download_raw_data()
-    self.propagationData={}
-
-
-
-
-  def download_raw_data( self ):
-
-    if( self.rawData ):
-      I = self.rawData
-    else:
-      if os.path.isfile(self.saveInfo['database']):
-          s = load_file(self.saveInfo['database'], 'Downloaded Database', 'pickle')
-      else:
-        url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-        print(f'[Epidemics] Retrieve population data for {self.country} from: {url}')
-        s = requests.get(url).content
-        save_file( s, self.saveInfo['database'], 'Downloaded Database', 'pickle' )
-
-      df = pd.read_csv(io.StringIO(s.decode('utf-8')))
-      if( not self.country in list( df.columns.values ) ):
-        sys.exit('Country not in database.')
-      d = df[[self.country]].dropna().values.tolist()
-      I = [ float(l.split('-')[0]) for  k in d for l in k ]
-
-    N  = len(I)
-    if self.populationSize < 0:
-      self.populationSize = get_country_population( self.country )
-    self.data['Raw']['Population Size'] = self.populationSize
-    self.data['Raw']['Time'] = np.asarray( [ i for i in range(N) ] )
-    self.data['Raw']['Infected'] = np.asarray(I)
-    self.data['Raw']['Country'] = self.country
+    self.regionalData = RegionalData( self.country )
+    self.propagationData = {}
 
 
 

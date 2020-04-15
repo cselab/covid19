@@ -97,7 +97,7 @@ class ModelBase( EpidemicsBase ):
     c5 = p[5] / p[4] * Ir
 
     dSdt  = - c1 - c2
-    dEdt  =   c1 + c2 - (c3 + c4)
+    dEdt  =   c1 + c2 - 2*(c3 + c4)
     dIrdt =   c3 - Ir/p[4] - c5
     dIudt =   c4 - Iu/p[4]
     dDdt  =   c5

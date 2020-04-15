@@ -4,7 +4,7 @@ import urllib.request
 
 def download(url):
     """Download and return the content of a URL."""
-    print(f"Downloading {url}... ", end="", flush=True)
+    print(f"[Epidemics] Downloading {url}... ", end="", flush=True)
     req = urllib.request.urlopen(url)
     data = req.read()
     print("Done.", flush=True)

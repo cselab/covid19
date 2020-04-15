@@ -44,10 +44,10 @@ class Model( ModelBase ):
 
   def process_data( self ):
 
-    i = self.data['Raw']['Infected']
-    d = self.data['Raw']['Dead']
-    t = self.data['Raw']['Time']
-    N = self.data['Raw']['Population Size']
+    i = self.regionalData.infected
+    d = self.regionalData.deaths
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
 
     Ir0 = i[0]
     D0  = d[0]
@@ -83,6 +83,7 @@ class Model( ModelBase ):
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1)).tolist()
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
+
 
 
 
