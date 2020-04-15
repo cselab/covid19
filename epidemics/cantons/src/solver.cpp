@@ -8,6 +8,7 @@
 
 using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
+CheckSignalsFunc check_signals_func = nullptr;
 
 static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t N) {
     std::vector<double> out(N * N, 0.0);
@@ -17,8 +18,9 @@ static std::vector<double> transposeMatrix(const std::vector<double> &m, size_t 
     return out;
 }
 
-Solver::Solver(ModelData modelData) :
-    modelData_{std::move(modelData)}
+Solver::Solver(ModelData modelData, bool verbose) :
+    modelData_{std::move(modelData)},
+    verbose_{verbose}
 { }
 
 std::vector<State> Solver::solve(const Parameters &parameters, State initialState, int days) const {
@@ -38,9 +40,20 @@ std::vector<State> Solver::solve(const Parameters &parameters, RawState initialS
 
     // Observer gets called for each time step evaluated by the integrator.
     // We consider only every `STEPS_PER_DAY` steps (skipping the first one as well).
-    auto observer = [&result, cnt = 0](const RawState &y, double /*t*/) mutable {
-        if (cnt % STEPS_PER_DAY == 0 && cnt > 0)
+    auto observer = [&result, cnt = 0, verbose = this->verbose_](
+            const RawState &y,
+            double /*t*/) mutable {
+        if (check_signals_func)
+            check_signals_func();
+        if (cnt % STEPS_PER_DAY == 0 && cnt > 0) {
             result.push_back(State{y});
+            if (verbose) {
+                double total_Ir = 0;
+                for (size_t i = 0; i < result.back().numRegions(); ++i)
+                    total_Ir += result.back().Ir(i);
+                printf("Total Ir on day %zu: %lg\n", result.size(), total_Ir);
+            }
+        }
         ++cnt;
     };
 

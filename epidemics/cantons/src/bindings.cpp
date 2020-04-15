@@ -15,6 +15,20 @@ auto makeValuesGetter(int valueIndex) {
     };
 }
 
+class SignalRAII {
+public:
+    SignalRAII() {
+        check_signals_func = []() {
+            // https://stackoverflow.com/questions/14707049/allowing-ctrl-c-to-interrupt-a-python-c-extension
+            if (PyErr_CheckSignals() != 0)
+                throw std::runtime_error("Signal received. Breaking.");
+        };
+    }
+    ~SignalRAII() {
+        check_signals_func = nullptr;
+    }
+};
+
 PYBIND11_MODULE(libsolver, m)
 {
     using namespace pybind11::literals;
@@ -51,7 +65,14 @@ PYBIND11_MODULE(libsolver, m)
         .def("N", py::overload_cast<size_t>(&State::N, py::const_)), "Get N_i.";
 
     py::class_<Solver>(m, "Solver")
-        .def(py::init<ModelData>(), "model_data"_a)
-        .def("solve", py::overload_cast<const Parameters &, RawState, int>(&Solver::solve, py::const_),
-             "parameters"_a, "initial_state"_a, "days"_a);
+        .def(py::init<ModelData, bool>(), "model_data"_a, "verbose"_a=false)
+        .def("solve", [](const Solver &solver,
+                         const Parameters &params,
+                         RawState state,
+                         int num_days)
+            {
+                SignalRAII break_raii;
+                return solver.solve(params, std::move(state), num_days);
+            },
+            "parameters"_a, "initial_state"_a, "days"_a);
 }
