@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 # Get compiler, cxxflags and linker flags from Korali.
 execute_process(
@@ -49,7 +49,7 @@ add_executable(
 
 target_compile_options(solver PUBLIC ${KORALI_CXXFLAGS})
 target_compile_options(solver PUBLIC ${CUSTOM_CXXFLAGS} -Wno-unused-parameter)
-target_link_options(solver PUBLIC ${KORALI_LINKERFLAGS})
+set_target_properties(solver PROPERTIES LINK_FLAGS ${KORALI_LINKERFLAGS})
 
 # Make Release mode the default.
 if(NOT CMAKE_BUILD_TYPE)
