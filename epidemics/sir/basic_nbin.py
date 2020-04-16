@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 plt.ioff()
 
 from scipy.integrate import solve_ivp
+import numpy as np
 
-from epidemics.std_models.std_models import *
 from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
 
@@ -20,8 +20,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_basic'
-    self.modelDescription = 'Fit SIR on Cummulative Infected Data'
+    self.modelName        = 'sir_basic_nbin'
+    self.modelDescription = 'Fit SIR on Cummulative Infected Data with Negative Binomal likelihood'
+    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
@@ -49,7 +50,6 @@ class Model( ModelBase ):
 
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size'] = N
-    self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = t[-1] + self.futureDays
     self.data['Propagation']['x-data'] = np.linspace(0,T,self.nPropagation).tolist()
@@ -60,7 +60,7 @@ class Model( ModelBase ):
 
   def set_variables_and_distributions( self ):
 
-    p = ['beta','gamma','[Sigma]']
+    p = ['beta','gamma','[r]']
     for k,x in enumerate(p):
       self.e['Variables'][k]['Name'] = x
       self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
@@ -80,10 +80,10 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Maximum'] = 50.
     k+=1
 
-    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    self.e['Distributions'][k]['Name'] = 'Prior for [r]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 150.
-    self.e['Distributions'][k]['Maximum'] = 800.
+    self.e['Distributions'][k]['Minimum'] = 0.01
+    self.e['Distributions'][k]['Maximum'] = 10.
 
 
 
@@ -97,10 +97,9 @@ class Model( ModelBase ):
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
     y = ( N - sol.y[0]).tolist()
 
-
     s['Reference Evaluations'] = y
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    s['Dispersion'] = len(y)*[p[-1]]
 
 
 
@@ -112,13 +111,14 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
+    y = ( N - sol.y[0] ).tolist()
 
     js = {}
     js['Variables'] = []
 
     js['Variables'].append({})
-    js['Variables'][0]['Name'] = 'S'
-    js['Variables'][0]['Values'] = sol.y[0].tolist()
+    js['Variables'][0]['Name'] = 'Cummulative Infected'
+    js['Variables'][0]['Values'] = y
 
     js['Variables'].append({})
     js['Variables'][1]['Name'] = 'I'
@@ -128,76 +128,27 @@ class Model( ModelBase ):
     js['Length of Variables'] = sol.y.shape[1]
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,d);
+    js['Dispersion'] = sol.y.shape[1]*[p[-1]]
 
     s['Saved Results'] = js
 
 
 
 
-  def set_variables_for_interval( self ):
-
-    self.intervalVariables = {}
-
-    self.intervalVariables['Total Infected'] = {}
-    self.intervalVariables['Total Infected']['Formula'] = lambda v: self.regionalData.populationSize - v['S']
-
-
-
-
-
   def plot_intervals( self ):
 
-    fig = plt.figure(figsize=(12, 8))
-
-    fig.suptitle(self.modelDescription)
+    fig = self.new_figure()
 
     ax  = fig.subplots( 1 )
 
-    ax.plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Total Infected (data)', color='black')
+    z = self.data['Model']['y-data']
+    ax.plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Infected(data)', color='black')
 
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Total Infected (validation data)', color='black')
-
-    y = 'Total Infected'
-
-    ax.plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Mean'],   '-', lw=2, label='Mean', color='blue' )
-    ax.plot( self.data['Propagation']['x-data'], self.credibleIntervals[y]['Median'], '-', lw=2, label='Median', color='black')
-
-    self.credibleIntervals[y]['Intervals'].sort(key = lambda x: x['Percentage'], reverse = True)
-
-    for x in self.credibleIntervals[y]['Intervals']:
-      p1 = [ max(k,0) for k in x['Low Interval'] ]
-      p2 = x['High Interval']
-      p  = 100.*x['Percentage']
-      ax.fill_between( self.data['Propagation']['x-data'], p1 , p2,  alpha=0.5, label=f' {p:.1f}% credible interval' )
-
-    ax.legend(loc='upper left')
-    ax.set_ylabel( y )
-    ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
-    ax.grid()
-    if( self.logPlot ): ax[k].set_yscale('log')
-
-    ax.set_xlabel('time in days')
+    self.compute_plot_intervals( 'Cummulative Infected', 20, ax, 'Daily Incidence' )
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )
     fig.savefig(file)
-
     plt.show()
 
     plt.close(fig)
-
-
-    fig = plt.figure(figsize=(12, 8))
-    ax  = fig.subplots(1)
-
-    R0 = self.parameters[0]['Values'] / self.parameters[1]['Values']
-
-    ax.hist( R0 , 100, density=True, facecolor='g', alpha=0.75)
-    ax.set_xlabel('R0')
-    ax.grid()
-
-    file = os.path.join(self.saveInfo['figures'],'R0.png')
-    prepare_folder( os.path.dirname(file), clean=False )
-    fig.savefig(file)

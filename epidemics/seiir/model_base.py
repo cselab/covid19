@@ -27,60 +27,12 @@ class ModelBase( EpidemicsBase ):
     self.nPropagation   = kwargs.pop('nPropagation', 100)
     self.logPlot        = kwargs.pop('logPlot', False)
     self.nValidation    = kwargs.pop('nValidation', 0)
+    self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
 
     super().__init__( **kwargs )
 
     self.regionalData = RegionalData( self.country )
     self.propagationData = {}
-
-
-
-
-  def set_variables_and_distributions( self ):
-
-    p = [ 'beta', 'mu', 'alpha', 'Z', 'D', '[Sigma]' ]
-
-    for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
-
-    self.nParameters = len(p)
-
-    k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 5
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for mu'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 1
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for alpha'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 1.0
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for Z'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 10
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for D'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 2
-    self.e['Distributions'][k]['Maximum'] = 5
-    k+=1
-
-    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 10
-    self.e['Distributions'][k]['Maximum'] = 1000
 
 
 

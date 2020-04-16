@@ -20,7 +20,6 @@ file = args.dataFolder / 'state.pickle'
 a = load_model( file )
 
 # a.propagate()
-# a.compute_intervals()
 # a.save()
 
 a.plot_intervals()

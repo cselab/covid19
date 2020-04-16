@@ -11,6 +11,9 @@ import os
 import pickle
 import sys
 
+import matplotlib.pyplot as plt
+plt.ioff()
+
 from epidemics.tools.tools import prepare_folder, make_path
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
@@ -24,11 +27,10 @@ class EpidemicsBase:
     self.nThreads    = kwargs.pop('nThreads', 1)
     self.silent      = kwargs.pop('silent', False)
     self.noSave      = kwargs.pop('noSave', False)
-    self.percentages = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
 
     if kwargs:
-        sys.exit(f"\n[epidemics] Unknown input arguments: {kwargs}\n")
+        sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
 
     self.saveInfo ={
       'initials': 'initials.pickle',
@@ -139,7 +141,7 @@ class EpidemicsBase:
     self.nSamples = nSamples
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
-    self.e['Problem']['Likelihood Model'] = 'Additive Normal General'
+    self.e['Problem']['Likelihood Model'] = self.likelihoodModel + ' General'
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
@@ -161,6 +163,7 @@ class EpidemicsBase:
 
     k.run(self.e)
 
+    print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.parameters = []
     for j in range(self.nParameters):
       self.parameters.append({})
@@ -171,8 +174,7 @@ class EpidemicsBase:
 
     self.has_been_called['sample'] = True
     self.has_been_called['propagation'] = False
-    self.has_been_called['intervals'] = False
-
+    print('[Epidemics] Done copying variables.')
 
 
 
@@ -217,15 +219,21 @@ class EpidemicsBase:
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
 
     # FIXME: too slow
+    print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.propagatedVariables = {}
     for i,x in enumerate(varNames):
       self.propagatedVariables[x] = np.zeros((Ns,Nt))
       for k in range(Ns):
         self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][k]['Saved Results']['Variables'][i]['Values'] )
 
-    self.propagatedVariables['Standard Deviation'] = np.zeros((Ns,Nt))
+    if( self.likelihoodModel=='Additive Normal' ):   varName = 'Standard Deviation Model'
+    if( self.likelihoodModel=='Negative Binomial' ): varName = 'Dispersion'
+
+    self.propagatedVariables[varName] = np.zeros((Ns,Nt))
     for k in range(Ns):
-      self.propagatedVariables['Standard Deviation'][k] = np.asarray( self.e['Samples'][k]['Saved Results']['Standard Deviation Model'] )
+      self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
+
+    print('[Epidemics] Done copying variables.')
 
     # TODO clear variable?
     self.e = korali.Experiment()
@@ -236,29 +244,59 @@ class EpidemicsBase:
 
 
 
-  def compute_intervals( self ):
+  def new_figure(self):
+    fig = plt.figure(figsize=(12, 8))
+    fig.suptitle(self.modelDescription + '  (' + self.country + ')')
+    return fig
 
-    if not self.has_been_called['propagation']:
-      print('[Epidemics] Propagation before intervals')
-      return
 
-    self.set_variables_for_interval()
 
-    if( self.silent==False ): print('[Epidemics] Loading files...')
+  def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
 
-    for x in self.intervalVariables.keys():
-      self.intervalVariables[x]['Values'] = self.intervalVariables[x]['Formula'](self.propagatedVariables)
+    Ns = self.propagatedVariables[varName].shape[0]
+    Nt = self.propagatedVariables[varName].shape[1]
 
-    if( self.silent==False ):
-      print('[Epidemics] Finished loading files.')
-      print('[Epidemics] Calculate credible intervals...')
+    samples = np.zeros((Ns*ns,Nt))
 
-    self.credibleIntervals = {}
-    for x in self.intervalVariables.keys():
-      self.credibleIntervals[x] = compute_credible_intervals( self.intervalVariables[x]['Values'],
-                                                              self.propagatedVariables['Standard Deviation'],
-                                                              self.percentages );
+    if self.likelihoodModel=='Additive Normal':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        r = self.propagatedVariables['Standard Deviation Model'][:,k]
+        x = [ np.random.normal(m,r) for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
 
-    if( self.silent==False ): print('[Epidemics] Finished calculating credible intervals...')
+    if self.likelihoodModel=='Negative Binomial':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        r = self.propagatedVariables['Dispersion'][:,k]
+        p = p =  m/(m+r)
+        x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
 
-    self.has_been_called['intervals'] = True
+    if cummulate>0 :
+      samples = np.cumsum(samples,axis=cummulate)
+
+    mean   = np.zeros((Nt,1))
+    median = np.zeros((Nt,1))
+    for k in range(Nt):
+      median[k] = np.quantile( samples[:,k],0.5)
+      mean[k] = np.mean( samples[:,k] )
+
+    for p in np.sort(self.percentages)[::-1]:
+      q1 = np.zeros((Nt,));
+      q2 = np.zeros((Nt,));
+      for k in range(Nt):
+        q1[k] = np.quantile( samples[:,k],0.5-p/2)
+        q2[k] = np.quantile( samples[:,k],0.5+p/2)
+      ax.fill_between( self.data['Propagation']['x-data'], q1 , q2,  alpha=0.5, label=f' {100*p:.1f}% credible interval' )
+
+    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color='black')
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='black')
+
+    ax.legend(loc='upper left')
+    ax.set_ylabel( ylabel )
+    ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    ax.grid()
+    if( self.logPlot ): ax.set_yscale('log')
+
+    return samples

@@ -12,7 +12,6 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('--compModel', '-cm', default='sir.basic', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
-parser.add_argument('--stdModel', '-sm', type=int, default=0, help='Standard deviation model. 0-Constant, 1-Sqrt, 2-Linear')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
@@ -33,12 +32,8 @@ a = model_class( **vars(x) )
 
 a.sample( args.nSamples )
 
-# a.save()
-#
-# a.propagate()
-#
-# a.compute_intervals()
-#
-# a.save()
-#
-# a.plot_intervals()
+a.propagate()
+
+a.save()
+
+a.plot_intervals()
