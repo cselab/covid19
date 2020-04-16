@@ -130,7 +130,7 @@ def get_Cij_numpy(canton_order):
 def get_external_Iu(start_date, num_days):
     """Return an estimate of number of undocumented infected foreigns commuting to Switzerland, per canton, per day.
 
-    We use the number of documented infected foreigns to estimate the number of undocumented:
+    We estimate the number of undocumented cases through the number of documented cases as:
         Iu(t) ~= Ir(t + 1) - Ir(t)
 
     Returns a dictionary {canton key: [day1, day2, ...]}.
@@ -206,7 +206,7 @@ def get_external_Iu(start_date, num_days):
     COUNTRY_POPULATION = {country: get_region_population(country) for country in BORDERS_CLOSING_DATE.keys()}
 
     result = {c: [0] * num_days for c in CANTON_KEYS_ALPHABETICAL}
-    for canton, country, inflow in DATA:
+    for canton, country, num_commuters in DATA:
         result_old = result[canton][:]
         for day in range(num_days):
             date = start_date + day * DAY
@@ -224,7 +224,7 @@ def get_external_Iu(start_date, num_days):
             # `country` to `canton` at the date `date`.
             country_Ir = COUNTRY_IR[country].get_confirmed_at_date
             iu_estimate = max(0, country_Ir(date + DAY) - country_Ir(date))
-            inflow = iu_estimate / COUNTRY_POPULATION[country] * intervention_factor
+            inflow = num_commuters * iu_estimate / COUNTRY_POPULATION[country] * intervention_factor
             # print(country_Ir(date), iu_estimate, COUNTRY_POPULATION[country], intervention_factor, inflow)
             result[canton][day] += inflow
         # print(country, canton, " ".join(str(int(1e6 * (x - y))) for x, y in zip(result[canton], result_old)))

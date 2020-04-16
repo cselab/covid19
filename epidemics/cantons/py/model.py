@@ -38,7 +38,14 @@ class ModelData:
                     infected people visiting given region at given day.
     """
     def __init__(self, region_keys, region_population, Mij, Cij, *, ext_com_Iu=[]):
-        self.num_regions = len(region_keys)
+        K = len(region_keys)
+        assert len(region_population) == K
+        assert Mij.shape == (K, K)
+        assert Cij.shape == (K, K)
+        assert all(len(row) == K for row in ext_com_Iu), \
+                (K, [len(row) for row in ext_com_Iu])
+
+        self.num_regions = K
         self.region_keys = region_keys
         self.region_population = region_population
         self.Mij = Mij
@@ -135,13 +142,13 @@ def get_canton_model_data(include_foreign=True):
 
     if include_foreign:
         swiss_cases = get_region_cases('switzerland')
+        num_days = len(swiss_cases.confirmed) + 10
         ext_com_Iu = swiss_cantons.get_external_Iu(
-                swiss_cases.get_date_of_first_confirmed(),
-                num_days=len(swiss_cases.confirmed) + 10)
-        # A matrix [d][c] of foreign infected people visiting canton c at day d.
-        ext_com_Iu = [ext_com_Iu[c] for c in keys]
+                swiss_cases.get_date_of_first_confirmed(), num_days=num_days)
+        # Transpose from {canton: [day1, ...]} to [day][canton].
+        ext_com_Iu = [[ext_com_Iu[c][d] for c in keys] for d in range(num_days)]
     else:
-        ext_com_Iu = [[] for c in keys]
+        ext_com_Iu = []  # Data for 0 days.
 
     return ModelData(keys, population, Mij, Cij, ext_com_Iu=ext_com_Iu)
 
