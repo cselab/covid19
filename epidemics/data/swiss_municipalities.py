@@ -131,28 +131,69 @@ def get_commute():
         'num_people': commute['num_people']
     })
 
-def get_shape_file():
-    """Downloads and returns path to shape file with multicipalities.
-
-    >>> get_shape_file()
-    DIR/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET
+def extract_zip(zippath, member_pattern, save_dir, overwrite=False):
+    """
+    Extracts files from zip archive which name contains `member_pattern`,
+    saves them to `save_dir`, and returns paths to saved files.
     """
     from zipfile import ZipFile
+    from pathlib import Path
+    os.makedirs(save_dir, exist_ok=True)
+    paths = []
+    with ZipFile(zippath, 'r') as zipobj:
+        for member in zipobj.namelist():
+            if member_pattern in member:
+                path = Path(save_dir) / os.path.basename(member)
+                if overwrite or not os.path.isfile(path):
+                    print("extracting '{:}'".format(member))
+                    with open(path, 'wb') as f:
+                        f.write(zipobj.read(member))
+                paths.append(path)
+    return paths
+
+def get_shape_file():
+    """
+    Downloads and returns path to shape file with multicipalities.
+    """
     zippath = DATA_DOWNLOADS_DIR / "swissBOUNDARIES3D.zip"
     download_and_save("https://shop.swisstopo.admin.ch/shop-server/resources/products/swissBOUNDARIES3D/download", zippath)
 
+
+    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET"
     DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
-    os.makedirs(DATA_MAP_DIR, exist_ok=True)
 
-    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET"
-    with ZipFile(zippath, 'r') as zipobj:
-        for member in zipobj.namelist():
-            if shapefile in member:
-                basename = member
-                path = DATA_MAP_DIR / os.path.basename(member)
-                if not os.path.isfile(path):
-                    print("extracting '{:}'".format(basename))
-                    with open(path, 'wb') as f:
-                        f.write(zipobj.read(member))
-    return os.path.splitext(path)[0]
+    paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
+    return os.path.splitext(paths[0])[0]
 
+def get_zones_gpkg():
+    """
+    Downloads and returns path to .gpkg database with zone info.
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "Verkehrszonen_Schweiz_NPVM_2017.zip"
+    download_and_save("https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip", zippath)
+
+    gpkgzip = "Verkehrszonen_Schweiz_NPVM_2017_gpkg.zip"
+    gpkgzip_path, = extract_zip(zippath, gpkgzip, DATA_DOWNLOADS_DIR)
+
+    DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
+    gpkg_path, = extract_zip(gpkgzip_path, "Verkehrszonen_Schweiz_NPVM_2017.gpkg", DATA_MAP_DIR)
+    return gpkg_path
+
+def get_zones_info(gpkg_path=None):
+    """
+    Returns information about traffic zones in Verkehrszonen_Schweiz_NPVM:
+    - `zone_to_canton`: mapping from zone (municipality) name to canton code
+    """
+    import geopandas as gpd
+
+    if gpkg_path is None:
+        gpkg_path = get_zones_gpkg()
+    gdf = gpd.read_file(gpkg_path)
+    zonenames = list(map(str, gdf.N_Gem))
+    zonecantons = list(map(str, gdf.N_KT))
+    print(gdf.geometry)
+    zone_to_canton = {}
+    for name,canton in zip(zonenames, zonecantons):
+        zone_to_canton[name] = canton
+    return zone_to_canton
