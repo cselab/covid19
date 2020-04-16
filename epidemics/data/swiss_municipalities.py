@@ -165,7 +165,7 @@ def get_shape_file():
     paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
     return os.path.splitext(paths[0])[0]
 
-def get_zones_gpkg():
+def download_zones_gpkg():
     """
     Downloads and returns path to .gpkg database with zone info.
     """
@@ -182,13 +182,17 @@ def get_zones_gpkg():
 
 def get_zones_info(gpkg_path=None):
     """
-    Returns information about traffic zones in Verkehrszonen_Schweiz_NPVM:
-    - `zone_to_canton`: mapping from zone (municipality) name to canton code
+    gpkg_path: str
+        Path to .gpkg file.
+
+    Returns:
+    zone_to_canton: `dict`
+        Mapping from zone (municipality) name to canton code (e.g. 'Dietlikon' -> 'ZH')
     """
     import geopandas as gpd
 
     if gpkg_path is None:
-        gpkg_path = get_zones_gpkg()
+        gpkg_path = download_zones_gpkg()
     gdf = gpd.read_file(gpkg_path)
     zonenames = list(map(str, gdf.N_Gem))
     zonecantons = list(map(str, gdf.N_KT))
@@ -197,3 +201,47 @@ def get_zones_info(gpkg_path=None):
     for name,canton in zip(zonenames, zonecantons):
         zone_to_canton[name] = canton
     return zone_to_canton
+
+def download_matrix_mtx():
+    """
+    Downloads and returns path to .mtx traffic matrix.
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "DWV_2017_OeV_Wegematrizen_bin.zip"
+    download_and_save("https://zenodo.org/record/3716134/files/DWV_2017_OeV_Wegematrizen_bin%C3%A4r.zip", zippath)
+
+    mtx_path, = extract_zip(zippath, "_CH_", DATA_DOWNLOADS_DIR)
+    return mtx_path
+
+@cache
+@cache_to_file(DATA_CACHE_DIR / 'zenodo_2017.mtx.pickle')
+def get_matrix(mtx_path=None):
+    '''
+    mtx_path: `str`
+        Path to .mtx file.
+
+    Returns:
+    matrix: `numpy.ndarray(np.float32)`, (N,N)
+        Number of people traveling from zone `i` to zone `j` in `matrix[i,j]`.
+    zones: `numpy.ndarray(str)`, (N)
+        Name of zone `i` in `zones[i]`.
+    '''
+    from matrixconverters.read_ptv import ReadPTVMatrix
+
+    if mtx_path is None:
+        mtx_path = download_matrix_mtx()
+
+    m = ReadPTVMatrix(filename=mtx_path)
+    matrix = m['matrix'].astype(np.float32)
+    ids = [int(z.coords['zone_no'].data) for z in m['zone_name']]
+
+    origins = [int(v.data) for v in matrix['origins']]
+    destinations = [int(v.data) for v in matrix['destinations']]
+    assert origins == ids, \
+            "different order in matrix['origins'] and zone_name"
+    assert destinations == ids, \
+            "different order in matrix['destinations'] and zone_name"
+
+    zonenames = np.array([str(z.data) for z in m['zone_name']])
+    matrix = matrix.data
+    return matrix, zonenames
