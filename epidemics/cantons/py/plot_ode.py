@@ -50,9 +50,9 @@ def example_run_seiin(data: ModelData, num_days: int):
 
 def example_run_seii_c(data, num_days):
     """Runs the SEII_C model for some set of parameters and some initial conditions."""
-    # Parameters.
+    # Parameters. Note that nu is relative to beta.
     params = libsolver.solvers.seii_c.Parameters(
-            beta=3.0, nu=3.0, alpha=0.6, Z=3.69, D=3.47)
+            beta=3.0, nu=1.0, alpha=0.6, Z=3.69, D=3.47)
 
     # Initial state.
     E0 = [0] * data.num_regions
