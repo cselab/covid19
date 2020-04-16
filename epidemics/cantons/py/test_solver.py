@@ -60,7 +60,7 @@ def solve_and_visualize(y0, params, Mij, num_days):
     states = solver.solve(y0, params, num_days)
 
     # Convert to C++ State object, expected by `plot_ode_results`.
-    states = [libsolver.State(state.tolist()) for state in states]
+    states = [libsolver.solvers.seiin.State(state.tolist()) for state in states]
     plot_ode_results(MODEL_DATA, states)
 
 
