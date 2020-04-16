@@ -48,11 +48,15 @@ def bfs_population_xls(usecols=None):
 
 
 @cache
-@cache_to_file(DATA_CACHE_DIR / 'bfs_residence_work_cols1268.df.csv')
-def _get_residence_work_cols1268():
-    # (residence canton initial, residence commune number, work commune number, number of employed people)
-    df = bfs_residence_work_xls(header=4, usecols=(1, 2, 6, 8))
-    df.columns = ('canton1', 'number1', 'number2', 'num_people')
+@cache_to_file(DATA_CACHE_DIR / 'bfs_residence_work_cols12568.df.csv')
+def get_residence_work_cols12568():
+    # (residence canton initial,
+    #  residence commune number,
+    #  work canton initial,
+    #  work commune number,
+    #  number of employed people)
+    df = bfs_residence_work_xls(header=4, usecols=(1, 2, 5, 6, 8))
+    df.columns = ('canton_home', 'number_home', 'canton_work', 'number_work', 'num_people')
     return df
 
 
@@ -102,25 +106,26 @@ def get_cantons():
     1     MUN-0002     ZH
     ...        ...    ...
     """
-    commute = _get_residence_work_cols1268()
-    key_to_canton = {
-            _number_to_key(num1): canton1
-            for canton1, num1, num2, num_people in commute}
-    return pd.DataFrame(key_to_canton.items(), columns=('key', 'canton'))
+    commute = get_residence_work_cols12568()
+    print(commute)
+    return pd.DataFrame({
+        'key': list(map(_number_to_key, commute['number_home'])),
+        'canton': commute['canton_home'],
+    })
 
 
 def get_commute():
     """Returns a DataFrame with data on commute between municipality.
 
     >>> get_commute()
-               key1      key2  num_people
+           key_home  key_work  num_people
     0      MUN-0001  MUN-0001         147
     1      MUN-0001  MUN-0002         106
     ...         ...       ...         ...
     """
-    commute = _get_residence_work_cols1268()
+    commute = get_residence_work_cols12568()
     return pd.DataFrame({
-        'key1': list(map(_number_to_key, commute['number1'])),
-        'key2': list(map(_number_to_key, commute['number2'])),
+        'key_home': list(map(_number_to_key, commute['number_home'])),
+        'key_work': list(map(_number_to_key, commute['number_work'])),
         'num_people': commute['num_people']
     })

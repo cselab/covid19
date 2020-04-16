@@ -50,7 +50,7 @@ SolverBase<Derived, State, Parameters>::solve(
         int day = static_cast<int>(t);
         if (dxdt_.size() != x_.size())
             throw std::runtime_error("dxdt does not have the expected size.");
-        if (x_.size() != modelData_.numRegions * 5)
+        if (x_.size() != modelData_.numRegions * State::kVarsPerRegion)
             throw std::runtime_error("x does not have the expected size.");
 
         // This is a tricky part, we transform RawState to State during

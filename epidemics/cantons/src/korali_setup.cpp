@@ -10,7 +10,7 @@
 std::vector<double> getStandardDeviationModel(
         const ReferenceData &data,
         double sigma,
-        const std::vector<State> & [[maybe_unused]] result) {
+        [[maybe_unused]] const std::vector<State> &result) {
     return std::vector<double>(data.cases.size(), sigma);
 }
 

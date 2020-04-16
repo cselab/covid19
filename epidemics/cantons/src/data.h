@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -14,17 +13,29 @@ struct DataPoint {
 /// Model bulk parameters (not optimized for).
 struct ModelData {
     // Note: py/model.py:ModelData.to_cpp depends on this structure.
+    std::vector<std::string> regionKeys;
+    std::vector<double> Ni;     // Region population.
+    std::vector<double> Mij;    // Row-major migration matrix [to][from].
+    std::vector<double> Cij;    // Row-major commute matrix [to][from].
+    std::vector<double> externalCases;  // Row-major border commute matrix [day][canton].
+
+    // Computed.
     size_t numRegions;
-    std::map<std::string, int> regionNameToIndex;
-    std::vector<int> regionPopulation;
-    std::vector<double> Mij;  // Row-major [to][from].
-    std::vector<double> Cij;  // Row-major [to][from].
-    std::vector<double> externalCases;  // Row-major [day][canton].
+    std::vector<double> invNi;  // 1 / region population.
+
+    ModelData() = default;
+    ModelData(std::vector<std::string> regionKeys,
+              std::vector<double> Ni,
+              std::vector<double> Mij,
+              std::vector<double> Cij,
+              std::vector<double> externalCases);
 
     double getExternalCasesAt(int day, int canton) const noexcept {
         int idx = day * (int)numRegions + canton;
         return idx < 0 || idx >= (int)externalCases.size() ? 0 : externalCases[idx];
     }
+
+    void init();
 };
 
 /// UQ-specific data
