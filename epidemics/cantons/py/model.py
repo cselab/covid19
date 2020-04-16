@@ -34,23 +34,26 @@ class ModelData:
         region_keys: List of region names.
         region_population: List of population size of corresponding regions.
         Mij: A numpy matrix of region-region number of commuters.
-        external_cases: A matrix [day][region] of estimated number of foreign
-                        infected people visiting given region at given day.
+        ext_com_Iu: A matrix [day][region] of estimated number of foreign
+                    infected people visiting given region at given day.
     """
-    def __init__(self, region_keys, region_population, Mij, *, external_cases=[]):
+    def __init__(self, region_keys, region_population, Mij, Cij, *, ext_com_Iu=[]):
         self.num_regions = len(region_keys)
         self.region_keys = region_keys
         self.region_population = region_population
         self.Mij = Mij
-        self.external_cases = external_cases
+        self.Cij = Cij
+        self.ext_com_Iu = ext_com_Iu
+
+        self.key_to_index = {key: k for k, key in enumerate(region_keys)}
 
     def to_cpp(self):
         """Return the libsolver.ModelData instance.
 
         Needed when running the model from Python using the C++ implementation."""
-        keys = {key: k for k, key in enumerate(self.region_keys)}
-        return libsolver.ModelData(self.num_regions, keys, self.region_population,
-                                   flatten(self.Mij), flatten(self.external_cases))
+        return libsolver.ModelData(self.region_keys, self.region_population,
+                                   flatten(self.Mij), flatten(self.Cij),
+                                   flatten(self.ext_com_Iu))
 
     def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
         """Generate cpp_model_data.dat, the data for the C++ ModelData class.
@@ -80,8 +83,8 @@ class ModelData:
                 f.write(' '.join(str(x) for x in row) + '\n')
             f.write('\n')
 
-            f.write(str(len(self.external_cases)) + '\n')
-            for day in self.external_cases:
+            f.write(str(len(self.ext_com_Iu)) + '\n')
+            for day in self.ext_com_Iu:
                 f.write(' '.join(str(x) for x in day) + '\n')
         print(f"Stored model data to {path}.")
 
@@ -127,19 +130,20 @@ def get_canton_model_data(include_foreign=True):
     keys = swiss_cantons.CANTON_KEYS_ALPHABETICAL
     population = [swiss_cantons.CANTON_POPULATION[c] for c in keys]
 
-    Mij = swiss_cantons.get_default_Mij_numpy(keys)
+    Mij = swiss_cantons.get_Mij_numpy(keys)
+    Cij = swiss_cantons.get_Cij_numpy(keys)
 
     if include_foreign:
         swiss_cases = get_region_cases('switzerland')
-        external_cases = swiss_cantons.get_external_cases(
+        ext_com_Iu = swiss_cantons.get_external_Iu(
                 swiss_cases.get_date_of_first_confirmed(),
                 num_days=len(swiss_cases.confirmed) + 10)
         # A matrix [d][c] of foreign infected people visiting canton c at day d.
-        external_cases = [external_cases[c] for c in keys]
+        ext_com_Iu = [ext_com_Iu[c] for c in keys]
     else:
-        external_cases = [[] for c in keys]
+        ext_com_Iu = [[] for c in keys]
 
-    return ModelData(keys, population, Mij, external_cases=external_cases)
+    return ModelData(keys, population, Mij, Cij, ext_com_Iu=ext_com_Iu)
 
 
 def get_canton_reference_data():
@@ -158,19 +162,21 @@ def get_municipality_model_data():
 
     key_to_index = {key: k for k, key in enumerate(namepop['key'])}
     N = len(key_to_index)
-    Mij = np.zeros((N, N))
-    for key1, key2, num_people in zip(
-            commute['key1'],
-            commute['key2'],
+    Cij = np.zeros((N, N))
+    for key_home, key_work, num_people in zip(
+            commute['key_home'],
+            commute['key_work'],
             commute['num_people']):
-        idx1 = key_to_index.get(key1)
-        idx2 = key_to_index.get(key2)
-        if idx1 is None or idx2 is None:
+        home = key_to_index.get(key_home)
+        work = key_to_index.get(key_work)
+        if home is None or work is None:
             continue
-        Mij[idx1, idx2] += num_people
-        Mij[idx2, idx1] += num_people
+        Cij[work, home] += num_people
 
-    return ModelData(namepop['key'], namepop['population'], Mij)
+    # NOTE: This Mij is wrong.
+    Mij = Cij + Cij.transpose()
+
+    return ModelData(namepop['key'], namepop['population'], Mij, Cij)
 
 
 if __name__ == '__main__':

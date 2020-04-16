@@ -2,6 +2,7 @@ import pandas
 
 from pathlib import Path
 import functools
+import inspect
 import json
 import pickle
 
@@ -77,14 +78,17 @@ def cache_to_file(target, dependencies=[]):
                          f"Only .json and .pickle supported.")
 
     def decorator(func):
+        all_dependencies = dependencies + [Path(inspect.getfile(func))]
+
         def inner():
             try:
                 modified_time = target.stat().st_mtime
             except FileNotFoundError:
                 pass
             else:
-                if all(modified_time < d.stat().st_mtime
-                       for d in dependencies):
+                if all(modified_time > d.stat().st_mtime
+                       for d in all_dependencies):
+                    print(f"Loading the result of `{func.__name__}` from the cache file `{target}`.")
                     return load(target)
 
             result = func()

@@ -14,6 +14,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.data import DATA_CACHE_DIR
+from epidemics.cantons.py.model import ModelData
 
 # TODO: Move to epidemics/data/**
 DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
@@ -94,10 +95,8 @@ name_to_code = {}
 for code,name in code_to_name.items():
     name_to_code[name] = code
 
-codes = code_to_name.keys()
-
 class Renderer:
-    def __init__(self, frame_callback, matrix_json=None):
+    def __init__(self, frame_callback, data: ModelData):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
@@ -105,19 +104,12 @@ class Renderer:
             and `get_frame()` and `get_max_frame()` to get current frame index.
         '''
 
-        if not matrix_json:
-            # Trigger generation of `home_work_people.json`.
-            from epidemics.data.swiss_cantons import get_Mij_home_work_admin_ch_json
-            get_Mij_home_work_admin_ch_json()
-            matrix_json = DATA_CACHE_DIR / 'home_work_people.json'
-
+        self.data = data
         self.frame_callback = frame_callback
+        # FIXME: "code" vs "key" terminology, pick one.
         self.code_to_value = {}
         self.code_to_text = {}
-        self.codes = codes
 
-        with open(os.path.join(DATA_DIR, matrix_json)) as f:
-            home_work_people = json.load(f)
         fname = os.path.join(DATA_DIR, 'canton_shapes.npy')
         d = np.load(fname, allow_pickle=True).item()
 
@@ -158,7 +150,7 @@ class Renderer:
         # Draw labels.
         texts = dict()
         self.texts = texts
-        for code in codes:
+        for code in data.region_keys:
             xc, yc = centers[code]
             ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
                     color=[0,0,0])
@@ -169,18 +161,22 @@ class Renderer:
             texts[code] = text
             ax.scatter(xc, yc, color='black', s=8, zorder=5)
 
-        # Draw connections.
-        max_people = np.max([v for vv in home_work_people.values() for v in vv.values()])
-        for c_home, c_work in itertools.product(codes, repeat=2):
-            if c_home == c_work:
-                continue
-            x0, y0 = centers[c_home]
-            x1, y1 = centers[c_work]
-            n = home_work_people[c_home][c_work]
-            alpha = np.clip(n / max_people * 100, 0, 0.5)
-            lw = np.clip(n / max_people * 100, 0.5, 5)
-            ax.plot([x0, x1], [y0, y1], color='blue',
-                    alpha=alpha, lw=lw)
+        def _draw_connections(matrix, color):
+            max_people = np.max(matrix)
+            if max_people == 0:
+                return
+            for c_home, c_work in itertools.product(data.region_keys, repeat=2):
+                if c_home == c_work:
+                    continue
+                x0, y0 = centers[c_home]
+                x1, y1 = centers[c_work]
+                n = matrix[data.key_to_index[c_home], data.key_to_index[c_work]]
+                alpha = np.clip(n / max_people * 100, 0, 0.5)
+                lw = np.clip(n / max_people * 100, 0.5, 5)
+                ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
+
+        _draw_connections(data.Mij, 'blue')
+        _draw_connections(data.Cij, 'green')
 
     def set_values(self, code_to_value):
         '''
@@ -203,7 +199,7 @@ class Renderer:
         return self.code_to_text
 
     def get_codes(self):
-        return self.codes
+        return self.data.region_keys
 
     def get_frame(self):
         '''
@@ -279,7 +275,8 @@ if __name__ == "__main__":
         rend.set_values(colors)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback)
+    from epidemics.cantons.py.model import get_canton_model_data
+    rend = Renderer(frame_callback, data=get_canton_model_data())
 
     rend.save_image()
     rend.save_movie(frames=30)

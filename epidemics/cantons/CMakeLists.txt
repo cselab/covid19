@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 # Get compiler, cxxflags and linker flags from Korali.
 execute_process(
@@ -27,8 +27,10 @@ set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
 # Files common to .so and to the executable.
 SET(COMMON_SRC_FILES
-    ${SRC_DIR}/model.cpp
-    ${SRC_DIR}/solver.cpp
+    ${SRC_DIR}/common.cpp
+    ${SRC_DIR}/data.cpp
+    ${SRC_DIR}/model_seiin.cpp
+    ${SRC_DIR}/model_seii_c.cpp
     ${SRC_DIR}/utils.cpp)
 
 # Set up the Python .so code.
@@ -47,7 +49,7 @@ add_executable(
 
 target_compile_options(solver PUBLIC ${KORALI_CXXFLAGS})
 target_compile_options(solver PUBLIC ${CUSTOM_CXXFLAGS} -Wno-unused-parameter)
-target_link_options(solver PUBLIC ${KORALI_LINKERFLAGS})
+set_target_properties(solver PROPERTIES LINK_FLAGS ${KORALI_LINKERFLAGS})
 
 # Make Release mode the default.
 if(NOT CMAKE_BUILD_TYPE)

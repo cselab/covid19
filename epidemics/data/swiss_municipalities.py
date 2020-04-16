@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import re
+import os
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
 from epidemics.tools.cache import cache, cache_to_file
@@ -48,11 +49,15 @@ def bfs_population_xls(usecols=None):
 
 
 @cache
-@cache_to_file(DATA_CACHE_DIR / 'bfs_residence_work_cols1268.df.csv')
-def _get_residence_work_cols1268():
-    # (residence canton initial, residence commune number, work commune number, number of employed people)
-    df = bfs_residence_work_xls(header=4, usecols=(1, 2, 6, 8))
-    df.columns = ('canton1', 'number1', 'number2', 'num_people')
+@cache_to_file(DATA_CACHE_DIR / 'bfs_residence_work_cols12568.df.csv')
+def get_residence_work_cols12568():
+    # (residence canton initial,
+    #  residence commune number,
+    #  work canton initial,
+    #  work commune number,
+    #  number of employed people)
+    df = bfs_residence_work_xls(header=4, usecols=(1, 2, 5, 6, 8))
+    df.columns = ('canton_home', 'number_home', 'canton_work', 'number_work', 'num_people')
     return df
 
 
@@ -102,25 +107,52 @@ def get_cantons():
     1     MUN-0002     ZH
     ...        ...    ...
     """
-    commute = _get_residence_work_cols1268()
-    key_to_canton = {
-            _number_to_key(num1): canton1
-            for canton1, num1, num2, num_people in commute}
-    return pd.DataFrame(key_to_canton.items(), columns=('key', 'canton'))
+    commute = get_residence_work_cols12568()
+    print(commute)
+    return pd.DataFrame({
+        'key': list(map(_number_to_key, commute['number_home'])),
+        'canton': commute['canton_home'],
+    })
 
 
 def get_commute():
     """Returns a DataFrame with data on commute between municipality.
 
     >>> get_commute()
-               key1      key2  num_people
+           key_home  key_work  num_people
     0      MUN-0001  MUN-0001         147
     1      MUN-0001  MUN-0002         106
     ...         ...       ...         ...
     """
-    commute = _get_residence_work_cols1268()
+    commute = get_residence_work_cols12568()
     return pd.DataFrame({
-        'key1': list(map(_number_to_key, commute['number1'])),
-        'key2': list(map(_number_to_key, commute['number2'])),
+        'key_home': list(map(_number_to_key, commute['number_home'])),
+        'key_work': list(map(_number_to_key, commute['number_work'])),
         'num_people': commute['num_people']
     })
+
+def get_shape_file():
+    """Downloads and returns path to shape file with multicipalities.
+
+    >>> get_shape_file()
+    DIR/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "swissBOUNDARIES3D.zip"
+    download_and_save("https://shop.swisstopo.admin.ch/shop-server/resources/products/swissBOUNDARIES3D/download", zippath)
+
+    DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
+    os.makedirs(DATA_MAP_DIR, exist_ok=True)
+
+    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET"
+    with ZipFile(zippath, 'r') as zipobj:
+        for member in zipobj.namelist():
+            if shapefile in member:
+                basename = member
+                path = DATA_MAP_DIR / os.path.basename(member)
+                if not os.path.isfile(path):
+                    print("extracting '{:}'".format(basename))
+                    with open(path, 'wb') as f:
+                        f.write(zipobj.read(member))
+    return os.path.splitext(path)[0]
+
