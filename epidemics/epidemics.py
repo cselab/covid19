@@ -163,6 +163,7 @@ class EpidemicsBase:
 
     k.run(self.e)
 
+    # FIXME: too slow
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.parameters = []
     for j in range(self.nParameters):
