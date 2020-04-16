@@ -9,14 +9,9 @@ void Solver::rhs([[maybe_unused]] int day, Parameters p, const State &x, State &
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
         double sumIC_N = modelData_.getExternalCommutersIu(day, i);
         for (size_t j = 0; j < modelData_.numRegions; ++j)
-            sumIC_N += x.Iu(j) * this->C(i, j) * invNi[j];
-        double sum_SC_N = 0.0;
-        for (size_t j = 0; j < modelData_.numRegions; ++j)
-            sum_SC_N += x.S(j) * this->C(j, i) * invNi[j];
+            sumIC_N += x.Iu(j) * (this->C(i, j) + this->C(j, i)) * invNi[j];
         // printf("i=%zu invNi=%lg sumIC_N=%lg sum_SC_N=%lg\n", i, invNi[i], sumIC_N, sum_SC_N);
-        double A = p.beta * invNi[i] * (
-                x.S(i) * (x.Iu(i) + p.nu * sumIC_N)
-                + p.nu * x.Iu(i) * sum_SC_N);
+        double A = p.beta * x.S(i) * invNi[i] * (x.Iu(i) + p.nu * sumIC_N);
         double E_Z = x.E(i) / p.Z;
 
         double dS = -A;
