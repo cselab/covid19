@@ -34,16 +34,16 @@ class ModelData:
         region_keys: List of region names.
         region_population: List of population size of corresponding regions.
         Mij: A numpy matrix of region-region number of commuters.
-        external_cases: A matrix [day][region] of estimated number of foreign
-                        infected people visiting given region at given day.
+        ext_com_Iu: A matrix [day][region] of estimated number of foreign
+                    infected people visiting given region at given day.
     """
-    def __init__(self, region_keys, region_population, Mij, Cij, *, external_cases=[]):
+    def __init__(self, region_keys, region_population, Mij, Cij, *, ext_com_Iu=[]):
         self.num_regions = len(region_keys)
         self.region_keys = region_keys
         self.region_population = region_population
         self.Mij = Mij
         self.Cij = Cij
-        self.external_cases = external_cases
+        self.ext_com_Iu = ext_com_Iu
 
         self.key_to_index = {key: k for k, key in enumerate(region_keys)}
 
@@ -53,7 +53,7 @@ class ModelData:
         Needed when running the model from Python using the C++ implementation."""
         return libsolver.ModelData(self.region_keys, self.region_population,
                                    flatten(self.Mij), flatten(self.Cij),
-                                   flatten(self.external_cases))
+                                   flatten(self.ext_com_Iu))
 
     def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
         """Generate cpp_model_data.dat, the data for the C++ ModelData class.
@@ -83,8 +83,8 @@ class ModelData:
                 f.write(' '.join(str(x) for x in row) + '\n')
             f.write('\n')
 
-            f.write(str(len(self.external_cases)) + '\n')
-            for day in self.external_cases:
+            f.write(str(len(self.ext_com_Iu)) + '\n')
+            for day in self.ext_com_Iu:
                 f.write(' '.join(str(x) for x in day) + '\n')
         print(f"Stored model data to {path}.")
 
@@ -135,15 +135,15 @@ def get_canton_model_data(include_foreign=True):
 
     if include_foreign:
         swiss_cases = get_region_cases('switzerland')
-        external_cases = swiss_cantons.get_external_cases(
+        ext_com_Iu = swiss_cantons.get_external_Iu(
                 swiss_cases.get_date_of_first_confirmed(),
                 num_days=len(swiss_cases.confirmed) + 10)
         # A matrix [d][c] of foreign infected people visiting canton c at day d.
-        external_cases = [external_cases[c] for c in keys]
+        ext_com_Iu = [ext_com_Iu[c] for c in keys]
     else:
-        external_cases = [[] for c in keys]
+        ext_com_Iu = [[] for c in keys]
 
-    return ModelData(keys, population, Mij, Cij, external_cases=external_cases)
+    return ModelData(keys, population, Mij, Cij, ext_com_Iu=ext_com_Iu)
 
 
 def get_canton_reference_data():

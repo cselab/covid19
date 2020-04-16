@@ -6,8 +6,8 @@ namespace seiin {
 void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
 {
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
-        double external_cases = modelData_.getExternalCasesAt(day, i);
-        double A = p.beta * x.S(i) / x.N(i) * (x.Ir(i) + external_cases);
+        double extComIu = modelData_.getExternalCommutersIu(day, i);
+        double A = p.beta * x.S(i) / x.N(i) * (x.Ir(i) + extComIu);
         double B = p.beta * x.S(i) / x.N(i) * p.mu * x.Iu(i);
         double E_Z = x.E(i) / p.Z;
 

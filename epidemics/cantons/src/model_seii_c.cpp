@@ -7,8 +7,7 @@ void Solver::rhs([[maybe_unused]] int day, Parameters p, const State &x, State &
 {
     const double * __restrict__ invNi = modelData_.invNi.data();
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
-        // double external_cases = modelData_.getExternalCasesAt(day, i);
-        double sumIC_N = 0.0;
+        double sumIC_N = modelData_.getExternalCommutersIu(day, i);
         for (size_t j = 0; j < modelData_.numRegions; ++j)
             sumIC_N += x.Iu(j) * this->C(i, j) * invNi[j];
         double sum_SC_N = 0.0;

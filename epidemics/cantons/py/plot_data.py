@@ -34,9 +34,8 @@ def plot_data():
         rend.set_values(values)
         rend.set_texts(texts)
 
-    # First render the default model data (only Mij).
+    # First render the default model data (both Mij and Cij).
     model_data = get_canton_model_data()
-    model_data.Cij *= 0.0
     rend = Renderer(frame_callback, data=model_data)
     rend.save_image(filename="data.png")
     rend.save_movie(frames=len(next(iter(IR.values()))), filename="data.mp4", fps=5)
@@ -44,7 +43,10 @@ def plot_data():
     # Then the data from the other source (only Mij).
     with open(os.path.join(DATA_DIR, '2017', 'matrix.json')) as f:
         Mij_json = json.load(f)
+    del Mij_json['Enk.']
+    del Mij_json['LIE']
     model_data.Mij = json_to_numpy_matrix(Mij_json, model_data.region_keys)
+    model_data.Cij *= 0.0
     rend = Renderer(frame_callback, data=model_data)
     rend.save_image(filename="data_2017.png")
 

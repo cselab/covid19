@@ -16,6 +16,8 @@ import numpy as np
 
 import datetime
 
+DAY = datetime.timedelta(days=1)
+
 # https://en.wikipedia.org/wiki/Cantons_of_Switzerland
 CANTON_POPULATION = dict(zip(
     'ZH BE LU UR SZ OW NW GL ZG FR SO BS BL SH AR AI SG GR AG TG TI VD VS NE GE JU'.split(),
@@ -105,7 +107,7 @@ def json_to_numpy_matrix(json, order):
         json: A matrix in a JSON dictionary format.
         order: The desired row and column order in the output matrix.
     """
-    assert len(order) == len(json)
+    assert len(order) == len(json), (len(order), len(json))
     out = np.zeros((len(order), len(order)))
     for index1, c1 in enumerate(order):
         for index2, c2 in enumerate(order):
@@ -125,8 +127,11 @@ def get_Cij_numpy(canton_order):
     return json_to_numpy_matrix(get_Cij_home_work_bfs(), canton_order)
 
 
-def get_external_cases(start_date, num_days):
-    """Return an estimate of number of infected foreigns commuting to Switzerland, per canton, per day.
+def get_external_Iu(start_date, num_days):
+    """Return an estimate of number of undocumented infected foreigns commuting to Switzerland, per canton, per day.
+
+    We use the number of documented infected foreigns to estimate the number of undocumented:
+        Iu(t) ~= Ir(t + 1) - Ir(t)
 
     Returns a dictionary {canton key: [day1, day2, ...]}.
 
@@ -197,13 +202,14 @@ def get_external_cases(start_date, num_days):
     # regions at the Swiss border. To fix this, instead of using FR/GE/AU/IT
     # above, add their regions (counties or whatever) and extend
     # `get_region_cases` to include this regions.
-    COUNTRY_CASES = {country: get_region_cases(country) for country in BORDERS_CLOSING_DATE.keys()}
+    COUNTRY_IR = {country: get_region_cases(country) for country in BORDERS_CLOSING_DATE.keys()}
     COUNTRY_POPULATION = {country: get_region_population(country) for country in BORDERS_CLOSING_DATE.keys()}
 
     result = {c: [0] * num_days for c in CANTON_KEYS_ALPHABETICAL}
     for canton, country, inflow in DATA:
+        result_old = result[canton][:]
         for day in range(num_days):
-            date = start_date + datetime.timedelta(days=day)
+            date = start_date + day * DAY
 
             if date < BORDERS_CLOSING_DATE[country]:
                 intervention_factor = 1.0
@@ -216,10 +222,11 @@ def get_external_cases(start_date, num_days):
 
             # The estimated number of infected people that arrived from
             # `country` to `canton` at the date `date`.
-            inflow = COUNTRY_CASES[country].get_confirmed_at_date(date) \
-                   / COUNTRY_POPULATION[country] \
-                   * intervention_factor
-            # print(COUNTRY_CASES[country].get_confirmed_at_date(date), COUNTRY_POPULATION[country], intervention_factor)
+            country_Ir = COUNTRY_IR[country].get_confirmed_at_date
+            iu_estimate = max(0, country_Ir(date + DAY) - country_Ir(date))
+            inflow = iu_estimate / COUNTRY_POPULATION[country] * intervention_factor
+            # print(country_Ir(date), iu_estimate, COUNTRY_POPULATION[country], intervention_factor, inflow)
             result[canton][day] += inflow
+        # print(country, canton, " ".join(str(int(1e6 * (x - y))) for x, y in zip(result[canton], result_old)))
 
     return result

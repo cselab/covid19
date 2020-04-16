@@ -59,10 +59,10 @@ def example_run_seii_c(data, num_days):
     IR0 = [0] * data.num_regions
     IU0 = [0] * data.num_regions
 
-    if 'TI' in data.key_to_index:
-        IU0[data.key_to_index['TI']] = 10  # Ticino.
-    else:
-        IU0[data.key_to_index['MUN-5192']] = 10  # Lugano.
+    # if 'TI' in data.key_to_index:
+    #     IU0[data.key_to_index['TI']] = 10  # Ticino.
+    # else:
+    #     IU0[data.key_to_index['MUN-5192']] = 10  # Lugano.
 
     S0 = [N - E - IR - IU for N, E, IR, IU in zip(data.region_population, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0
@@ -89,7 +89,7 @@ def plot_ode_results(data: ModelData, results):
         for i, key in enumerate(data.region_keys):
             Ir = state.Ir(data.key_to_index[key])
             Iu = state.Iu(data.key_to_index[key])
-            print("{:02d} {} Ir={4:.1f} Iu={4:.1f}".format(i, key, Ir, Iu))
+            print("{:02d} {} Ir={:4.1f} Iu={:4.1f}".format(i, key, Ir, Iu))
             values[key] = Ir / Ir_max * 2
             texts[key] = str(int(Ir))
         rend.set_values(values)
