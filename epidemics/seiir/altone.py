@@ -62,16 +62,9 @@ class Model( ModelBase ):
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1)).tolist()
+    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
-
-
-
-  def incidence( self, sol, p, t1, t2 ):
-    def f(t): y = sol.sol(t); return p[2]/p[3]*y[1];
-    return quad(f,t1,t2)[0]
 
 
 
@@ -82,11 +75,13 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
-    y = [ self.incidence(sol,p,s-1,s) for s in t ]
+    tt = [t[0]-1] + t.tolist()
+    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
+
+    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = y.tolist()
 
     s['Reference Evaluations'] = y
-    d = self.data['Model']['y-data']
     s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
 
@@ -98,19 +93,20 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), dense_output=True )
-    y = [ self.incidence(sol,p,s-1,s) for s in t ]
+    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
+
+    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = [0] + y.tolist()
 
     js = {}
     js['Variables'] = [{}]
 
-    js['Variables'][0]['Name']   = 'Daily Reported Incidence'
+    js['Variables'][0]['Name'] = 'Daily Reported Incidence'
     js['Variables'][0]['Values'] = y
 
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
-    d = self.data['Model']['y-data']
     js['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
 
     s['Saved Results'] = js

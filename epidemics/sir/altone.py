@@ -59,7 +59,7 @@ class Model( ModelBase ):
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1)).tolist()
+    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
@@ -96,22 +96,17 @@ class Model( ModelBase ):
 
 
 
-  def incidence( self, sol, p, t1, t2 ):
-    def f(t): y = sol.sol(t); return p[0]*(y[0]/self.regionalData.populationSize)*y[1];
-    return quad(f,t1,t2)[0]
-
-
-
-
   def computational_model( self, s ):
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+    tt = [t[0]-1] + t.tolist()
+    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=tt )
 
-    y = [ self.incidence(sol,p,s-1,s) for s in t ]
+    y = -np.diff(sol.y[0])
+    y = y.tolist()
 
     s['Reference Evaluations'] = y
     s['Standard Deviation Model'] = standard_deviation_models.get( self.stdModel, standardDeviationModelConst)(p[-1],t,y);
@@ -125,9 +120,10 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), dense_output=True )
+    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p[0], p[1]), t_eval=t )
 
-    y = [ self.incidence(sol,p,s-1,s) for s in t ]
+    y = -np.diff(sol.y[0])
+    y = [0] + y.tolist()
 
     js = {}
     js['Variables'] = []

@@ -68,7 +68,7 @@ class ModelBase( EpidemicsBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Maximum'] = 10
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for D'
@@ -96,7 +96,7 @@ class ModelBase( EpidemicsBase ):
 
 
     dSdt  = - c1 - c2
-    dEdt  =   c1 + c2 - 2*(c3 + c4)
+    dEdt  =   c1 + c2 - (c3 + c4)
     dIrdt =   c3 - Ir/p[4]
     dIudt =   c4 - Iu/p[4]
     return dSdt, dEdt, dIrdt, dIudt

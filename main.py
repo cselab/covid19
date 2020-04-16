@@ -33,12 +33,12 @@ a = model_class( **vars(x) )
 
 a.sample( args.nSamples )
 
-a.save()
-
-a.propagate()
-
-a.compute_intervals()
-
-a.save()
-
-a.plot_intervals()
+# a.save()
+#
+# a.propagate()
+#
+# a.compute_intervals()
+#
+# a.save()
+#
+# a.plot_intervals()
