@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import re
+import os
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
 from epidemics.tools.cache import cache, cache_to_file
@@ -129,3 +130,29 @@ def get_commute():
         'key_work': list(map(_number_to_key, commute['number_work'])),
         'num_people': commute['num_people']
     })
+
+def get_shape_file():
+    """Downloads and returns path to shape file with multicipalities.
+
+    >>> get_shape_file()
+    DIR/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "swissBOUNDARIES3D.zip"
+    download_and_save("https://shop.swisstopo.admin.ch/shop-server/resources/products/swissBOUNDARIES3D/download", zippath)
+
+    DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
+    os.makedirs(DATA_MAP_DIR, exist_ok=True)
+
+    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET"
+    with ZipFile(zippath, 'r') as zipobj:
+        for member in zipobj.namelist():
+            if shapefile in member:
+                basename = member
+                path = DATA_MAP_DIR / os.path.basename(member)
+                if not os.path.isfile(path):
+                    print("extracting '{:}'".format(basename))
+                    with open(path, 'wb') as f:
+                        f.write(zipobj.read(member))
+    return os.path.splitext(path)[0]
+
