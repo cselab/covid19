@@ -15,6 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
 from epidemics.cantons.py.model import ModelData
+from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
@@ -24,35 +25,6 @@ def hide_axis(ax):
     plt.setp(ax.get_xticklabels(), visible=False)
     plt.setp(ax.get_yticklabels(), visible=False)
     ax.tick_params(axis='both', which='both', length=0)
-
-code_to_name = {
-    'ZH':'Zürich',
-    'BE':'Bern',
-    'LU':'Luzern',
-    'UR':'Uri',
-    'SZ':'Schwyz',
-    'OW':'Obwalden',
-    'NW':'Nidwalden',
-    'GL':'Glarus',
-    'ZG':'Zug',
-    'FR':'Fribourg',
-    'SO':'Solothurn',
-    'BS':'Basel-Stadt',
-    'BL':'Basel-Landschaft',
-    'SH':'Schaffhausen',
-    'AR':'Appenzell Ausserrhoden',
-    'AI':'Appenzell Innerrhoden',
-    'SG':'St. Gallen',
-    'GR':'Graubünden',
-    'AG':'Aargau',
-    'TG':'Thurgau',
-    'TI':'Ticino',
-    'VD':'Vaud',
-    'VS':'Valais',
-    'NE':'Neuchâtel',
-    'GE':'Genève',
-    'JU':'Jura',
-}
 
 code_to_center_shift = {
     'BE':(0,0),
@@ -88,10 +60,6 @@ for key in code_to_center_shift:
     code_to_center_shift[key] = [shift[0] * k, shift[1] * k]
 
 
-name_to_code = {}
-for code,name in code_to_name.items():
-    name_to_code[name] = code
-
 class Renderer:
     def __init__(self, frame_callback, data: ModelData):
         '''
@@ -107,7 +75,7 @@ class Renderer:
         self.code_to_value = {}
         self.code_to_text = {}
 
-        fname = DATA_FILES_DIR / 'cantons' / 'canton_shapes.npy'
+        fname = DATA_FILES_DIR / 'canton_shapes.npy'
         d = np.load(fname, allow_pickle=True).item()
 
         # Compute shape centers.
@@ -115,7 +83,7 @@ class Renderer:
         for name, ss in d.items():
             for i,s in enumerate(ss):
                 x, y = s
-                code = name_to_code[name]
+                code = NAME_TO_CODE[name]
                 centers[code] = [x.mean(), y.mean()]
                 if code in code_to_center_shift:
                     shift = code_to_center_shift[code]
@@ -137,7 +105,7 @@ class Renderer:
         fills = collections.defaultdict(list)
         self.fills = fills
         for name, ss in d.items():
-            code = name_to_code[name]
+            code = NAME_TO_CODE[name]
             for i,s in enumerate(ss):
                 x, y = s
                 line, = ax.plot(x, y, marker=None, c='black', lw=0.25)

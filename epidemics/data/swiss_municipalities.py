@@ -6,7 +6,7 @@ import os
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
 from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.io import download_and_save
+from epidemics.tools.io import download_and_save, extract_zip
 
 # Note of code design:
 # 1) "Get" functions are split into smaller ones, each on of takes cares of
@@ -131,26 +131,6 @@ def get_commute():
         'num_people': commute['num_people']
     })
 
-def extract_zip(zippath, member_pattern, save_dir, overwrite=False):
-    """
-    Extracts files from zip archive which name contains `member_pattern`,
-    saves them to `save_dir`, and returns paths to saved files.
-    """
-    from zipfile import ZipFile
-    from pathlib import Path
-    os.makedirs(save_dir, exist_ok=True)
-    paths = []
-    with ZipFile(zippath, 'r') as zipobj:
-        for member in zipobj.namelist():
-            if member_pattern in member:
-                path = Path(save_dir) / os.path.basename(member)
-                if overwrite or not os.path.isfile(path):
-                    print("extracting '{:}'".format(member))
-                    with open(path, 'wb') as f:
-                        f.write(zipobj.read(member))
-                paths.append(path)
-    return paths
-
 def get_shape_file():
     """
     Downloads and returns path to shape file with multicipalities.
@@ -180,6 +160,8 @@ def download_zones_gpkg():
     gpkg_path, = extract_zip(gpkgzip_path, "Verkehrszonen_Schweiz_NPVM_2017.gpkg", DATA_MAP_DIR)
     return gpkg_path
 
+@cache
+@cache_to_file(DATA_CACHE_DIR / 'zenodo_2017.gpkg.pickle')
 def get_zones_info(gpkg_path=None):
     """
     gpkg_path: str
@@ -187,7 +169,9 @@ def get_zones_info(gpkg_path=None):
 
     Returns:
     zone_to_canton: `dict`
-        Mapping from zone (municipality) name to canton code (e.g. 'Dietlikon' -> 'ZH')
+        Mapping from zone (municipality) name to canton code (e.g. 'Dietlikon' -> 'ZH').
+    zone_to_geometry: `dict`
+        Mapping from zone (municipality) name to geometry.
     """
     import geopandas as gpd
 
@@ -196,11 +180,13 @@ def get_zones_info(gpkg_path=None):
     gdf = gpd.read_file(gpkg_path)
     zonenames = list(map(str, gdf.N_Gem))
     zonecantons = list(map(str, gdf.N_KT))
-    print(gdf.geometry)
+    zonegeometry = list(gdf.geometry)
     zone_to_canton = {}
-    for name,canton in zip(zonenames, zonecantons):
+    zone_to_geometry = {}
+    for name,canton,geom in zip(zonenames, zonecantons, zonegeometry):
         zone_to_canton[name] = canton
-    return zone_to_canton
+        zone_to_geometry[name] = geom
+    return zone_to_canton, zone_to_geometry
 
 def download_matrix_mtx():
     """

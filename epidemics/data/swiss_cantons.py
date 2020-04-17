@@ -10,11 +10,12 @@ from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR, DATA_FILES_DIR
 from epidemics.data.cases import get_region_cases
 from epidemics.data.population import get_region_population
 from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.io import download_and_save
+from epidemics.tools.io import download_and_save, extract_zip
 import epidemics.data.swiss_municipalities as swiss_mun
 import numpy as np
 
 import datetime
+import os
 
 DAY = datetime.timedelta(days=1)
 
@@ -51,6 +52,39 @@ CANTON_POPULATION = dict(zip(
     ]))
 
 CANTON_KEYS_ALPHABETICAL = sorted(CANTON_POPULATION.keys())
+
+CODE_TO_NAME = {
+    'ZH':'Zürich',
+    'BE':'Bern',
+    'LU':'Luzern',
+    'UR':'Uri',
+    'SZ':'Schwyz',
+    'OW':'Obwalden',
+    'NW':'Nidwalden',
+    'GL':'Glarus',
+    'ZG':'Zug',
+    'FR':'Fribourg',
+    'SO':'Solothurn',
+    'BS':'Basel-Stadt',
+    'BL':'Basel-Landschaft',
+    'SH':'Schaffhausen',
+    'AR':'Appenzell Ausserrhoden',
+    'AI':'Appenzell Innerrhoden',
+    'SG':'St. Gallen',
+    'GR':'Graubünden',
+    'AG':'Aargau',
+    'TG':'Thurgau',
+    'TI':'Ticino',
+    'VD':'Vaud',
+    'VS':'Valais',
+    'NE':'Neuchâtel',
+    'GE':'Genève',
+    'JU':'Jura',
+}
+
+NAME_TO_CODE = {}
+for code,name in CODE_TO_NAME.items():
+    NAME_TO_CODE[name] = code
 
 def fetch_openzh_covid_data(*, cache_duration=3600):
     """
@@ -230,3 +264,18 @@ def get_external_Iu(start_date, num_days):
         # print(country, canton, " ".join(str(int(1e6 * (x - y))) for x, y in zip(result[canton], result_old)))
 
     return result
+
+def get_shape_file():
+    """
+    Downloads and returns path to shape file with cantons.
+    """
+    zippath = DATA_DOWNLOADS_DIR / "swissBOUNDARIES3D.zip"
+    download_and_save("https://shop.swisstopo.admin.ch/shop-server/resources/products/swissBOUNDARIES3D/download", zippath)
+
+
+    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET"
+    DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
+
+    paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
+    return os.path.splitext(paths[0])[0]
+
