@@ -4,6 +4,7 @@ from matplotlib import animation
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
+import geopandas as gpd
 
 import collections
 import itertools
@@ -16,6 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
 from epidemics.cantons.py.model import ModelData
 from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
+import epidemics.data.swiss_municipalities as munip
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
@@ -61,7 +63,7 @@ for key in code_to_center_shift:
 
 
 class Renderer:
-    def __init__(self, frame_callback, data: ModelData):
+    def __init__(self, frame_callback, data: ModelData, draw_zones=False):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
@@ -74,6 +76,7 @@ class Renderer:
         # FIXME: "code" vs "key" terminology, pick one.
         self.code_to_value = {}
         self.code_to_text = {}
+        self.draw_zones = draw_zones
 
         fname = DATA_FILES_DIR / 'canton_shapes.npy'
         d = np.load(fname, allow_pickle=True).item()
@@ -112,6 +115,16 @@ class Renderer:
                 fill, = ax.fill(x, y, alpha=0.25, c='white')
                 fills[code].append(fill)
 
+        # Draw zones
+        if draw_zones:
+            zone_to_canton, zone_to_geometry = munip.get_zones_info()
+            zone_geoms = list(zone_to_geometry.values())
+            gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(zone_geoms))
+            gdf.plot(ax=self.ax)
+            gdf['names'] = list(zone_to_canton)
+            gdf['values'] = np.zeros(gdf.shape[0])
+            self.zone_gdf = gdf
+
         # Draw labels.
         texts = dict()
         self.texts = texts
@@ -149,6 +162,14 @@ class Renderer:
           Mapping from canton code to float between 0 and 1.
         '''
         self.code_to_value = code_to_value
+
+    def set_zone_values(self, zone_values):
+        '''
+        code_to_value: `numpy.ndarray`, self.zone_gdf.shape[0]
+          Array of values between 0 and 1 to color the zones.
+        '''
+        if self.draw_zones:
+            self.zone_gdf['values'] = zone_values
 
     def set_texts(self, code_to_text):
         '''
@@ -199,6 +220,8 @@ class Renderer:
                 fill.set_alpha(alpha)
         for code,text in self.code_to_text.items():
             self.texts[code].set_text(str(text))
+        if self.draw_zones:
+            self.zone_gdf.plot(ax=self.ax, column='values', cmap='Greys')
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
 
     def save_movie(self, frames=100, filename="a.mp4", fps=15):
@@ -239,9 +262,11 @@ if __name__ == "__main__":
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
         rend.set_values(colors)
         rend.set_texts(texts)
+        rend.set_zone_values(np.random.rand(rend.zone_gdf.shape[0]))
 
     from epidemics.cantons.py.model import get_canton_model_data
-    rend = Renderer(frame_callback, data=get_canton_model_data())
+    rend = Renderer(frame_callback, data=get_canton_model_data(),
+            draw_zones=True)
 
     rend.save_image()
-    rend.save_movie(frames=30)
+    #rend.save_movie(frames=30)
