@@ -25,10 +25,16 @@ ModelData::ModelData(
 }
 
 void ModelData::init() {
-    numRegions = regionKeys.size();
+    size_t K = regionKeys.size();
+    numRegions = K;
     invNi.resize(Ni.size(), 0.0);
     for (size_t i = 0; i < invNi.size(); ++i)
         invNi[i] = 1.0 / Ni[i];
+
+    C_plus_Ct.resize(Cij.size());
+    for (size_t i = 0; i < K; ++i)
+    for (size_t j = 0; j < K; ++j)
+        C_plus_Ct[i * K + j] = Cij[i * K + j] + Cij[j * K + i];
 }
 
 /*
