@@ -128,6 +128,7 @@ class Renderer:
             gdf_ax = gdf.plot(ax=self.ax, column='values', cmap='Greys', alpha=0.8)
             self.zone_gdf = gdf
             self.zone_gdf_ax = gdf_ax
+            self.zone_to_canton = zone_to_canton
 
         # Draw labels.
         texts = dict()
@@ -169,7 +170,7 @@ class Renderer:
 
     def set_zone_values(self, zone_values):
         '''
-        code_to_value: `numpy.ndarray`, self.zone_gdf.shape[0]
+        code_to_value: `numpy.ndarray`, shape=self.zone_gdf.shape[0]
           Array of values between 0 and 1 to color the zones.
         '''
         if self.draw_zones:
@@ -187,6 +188,15 @@ class Renderer:
 
     def get_texts(self):
         return self.code_to_text
+
+    def get_zone_names(self):
+        return self.zone_gdf['names'].values
+
+    def get_zone_values(self):
+        return self.zone_gdf['values'].values
+
+    def get_zone_to_canton(self):
+        return self.zone_to_canton
 
     def get_codes(self):
         return self.data.region_keys
@@ -267,7 +277,18 @@ if __name__ == "__main__":
         rend.set_values(colors)
         rend.set_texts(texts)
         if rend.draw_zones:
-            rend.set_zone_values(np.random.rand(rend.zone_gdf.shape[0]))
+            nn = rend.get_zone_names()
+            sel_nn = nn[::100]
+            vv = rend.get_zone_values()
+            ii = []
+            for i,n in enumerate(nn):
+                if n in sel_nn:
+                    ii.append(i)
+            for i in ii:
+                c = rend.get_zone_to_canton()[nn[i]]
+                if c in colors:
+                    vv[i] = colors[c]
+            rend.set_zone_values(vv)
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
