@@ -26,6 +26,8 @@ def hide_axis(ax):
     ax.spines['left'].set_visible(False)
     plt.setp(ax.get_xticklabels(), visible=False)
     plt.setp(ax.get_yticklabels(), visible=False)
+    ax.set_xticks([])
+    ax.set_yticks([])
     ax.tick_params(axis='both', which='both', length=0)
 
 code_to_center_shift = {
@@ -120,10 +122,12 @@ class Renderer:
             zone_to_canton, zone_to_geometry = munip.get_zones_info()
             zone_geoms = list(zone_to_geometry.values())
             gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(zone_geoms))
-            gdf.plot(ax=self.ax)
             gdf['names'] = list(zone_to_canton)
+            gdf['cantons'] = list(zone_to_canton.values())
             gdf['values'] = np.zeros(gdf.shape[0])
+            gdf_ax = gdf.plot(ax=self.ax, column='values', cmap='Greys', alpha=0.8)
             self.zone_gdf = gdf
+            self.zone_gdf_ax = gdf_ax
 
         # Draw labels.
         texts = dict()
@@ -221,7 +225,7 @@ class Renderer:
         for code,text in self.code_to_text.items():
             self.texts[code].set_text(str(text))
         if self.draw_zones:
-            self.zone_gdf.plot(ax=self.ax, column='values', cmap='Greys')
+            self.zone_gdf.plot(ax=self.zone_gdf_ax, column='values', cmap='Greys', alpha=0.8)
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
 
     def save_movie(self, frames=100, filename="a.mp4", fps=15):
@@ -262,11 +266,12 @@ if __name__ == "__main__":
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
         rend.set_values(colors)
         rend.set_texts(texts)
-        rend.set_zone_values(np.random.rand(rend.zone_gdf.shape[0]))
+        if rend.draw_zones:
+            rend.set_zone_values(np.random.rand(rend.zone_gdf.shape[0]))
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
             draw_zones=True)
 
     rend.save_image()
-    #rend.save_movie(frames=30)
+    rend.save_movie(frames=10, fps=5)
