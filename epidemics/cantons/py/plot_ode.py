@@ -111,11 +111,15 @@ def plot_ode_results_munic(data: ModelData, results):
         results: A list of State objects.
     """
 
-    from epidemics.data.swiss_municipalities import get_cantons
+    from epidemics.data.swiss_municipalities import get_cantons, get_name_and_population
     from pandas import Series
 
     df = get_cantons()
-    cantons = Series(df.canton.values,index=df.key).to_dict()
+    key_to_canton = Series(df.canton.values,index=df.key).to_dict()
+
+    df = get_name_and_population()
+    key_to_name = Series(df.name.values,index=df.key).to_dict()
+
     def frame_callback(rend):
         t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
 
@@ -123,9 +127,25 @@ def plot_ode_results_munic(data: ModelData, results):
         Ir_cantons = collections.defaultdict(float)
         Iu_cantons = collections.defaultdict(float)
         for i, key in enumerate(data.region_keys):
-            if key in cantons:
-                Ir_cantons[cantons[key]] += state.Ir(data.key_to_index[key])
-                Iu_cantons[cantons[key]] += state.Iu(data.key_to_index[key])
+            if key in key_to_canton:
+                Ir_cantons[key_to_canton[key]] += state.Ir(data.key_to_index[key])
+                Iu_cantons[key_to_canton[key]] += state.Iu(data.key_to_index[key])
+
+        name_to_value = {}
+        for i, key in enumerate(data.region_keys):
+            if key in key_to_canton:
+                name_to_value[key_to_name[key]] = state.Ir(data.key_to_index[key]);
+
+        cnt = 0
+        if rend.draw_zones:
+            nn = rend.get_zone_names()
+            zone_values = np.zeros(len(nn))
+            for i,n in enumerate(nn):
+                if n in name_to_value:
+                    zone_values[i] = name_to_value[n] * 1e6
+                    cnt += 1
+            rend.set_zone_values(zone_values)
+        print("found {:} matches between zone and municipality names".format(cnt))
 
         Ir_max = np.max(list(Ir_cantons.values()))
         texts = {}
@@ -138,7 +158,7 @@ def plot_ode_results_munic(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False)
+    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
