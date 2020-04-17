@@ -100,7 +100,7 @@ def plot_ode_results_canton(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False)
+    rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
@@ -142,10 +142,10 @@ def plot_ode_results_munic(data: ModelData, results):
             zone_values = np.zeros(len(nn))
             for i,n in enumerate(nn):
                 if n in name_to_value:
-                    zone_values[i] = name_to_value[n] * 1e6
+                    zone_values[i] = np.clip(name_to_value[n] * 1e6, 0., 1.)
                     cnt += 1
             rend.set_zone_values(zone_values)
-        print("found {:} matches between zone and municipality names".format(cnt))
+            print("found {:} matches between zone and municipality names".format(cnt))
 
         Ir_max = np.max(list(Ir_cantons.values()))
         texts = {}

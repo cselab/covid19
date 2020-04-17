@@ -5,6 +5,7 @@ import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
+from pandas import Series
 
 import collections
 import itertools
@@ -17,7 +18,23 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
 from epidemics.cantons.py.model import ModelData
 from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
-import epidemics.data.swiss_municipalities as munip
+from epidemics.tools.cache import cache, cache_to_file
+import epidemics.data.swiss_municipalities as munic
+
+@cache
+@cache_to_file(DATA_CACHE_DIR / 'zenodo_2017_centers.pickle')
+def get_zone_centers():
+    centers = {}
+    zone_to_canton, zone_to_geometry = munic.get_zones_info()
+    name_to_center = {}
+    for name,geom in zone_to_geometry.items():
+        name_to_center[name] = geom.centroid.coords[0]
+    df = munic.get_name_and_population()
+    key_to_name = Series(df.name.values,index=df.key).to_dict()
+    for key,name in key_to_name.items():
+        if name in name_to_center:
+            centers[key] = list(name_to_center[name])
+    return centers
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
@@ -97,6 +114,9 @@ class Renderer:
                     centers[code][1] += shift[1]
                 break
 
+        if draw_zones:
+            centers.update(get_zone_centers())
+
         self.set_base_colors('red')
 
         dpi = 200
@@ -120,7 +140,7 @@ class Renderer:
 
         # Draw zones
         if draw_zones:
-            zone_to_canton, zone_to_geometry = munip.get_zones_info()
+            zone_to_canton, zone_to_geometry = munic.get_zones_info()
             zone_geoms = list(zone_to_geometry.values())
             gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(zone_geoms))
             gdf['names'] = list(zone_to_canton)
@@ -151,6 +171,8 @@ class Renderer:
                 return
             for c_home, c_work in itertools.product(data.region_keys, repeat=2):
                 if c_home == c_work:
+                    continue
+                if c_home not in centers or c_work not in centers:
                     continue
                 x0, y0 = centers[c_home]
                 x1, y1 = centers[c_work]

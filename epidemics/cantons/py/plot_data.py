@@ -10,7 +10,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data
+from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data,\
+        get_municipality_model_data
 from epidemics.cantons.py.plot import Renderer
 from epidemics.data.swiss_cantons import json_to_numpy_matrix
 from epidemics.tools.tools import flatten
@@ -36,7 +37,9 @@ def plot_data():
 
     # First render the default model data (both Mij and Cij).
     model_data = get_canton_model_data()
-    rend = Renderer(frame_callback, data=model_data)
+    rend = Renderer(frame_callback, data=model_data, draw_zones=False, draw_Cij=False)
+    #model_data = get_municipality_model_data()
+    #rend = Renderer(frame_callback, data=model_data, draw_zones=True)
     rend.save_image(filename="data.png")
     rend.save_movie(frames=len(next(iter(IR.values()))), filename="data.mp4", fps=5)
 
