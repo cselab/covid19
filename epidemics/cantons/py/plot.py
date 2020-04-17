@@ -65,7 +65,8 @@ for key in code_to_center_shift:
 
 
 class Renderer:
-    def __init__(self, frame_callback, data: ModelData, draw_zones=False):
+    def __init__(self, frame_callback, data: ModelData, draw_zones=False,
+            draw_Mij=True, draw_Cij=True):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
@@ -133,7 +134,7 @@ class Renderer:
         # Draw labels.
         texts = dict()
         self.texts = texts
-        for code in data.region_keys:
+        for code in centers:
             xc, yc = centers[code]
             ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
                     color=[0,0,0])
@@ -158,8 +159,10 @@ class Renderer:
                 lw = np.clip(n / max_people * 100, 0.5, 5)
                 ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
 
-        _draw_connections(data.Mij, 'blue')
-        _draw_connections(data.Cij, 'green')
+        if draw_Mij:
+            _draw_connections(data.Mij, 'blue')
+        if draw_Cij:
+            _draw_connections(data.Cij, 'green')
 
     def set_values(self, code_to_value):
         '''
@@ -199,7 +202,7 @@ class Renderer:
         return self.zone_to_canton
 
     def get_codes(self):
-        return self.data.region_keys
+        return CODE_TO_NAME.keys()
 
     def get_frame(self):
         '''
@@ -232,8 +235,9 @@ class Renderer:
             for fill in self.fills[code]:
                 fill.set_color(color)
                 fill.set_alpha(alpha)
-        for code,text in self.code_to_text.items():
-            self.texts[code].set_text(str(text))
+        for code in self.texts:
+            if code in self.code_to_text:
+                self.texts[code].set_text(str(self.code_to_text[code]))
         if self.draw_zones:
             self.zone_gdf.plot(ax=self.zone_gdf_ax, column='values', cmap='Greys', alpha=0.8)
         return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
@@ -288,7 +292,9 @@ if __name__ == "__main__":
                 c = rend.get_zone_to_canton()[nn[i]]
                 if c in colors:
                     vv[i] = colors[c]
+            vv = np.random.rand(len(nn))
             rend.set_zone_values(vv)
+
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
