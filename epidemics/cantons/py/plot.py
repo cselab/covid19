@@ -13,11 +13,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.data import DATA_CACHE_DIR
+from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
 from epidemics.cantons.py.model import ModelData
-
-# TODO: Move to epidemics/data/**
-DATA_DIR = os.path.join(os.path.normpath(os.path.dirname(__file__)), '..', 'data')
 
 def hide_axis(ax):
     ax.spines['top'].set_visible(False)
@@ -110,7 +107,7 @@ class Renderer:
         self.code_to_value = {}
         self.code_to_text = {}
 
-        fname = os.path.join(DATA_DIR, 'canton_shapes.npy')
+        fname = DATA_FILES_DIR / 'cantons' / 'canton_shapes.npy'
         d = np.load(fname, allow_pickle=True).item()
 
         # Compute shape centers.
