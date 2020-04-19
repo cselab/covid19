@@ -154,7 +154,7 @@ class Renderer:
         # Draw labels.
         texts = dict()
         self.texts = texts
-        for code in centers:
+        for code in CODE_TO_NAME:
             xc, yc = centers[code]
             ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
                     color=[0,0,0])
@@ -177,8 +177,8 @@ class Renderer:
                 x0, y0 = centers[c_home]
                 x1, y1 = centers[c_work]
                 n = matrix[data.key_to_index[c_home], data.key_to_index[c_work]]
-                alpha = np.clip(n / max_people * 100, 0, 0.5)
-                lw = np.clip(n / max_people * 100, 0.5, 5)
+                alpha = np.clip(n / max_people * 20, 0, 0.5)
+                lw = np.clip(n / max_people * 5, 0.5, 4)
                 ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
 
         if draw_Mij:
