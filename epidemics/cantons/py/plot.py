@@ -6,12 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
 from pandas import Series
+import shapely
 
 import collections
 import itertools
 import json
 import os
 import sys
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
@@ -83,7 +85,7 @@ for key in code_to_center_shift:
 
 class Renderer:
     def __init__(self, frame_callback, data: ModelData, draw_zones=False,
-            draw_Mij=True, draw_Cij=True):
+            draw_Mij=True, draw_Cij=True, resolution=(1920,1080)):
         '''
         frame_callback: callable
             Function that takes Renderer and called before rendering a frame.
@@ -99,11 +101,11 @@ class Renderer:
         self.draw_zones = draw_zones
 
         fname = DATA_FILES_DIR / 'canton_shapes.npy'
-        d = np.load(fname, allow_pickle=True).item()
+        self.canton_shapes = np.load(fname, allow_pickle=True).item()
 
         # Compute shape centers.
         centers = {}
-        for name, ss in d.items():
+        for name, ss in self.canton_shapes.items():
             for i,s in enumerate(ss):
                 x, y = s
                 code = NAME_TO_CODE[name]
@@ -116,54 +118,21 @@ class Renderer:
 
         if draw_zones:
             centers.update(get_zone_centers())
+        self.centers = centers
 
         self.set_base_colors('red')
 
-        dpi = 200
-        fig, ax = plt.subplots(figsize=(1920 / dpi, 1080 / dpi), dpi=dpi)
+        resolution = np.array(resolution).astype(float)
+        self.resolution = resolution
+        dpi = resolution.min() / 5.
+        figsize = resolution / dpi
+        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
         hide_axis(ax)
         ax.set_aspect('equal')
         fig.tight_layout()
         self.fig = fig
         self.ax = ax
-
-        # Draw shapes.
-        fills = collections.defaultdict(list)
-        self.fills = fills
-        for name, ss in d.items():
-            code = NAME_TO_CODE[name]
-            for i,s in enumerate(ss):
-                x, y = s
-                line, = ax.plot(x, y, marker=None, c='black', lw=0.25)
-                fill, = ax.fill(x, y, alpha=0.25, c='white')
-                fills[code].append(fill)
-
-        # Draw zones
-        if draw_zones:
-            zone_to_canton, zone_to_geometry = munic.get_zones_info()
-            zone_geoms = list(zone_to_geometry.values())
-            gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(zone_geoms))
-            gdf['names'] = list(zone_to_canton)
-            gdf['cantons'] = list(zone_to_canton.values())
-            gdf['values'] = np.zeros(gdf.shape[0])
-            gdf_ax = gdf.plot(ax=self.ax, column='values', cmap='Greys', alpha=0.8)
-            self.zone_gdf = gdf
-            self.zone_gdf_ax = gdf_ax
-            self.zone_to_canton = zone_to_canton
-
-        # Draw labels.
-        texts = dict()
-        self.texts = texts
-        for code in CODE_TO_NAME:
-            xc, yc = centers[code]
-            ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
-                    color=[0,0,0])
-            text = ax.text(
-                    xc, yc - 1700,
-                    '', ha='center', va='top', zorder=10, fontsize=7,
-                    color=[0,0,0])
-            texts[code] = text
-            ax.scatter(xc, yc, color='black', s=8, zorder=5)
+        self.last_frame_time = time.time()
 
         def _draw_connections(matrix, color):
             max_people = np.max(matrix)
@@ -199,7 +168,7 @@ class Renderer:
           Array of values between 0 and 1 to color the zones.
         '''
         if self.draw_zones:
-            self.zone_gdf['values'] = zone_values
+            self.zone_values = zone_values
 
     def set_texts(self, code_to_text):
         '''
@@ -218,7 +187,7 @@ class Renderer:
         return self.zone_gdf['names'].values
 
     def get_zone_values(self):
-        return self.zone_gdf['values'].values
+        return self.zone_values
 
     def get_zone_to_canton(self):
         return self.zone_to_canton
@@ -240,20 +209,82 @@ class Renderer:
         '''
         return self.max_frame
 
-    def init(self):
-        return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
+    def init_plot(self):
+        '''
+        Updates data and returns a list of artist to animate
+        (would make an effect in case blit=True).
+        '''
+        ax = self.ax
 
-    def update(self, frame=-1, silent=False):
+        # Draw cantons.
+        fills = collections.defaultdict(list)
+        for name, ss in self.canton_shapes.items():
+            code = NAME_TO_CODE[name]
+            for i,s in enumerate(ss):
+                x, y = s
+                line, = ax.plot(x, y, marker=None, c='black', lw=0.25)
+                fill, = ax.fill(x, y, alpha=0, c='white', lw=0)
+                fills[code].append(fill)
+        self.fills = fills
+
+        # Draw municipalities.
+        if self.draw_zones:
+            zone_to_canton, zone_to_geometry = munic.get_zones_info()
+            zone_geoms = list(zone_to_geometry.values())
+            gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(zone_geoms))
+            gdf['names'] = list(zone_to_canton)
+            gdf['cantons'] = list(zone_to_canton.values())
+            self.zone_values = np.zeros(gdf.shape[0])
+            self.zone_gdf = gdf
+            self.zone_to_canton = zone_to_canton
+
+            zone_fills = [[] for i in range(gdf.shape[0])]
+            for i,geomvalue in enumerate(zip(gdf['geometry'], self.zone_values)):
+                geom, value = geomvalue
+                if isinstance(geom, shapely.geometry.MultiPolygon):
+                    geom = list(geom)
+                if isinstance(geom, shapely.geometry.Polygon):
+                    geom = [geom]
+                for g in geom:
+                    poly = np.array(g.exterior.coords).T
+                    fill, = ax.fill(*poly, alpha=0, c='black', lw=0)
+                    zone_fills[i].append(fill)
+            self.zone_fills = zone_fills
+
+        # Draw labels.
+        texts = dict()
+        self.texts = texts
+        for code in CODE_TO_NAME:
+            xc, yc = self.centers[code]
+            ax.text(xc, yc, code, ha='center', va='bottom', zorder=10,
+                    color=[0,0,0])
+            text = ax.text(
+                    xc, yc - 1700,
+                    '', ha='center', va='top', zorder=10, fontsize=7,
+                    color=[0,0,0])
+            texts[code] = text
+            ax.scatter(xc, yc, color='black', s=8, zorder=5)
+
+        return []
+
+    def update_plot(self, frame=-1, silent=False):
+        '''
+        Updates data and returns a list of artist to update
+        (would make an effect in case blit=True).
+        '''
         self.frame = frame
         self.frame_callback(self)
 
         if frame == -1:
             frame = self.max_frame
         if not silent:
-            print("{:}/{:}".format(frame, self.max_frame))
+            time1 = time.time()
+            dtime = time1 - self.last_frame_time
+            print("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
+            self.last_frame_time = time1
         for code,value in self.code_to_value.items():
             color = self.base_colors[code]
-            alpha = np.clip(value, 0, 1)
+            alpha = np.clip(value, 0, 1) * 0.5
             for fill in self.fills[code]:
                 fill.set_color(color)
                 fill.set_alpha(alpha)
@@ -261,22 +292,32 @@ class Renderer:
             if code in self.code_to_text:
                 self.texts[code].set_text(str(self.code_to_text[code]))
         if self.draw_zones:
-            self.zone_gdf.plot(ax=self.zone_gdf_ax, column='values', cmap='Greys', alpha=0.8)
-        return [v for vv in self.fills.values() for v in vv] + list(self.texts.values())
+            for fills,value in zip(self.zone_fills, self.zone_values):
+                alpha = np.clip(value, 0, 1) * 0.5
+                for fill in fills:
+                    fill.set_alpha(alpha)
+        return []
 
-    def save_movie(self, frames=100, filename="a.mp4", fps=15):
+    def save_movie(self, frames=100, filename="a.mp4", fps=15,):
         self.max_frame = frames - 1
-        ani = animation.FuncAnimation(self.fig, self.update,
+        ani = animation.FuncAnimation(self.fig, self.update_plot,
                 frames=list(range(frames)),
-                init_func=self.init, blit=True)
+                init_func=self.init_plot, blit=False)
         Writer = animation.writers['ffmpeg']
         writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=2000)
         ani.save(filename, writer=writer)
 
+    def run_interactive(self, frames=100, fps=15):
+        self.max_frame = frames - 1
+        ani = animation.FuncAnimation(self.fig, self.update_plot,
+                frames=list(range(frames)),
+                init_func=self.init_plot, blit=False, interval=1000. / fps)
+        plt.show()
+
     def save_image(self, frame=-1, filename="a.png"):
         self.max_frame = 1
-        self.init()
-        self.update(self.max_frame, silent=True)
+        self.init_plot()
+        self.update_plot(self.max_frame, silent=True)
         self.fig.savefig(filename)
 
     def set_base_colors(self, code_to_rgb=None):
@@ -320,7 +361,8 @@ if __name__ == "__main__":
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
-            draw_zones=True)
+            draw_zones=True, resolution=(720,480))
 
-    rend.save_image()
+    #rend.run_interactive(frames=10)
+    #rend.save_image()
     rend.save_movie(frames=10, fps=5)

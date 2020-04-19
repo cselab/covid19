@@ -37,9 +37,8 @@ def plot_data():
 
     # First render the default model data (both Mij and Cij).
     model_data = get_canton_model_data()
+
     rend = Renderer(frame_callback, data=model_data, draw_zones=False, draw_Cij=False)
-    #model_data = get_municipality_model_data()
-    #rend = Renderer(frame_callback, data=model_data, draw_zones=True)
     rend.save_image(filename="data.png")
     rend.save_movie(frames=len(next(iter(IR.values()))), filename="data.mp4", fps=5)
 
