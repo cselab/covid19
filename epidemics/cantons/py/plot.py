@@ -88,9 +88,10 @@ class Renderer:
             draw_Mij=True, draw_Cij=True, resolution=(1920,1080)):
         '''
         frame_callback: callable
-            Function that takes Renderer and called before rendering a frame.
-            It can use `set_values()` and `set_texts()` to update the state,
-            and `get_frame()` and `get_max_frame()` to get current frame index.
+            Function that takes Renderer.
+            The function is called before rendering a frame,
+            and `get_frame()` takes values between 0 and `get_max_frame()`.
+            It can use `set_values()` and `set_texts()` to update the state,.
         '''
 
         self.data = data
@@ -326,8 +327,7 @@ class Renderer:
         self.update_plot(self.max_frame, silent=True)
         self.fig.savefig(filename)
 
-if __name__ == "__main__":
-
+def example():
     def frame_callback(rend):
         colors = dict()
         texts = dict()
@@ -348,14 +348,17 @@ if __name__ == "__main__":
                 c = rend.get_zone_to_canton()[nn[i]]
                 if c in colors:
                     vv[i] = colors[c]
-            vv = np.random.rand(len(nn))
+            vv = np.cos(np.arange(len(nn)) + rend.get_frame() * 10 / rend.get_max_frame()) ** 2
             rend.set_zone_values(vv)
 
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
-            draw_zones=False)
+            draw_zones=True, resolution=(720,480))
 
+    #rend.run_interactive(frames=50)
     rend.save_image()
-    rend.save_movie(frames=10, fps=5)
-    #rend.run_interactive(frames=10)
+    rend.save_movie(frames=10, fps=10)
+
+if __name__ == "__main__":
+    example()
