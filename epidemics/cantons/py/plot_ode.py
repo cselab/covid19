@@ -123,36 +123,48 @@ def plot_ode_results_munic(data: ModelData, results):
     def frame_callback(rend):
         t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
 
+        plot_NmS = True
+
         state = results[t]
         Ir_cantons = collections.defaultdict(float)
-        Iu_cantons = collections.defaultdict(float)
+        NmS_cantons = collections.defaultdict(float)
         for i, key in enumerate(data.region_keys):
             if key in key_to_canton:
                 Ir_cantons[key_to_canton[key]] += state.Ir(data.key_to_index[key])
-                Iu_cantons[key_to_canton[key]] += state.Iu(data.key_to_index[key])
+                NmS_cantons[key_to_canton[key]] += \
+                        state.N(data.key_to_index[key]) - state.S(data.key_to_index[key])
 
-        name_to_value = {}
-        for i, key in enumerate(data.region_keys):
-            if key in key_to_canton:
-                name_to_value[key_to_name[key]] = state.Ir(data.key_to_index[key]);
-
-        cnt = 0
+        n_matches = 0
+        # Municipalities
         if rend.draw_zones:
+            name_to_value = {}
+            for i, key in enumerate(data.region_keys):
+                if key in key_to_canton:
+                    j = data.key_to_index[key]
+                    if plot_NmS:
+                        name_to_value[key_to_name[key]] = state.N(j) - state.S(j)
+                    else:
+                        name_to_value[key_to_name[key]] = state.Ir(j)
             nn = rend.get_zone_names()
             zone_values = np.zeros(len(nn))
             for i,n in enumerate(nn):
                 if n in name_to_value:
                     zone_values[i] = np.clip(name_to_value[n] * 0.1, 0., 1.)
-                    cnt += 1
+                    n_matches += 1
             rend.set_zone_values(zone_values)
-            print("found {:} matches between zone and municipality names".format(cnt))
+            print("found {:} matches between zone and municipality names".format(n_matches))
 
         Ir_max = np.max(list(Ir_cantons.values()))
+        NmS_max = np.max(list(NmS_cantons.values()))
         texts = {}
         values = {}
-        for i,code in enumerate(Iu_cantons):
-            print("{:02d} {} Ir={:4.1f} Iu={:4.1f}".format(i, code, Ir_cantons[code], Iu_cantons[code]))
-            values[code] = Ir_cantons[code] / Ir_max * 2
+        # Cantons
+        for i,code in enumerate(Ir_cantons):
+            print("{:02d} {} Ir={:4.1f} N-S={:4.1f}".format(i, code, Ir_cantons[code], NmS_cantons[code]))
+            if plot_NmS:
+                values[code] = NmS_cantons[code] / NmS_max * 2
+            else:
+                values[code] = Ir_cantons[code] / Ir_max * 2
             texts[code] = str(int(Ir_cantons[code] + 0.5))
 
         rend.set_values(values)
