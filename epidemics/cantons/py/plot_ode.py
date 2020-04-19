@@ -162,10 +162,13 @@ def plot_ode_results_munic(data: ModelData, results):
         for i,code in enumerate(Ir_cantons):
             print("{:02d} {} Ir={:4.1f} N-S={:4.1f}".format(i, code, Ir_cantons[code], NmS_cantons[code]))
             if plot_NmS:
-                values[code] = NmS_cantons[code] / NmS_max * 2
+                #values[code] = NmS_cantons[code] / NmS_max * 2
+                values[code] = NmS_cantons[code] * 1e-3
+                texts[code] = str(round(NmS_cantons[code]))
             else:
-                values[code] = Ir_cantons[code] / Ir_max * 2
-            texts[code] = str(int(Ir_cantons[code] + 0.5))
+                #values[code] = Ir_cantons[code] / Ir_max * 2
+                values[code] = Ir_cantons[code] * 1e-3
+                texts[code] = str(round(Ir_cantons[code]))
 
         rend.set_values(values)
         rend.set_texts(texts)
