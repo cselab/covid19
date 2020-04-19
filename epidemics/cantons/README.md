@@ -47,3 +47,10 @@ Meeting on 2020-04-07.
 - <https://bsse.ethz.ch/cevo/research/sars-cov-2/real-time-monitoring-in-switzerland.html>
 - <https://ispmbern.github.io/covid-19/swiss-epidemic-model/>
 - <https://cmmid.github.io/topics/covid19/current-patterns-tranmission/global-time-varying-transmission.html>
+
+
+# Data
+
+# airports from Eurostat
+
+<https://appsso.eurostat.ec.europa.eu/nui/show.do?query=BOOKMARK_DS-054028_QID_61D411A9_UID_-3F171EB0&layout=TIME,C,X,0;AIRP_PR,L,Y,0;TRA_MEAS,L,Z,0;UNIT,L,Z,1;INDICATORS,C,Z,2;&zSelection=DS-054028UNIT,PAS;DS-054028INDICATORS,OBS_FLAG;DS-054028TRA_MEAS,PAS_BRD;&rankName1=TIME_1_0_0_0&rankName2=UNIT_1_2_-1_2&rankName3=INDICATORS_1_2_-1_2&rankName4=AIRP-PR_1_2_0_1&rankName5=TRA-MEAS_1_2_-1_2&sortC=ASC_-1_FIRST&rStp=&cStp=&rDCh=&cDCh=&rDM=true&cDM=true&footnes=false&empty=false&wai=false&time_mode=NONE&time_most_recent=false&lang=EN&cfo=%23%23%23%2C%23%23%23.%23%23%23>
