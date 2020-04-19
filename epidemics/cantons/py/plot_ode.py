@@ -142,7 +142,7 @@ def plot_ode_results_munic(data: ModelData, results):
             zone_values = np.zeros(len(nn))
             for i,n in enumerate(nn):
                 if n in name_to_value:
-                    zone_values[i] = np.clip(name_to_value[n] * 1e6, 0., 1.)
+                    zone_values[i] = np.clip(name_to_value[n] * 0.1, 0., 1.)
                     cnt += 1
             rend.set_zone_values(zone_values)
             print("found {:} matches between zone and municipality names".format(cnt))
