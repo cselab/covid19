@@ -99,6 +99,8 @@ class Renderer:
         self.code_to_value = {}
         self.code_to_text = {}
         self.draw_zones = draw_zones
+        self.draw_Mij = draw_Mij
+        self.draw_Cij = draw_Cij
 
         fname = DATA_FILES_DIR / 'canton_shapes.npy'
         self.canton_shapes = np.load(fname, allow_pickle=True).item()
@@ -120,40 +122,14 @@ class Renderer:
             centers.update(get_zone_centers())
         self.centers = centers
 
-        self.set_base_colors('red')
-
         resolution = np.array(resolution).astype(float)
         self.resolution = resolution
         dpi = resolution.min() / 5.
         figsize = resolution / dpi
         fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
-        hide_axis(ax)
-        ax.set_aspect('equal')
-        fig.tight_layout()
         self.fig = fig
         self.ax = ax
         self.last_frame_time = time.time()
-
-        def _draw_connections(matrix, color):
-            max_people = np.max(matrix)
-            if max_people == 0:
-                return
-            for c_home, c_work in itertools.product(data.region_keys, repeat=2):
-                if c_home == c_work:
-                    continue
-                if c_home not in centers or c_work not in centers:
-                    continue
-                x0, y0 = centers[c_home]
-                x1, y1 = centers[c_work]
-                n = matrix[data.key_to_index[c_home], data.key_to_index[c_work]]
-                alpha = np.clip(n / max_people * 20, 0, 0.5)
-                lw = np.clip(n / max_people * 5, 0.5, 4)
-                ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
-
-        if draw_Mij:
-            _draw_connections(data.Mij, 'blue')
-        if draw_Cij:
-            _draw_connections(data.Cij, 'green')
 
     def set_values(self, code_to_value):
         '''
@@ -214,7 +190,11 @@ class Renderer:
         Updates data and returns a list of artist to animate
         (would make an effect in case blit=True).
         '''
+        self.ax.clear()
         ax = self.ax
+        hide_axis(ax)
+        ax.set_aspect('equal')
+        self.fig.tight_layout()
 
         # Draw cantons.
         fills = collections.defaultdict(list)
@@ -223,11 +203,11 @@ class Renderer:
             for i,s in enumerate(ss):
                 x, y = s
                 line, = ax.plot(x, y, marker=None, c='black', lw=0.25)
-                fill, = ax.fill(x, y, alpha=0, c='white', lw=0)
+                fill, = ax.fill(x, y, alpha=0, c='red', lw=0)
                 fills[code].append(fill)
         self.fills = fills
 
-        # Draw municipalities.
+        # Draw zones (municipalities).
         if self.draw_zones:
             zone_to_canton, zone_to_geometry = munic.get_zones_info()
             zone_geoms = list(zone_to_geometry.values())
@@ -247,9 +227,36 @@ class Renderer:
                     geom = [geom]
                 for g in geom:
                     poly = np.array(g.exterior.coords).T
-                    fill, = ax.fill(*poly, alpha=0, c='black', lw=0)
+                    fill, = ax.fill(*poly, alpha=0, c='black', lw=0, zorder=5)
                     zone_fills[i].append(fill)
             self.zone_fills = zone_fills
+
+
+        data = self.data
+        centers = self.centers
+        def _draw_connections(matrix, color):
+            max_people = np.max(matrix)
+            if max_people == 0:
+                return
+            for c_home, c_work in itertools.product(data.region_keys, repeat=2):
+                if c_home == c_work:
+                    continue
+                if c_home not in centers or c_work not in centers:
+                    continue
+                x0, y0 = centers[c_home]
+                x1, y1 = centers[c_work]
+                n = matrix[data.key_to_index[c_home], data.key_to_index[c_work]]
+                alpha_min = 0.01
+                alpha = np.clip(n / max_people * 20, alpha_min, 0.5)
+                if alpha == alpha_min:
+                    continue
+                lw = np.clip(n / max_people * 5, 0.5, 4)
+                ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
+
+        if self.draw_Mij:
+            _draw_connections(data.Mij, 'blue')
+        if self.draw_Cij:
+            _draw_connections(data.Cij, 'green')
 
         # Draw labels.
         texts = dict()
@@ -272,6 +279,7 @@ class Renderer:
         Updates data and returns a list of artist to update
         (would make an effect in case blit=True).
         '''
+        plt.draw()
         self.frame = frame
         self.frame_callback(self)
 
@@ -283,17 +291,15 @@ class Renderer:
             print("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
             self.last_frame_time = time1
         for code,value in self.code_to_value.items():
-            color = self.base_colors[code]
-            alpha = np.clip(value, 0, 1) * 0.5
+            alpha = np.clip(value, 0, 1) * 0.75
             for fill in self.fills[code]:
-                fill.set_color(color)
                 fill.set_alpha(alpha)
         for code in self.texts:
             if code in self.code_to_text:
                 self.texts[code].set_text(str(self.code_to_text[code]))
         if self.draw_zones:
             for fills,value in zip(self.zone_fills, self.zone_values):
-                alpha = np.clip(value, 0, 1) * 0.5
+                alpha = np.clip(value, 0, 1) * 0.25
                 for fill in fills:
                     fill.set_alpha(alpha)
         return []
@@ -320,26 +326,13 @@ class Renderer:
         self.update_plot(self.max_frame, silent=True)
         self.fig.savefig(filename)
 
-    def set_base_colors(self, code_to_rgb=None):
-        if code_to_rgb is None:
-            code_to_rgb = {}
-            plt_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
-            for i,code in enumerate(self.get_codes()):
-                code_to_rgb[code] = plt_cycle[i % len(plt_cycle)]
-        if isinstance(code_to_rgb, str):
-            code_to_rgb = {code: code_to_rgb for code in self.get_codes()}
-        self.base_colors = {}
-        for code in code_to_rgb:
-            self.base_colors[code] = np.array(matplotlib.colors.to_rgb(
-                    code_to_rgb[code]))
-
 if __name__ == "__main__":
 
     def frame_callback(rend):
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            colors[c] = np.sin(i + rend.get_frame() * 0.1) ** 2
+            colors[c] = np.sin(i + rend.get_frame() * 5 / rend.get_max_frame()) ** 2
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
         rend.set_values(colors)
         rend.set_texts(texts)
@@ -361,8 +354,8 @@ if __name__ == "__main__":
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback, data=get_canton_model_data(),
-            draw_zones=True, resolution=(720,480))
+            draw_zones=False)
 
-    #rend.run_interactive(frames=10)
-    #rend.save_image()
+    rend.save_image()
     rend.save_movie(frames=10, fps=5)
+    #rend.run_interactive(frames=10)
