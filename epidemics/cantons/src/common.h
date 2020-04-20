@@ -61,6 +61,9 @@ public:
     double C(int from, int to) const {
         return modelData_.Cij[from * modelData_.numRegions + to];
     }
+    double C_plus_Ct(int from, int to) const {
+        return modelData_.C_plus_Ct[from * modelData_.numRegions + to];
+    }
 
     std::vector<State> solve(const Parameters &parameters, State initialState, int days) const {
         return solve(parameters, std::move(initialState).raw(), days);

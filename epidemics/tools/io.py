@@ -40,3 +40,24 @@ def download_and_save(url, path, cache_duration=1000000000, load=True):
         return data
     else:
         return None
+
+def extract_zip(zippath, member_pattern, save_dir, overwrite=False):
+    """
+    Extracts files from zip archive which name contains `member_pattern`,
+    saves them to `save_dir`, and returns paths to saved files.
+    """
+    from zipfile import ZipFile
+    from pathlib import Path
+    os.makedirs(save_dir, exist_ok=True)
+    paths = []
+    with ZipFile(zippath, 'r') as zipobj:
+        for member in zipobj.namelist():
+            if member_pattern in member:
+                path = Path(save_dir) / os.path.basename(member)
+                if overwrite or not os.path.isfile(path):
+                    print("extracting '{:}'".format(member))
+                    with open(path, 'wb') as f:
+                        f.write(zipobj.read(member))
+                paths.append(path)
+    return paths
+

@@ -22,6 +22,7 @@ struct ModelData {
     // Computed.
     size_t numRegions;
     std::vector<double> invNi;  // 1 / region population.
+    std::vector<double> C_plus_Ct;  // Cij + Cji.
 
     ModelData() = default;
     ModelData(std::vector<std::string> regionKeys,

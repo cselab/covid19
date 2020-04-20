@@ -6,7 +6,7 @@ import os
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
 from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.io import download_and_save
+from epidemics.tools.io import download_and_save, extract_zip
 
 # Note of code design:
 # 1) "Get" functions are split into smaller ones, each on of takes cares of
@@ -132,27 +132,102 @@ def get_commute():
     })
 
 def get_shape_file():
-    """Downloads and returns path to shape file with multicipalities.
-
-    >>> get_shape_file()
-    DIR/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET
     """
-    from zipfile import ZipFile
+    Downloads and returns path to shape file with multicipalities.
+    """
     zippath = DATA_DOWNLOADS_DIR / "swissBOUNDARIES3D.zip"
     download_and_save("https://shop.swisstopo.admin.ch/shop-server/resources/products/swissBOUNDARIES3D/download", zippath)
 
+
+    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET"
     DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
-    os.makedirs(DATA_MAP_DIR, exist_ok=True)
 
-    shapefile = "BOUNDARIES_2020/DATEN/swissBOUNDARIES3D/SHAPEFILE_LV95_LN02/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET"
-    with ZipFile(zippath, 'r') as zipobj:
-        for member in zipobj.namelist():
-            if shapefile in member:
-                basename = member
-                path = DATA_MAP_DIR / os.path.basename(member)
-                if not os.path.isfile(path):
-                    print("extracting '{:}'".format(basename))
-                    with open(path, 'wb') as f:
-                        f.write(zipobj.read(member))
-    return os.path.splitext(path)[0]
+    paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
+    return os.path.splitext(paths[0])[0]
 
+def download_zones_gpkg():
+    """
+    Downloads and returns path to .gpkg database with zone info.
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "Verkehrszonen_Schweiz_NPVM_2017.zip"
+    download_and_save("https://zenodo.org/record/3716134/files/Verkehrszonen_Schweiz_NPVM_2017.zip", zippath)
+
+    gpkgzip = "Verkehrszonen_Schweiz_NPVM_2017_gpkg.zip"
+    gpkgzip_path, = extract_zip(zippath, gpkgzip, DATA_DOWNLOADS_DIR)
+
+    DATA_MAP_DIR = DATA_DOWNLOADS_DIR / "map"
+    gpkg_path, = extract_zip(gpkgzip_path, "Verkehrszonen_Schweiz_NPVM_2017.gpkg", DATA_MAP_DIR)
+    return gpkg_path
+
+@cache
+@cache_to_file(DATA_CACHE_DIR / 'zenodo_2017.gpkg.pickle')
+def get_zones_info(gpkg_path=None):
+    """
+    gpkg_path: str
+        Path to .gpkg file.
+
+    Returns:
+    zone_to_canton: `dict`
+        Mapping from zone (municipality) name to canton code (e.g. 'Dietlikon' -> 'ZH').
+    zone_to_geometry: `dict`
+        Mapping from zone (municipality) name to geometry.
+    """
+    import geopandas as gpd
+
+    if gpkg_path is None:
+        gpkg_path = download_zones_gpkg()
+    gdf = gpd.read_file(gpkg_path)
+    zonenames = list(map(str, gdf.N_Gem))
+    zonecantons = list(map(str, gdf.N_KT))
+    zonegeometry = list(gdf.geometry)
+    zone_to_canton = {}
+    zone_to_geometry = {}
+    for name,canton,geom in zip(zonenames, zonecantons, zonegeometry):
+        zone_to_canton[name] = canton
+        zone_to_geometry[name] = geom
+    return zone_to_canton, zone_to_geometry
+
+def download_matrix_mtx():
+    """
+    Downloads and returns path to .mtx traffic matrix.
+    """
+    from zipfile import ZipFile
+    zippath = DATA_DOWNLOADS_DIR / "DWV_2017_OeV_Wegematrizen_bin.zip"
+    download_and_save("https://zenodo.org/record/3716134/files/DWV_2017_OeV_Wegematrizen_bin%C3%A4r.zip", zippath)
+
+    mtx_path, = extract_zip(zippath, "_CH_", DATA_DOWNLOADS_DIR)
+    return mtx_path
+
+@cache
+@cache_to_file(DATA_CACHE_DIR / 'zenodo_2017.mtx.pickle')
+def get_matrix(mtx_path=None):
+    '''
+    mtx_path: `str`
+        Path to .mtx file.
+
+    Returns:
+    matrix: `numpy.ndarray(np.float32)`, (N,N)
+        Number of people traveling from zone `i` to zone `j` in `matrix[i,j]`.
+    zones: `numpy.ndarray(str)`, (N)
+        Name of zone `i` in `zones[i]`.
+    '''
+    from matrixconverters.read_ptv import ReadPTVMatrix
+
+    if mtx_path is None:
+        mtx_path = download_matrix_mtx()
+
+    m = ReadPTVMatrix(filename=mtx_path)
+    matrix = m['matrix'].astype(np.float32)
+    ids = [int(z.coords['zone_no'].data) for z in m['zone_name']]
+
+    origins = [int(v.data) for v in matrix['origins']]
+    destinations = [int(v.data) for v in matrix['destinations']]
+    assert origins == ids, \
+            "different order in matrix['origins'] and zone_name"
+    assert destinations == ids, \
+            "different order in matrix['destinations'] and zone_name"
+
+    zonenames = np.array([str(z.data) for z in m['zone_name']])
+    matrix = matrix.data
+    return matrix, zonenames

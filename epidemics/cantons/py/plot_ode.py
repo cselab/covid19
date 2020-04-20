@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 import sys
+import collections
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
@@ -18,6 +19,10 @@ from epidemics.cantons.py.model import \
 from epidemics.cantons.py.plot import Renderer
 
 import libsolver
+
+class Level:
+    canton = "canton"
+    municipality = "municipality"
 
 def example_run_seiin(data: ModelData, num_days: int):
     """Runs the SEIIN model for some set of parameters and some initial conditions."""
@@ -72,15 +77,15 @@ def example_run_seii_c(data, num_days):
     return solver.solve(params, y0, num_days)
 
 
-def plot_ode_results(data: ModelData, results):
+def plot_ode_results_canton(data: ModelData, results):
     """Plot results from the ODE.
 
     Arguments:
         results: A list of State objects.
     """
-    Ir_max = np.max([state.Ir() for state in results])
 
     def frame_callback(rend):
+        Ir_max = np.max([state.Ir() for state in results])
         t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
 
         state = results[t]
@@ -95,7 +100,80 @@ def plot_ode_results(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback, data=data)
+    rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False)
+    rend.save_image()
+    rend.save_movie(frames=len(results))
+
+def plot_ode_results_munic(data: ModelData, results):
+    """Plot results from the ODE.
+
+    Arguments:
+        results: A list of State objects.
+    """
+
+    from epidemics.data.swiss_municipalities import get_cantons, get_name_and_population
+    from pandas import Series
+
+    df = get_cantons()
+    key_to_canton = Series(df.canton.values,index=df.key).to_dict()
+
+    df = get_name_and_population()
+    key_to_name = Series(df.name.values,index=df.key).to_dict()
+
+    def frame_callback(rend):
+        t = rend.get_frame() * (len(results) - 1) // rend.get_max_frame()
+
+        plot_NmS = True
+
+        state = results[t]
+        Ir_cantons = collections.defaultdict(float)
+        NmS_cantons = collections.defaultdict(float)
+        for i, key in enumerate(data.region_keys):
+            if key in key_to_canton:
+                Ir_cantons[key_to_canton[key]] += state.Ir(data.key_to_index[key])
+                NmS_cantons[key_to_canton[key]] += \
+                        state.N(data.key_to_index[key]) - state.S(data.key_to_index[key])
+
+        n_matches = 0
+        # Municipalities
+        if rend.draw_zones:
+            name_to_value = {}
+            for i, key in enumerate(data.region_keys):
+                if key in key_to_canton:
+                    j = data.key_to_index[key]
+                    if plot_NmS:
+                        name_to_value[key_to_name[key]] = state.N(j) - state.S(j)
+                    else:
+                        name_to_value[key_to_name[key]] = state.Ir(j)
+            nn = rend.get_zone_names()
+            zone_values = np.zeros(len(nn))
+            for i,n in enumerate(nn):
+                if n in name_to_value:
+                    zone_values[i] = np.clip(name_to_value[n] * 0.1, 0., 1.)
+                    n_matches += 1
+            rend.set_zone_values(zone_values)
+            print("found {:} matches between zone and municipality names".format(n_matches))
+
+        Ir_max = np.max(list(Ir_cantons.values()))
+        NmS_max = np.max(list(NmS_cantons.values()))
+        texts = {}
+        values = {}
+        # Cantons
+        for i,code in enumerate(Ir_cantons):
+            print("{:02d} {} Ir={:4.1f} N-S={:4.1f}".format(i, code, Ir_cantons[code], NmS_cantons[code]))
+            if plot_NmS:
+                #values[code] = NmS_cantons[code] / NmS_max * 2
+                values[code] = NmS_cantons[code] * 1e-3
+                texts[code] = str(round(NmS_cantons[code]))
+            else:
+                #values[code] = Ir_cantons[code] / Ir_max * 2
+                values[code] = Ir_cantons[code] * 1e-3
+                texts[code] = str(round(Ir_cantons[code]))
+
+        rend.set_values(values)
+        rend.set_texts(texts)
+
+    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
@@ -146,22 +224,23 @@ def plot_timeseries(data: ModelData, results, keys, var='S', ref_data=None):
     fig.tight_layout()
     fig.savefig("{:}_{:}.pdf".format(varname[var], "_".join(keys)))
 
-
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('type', type=str, choices=('video', 'timeseries'), help="Plot type.")
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
     parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
-    parser.add_argument('--level', type=str, choices=('canton', 'municipality'), default='canton', help="Level of details.")
+    parser.add_argument('--level', type=str, choices=(Level.canton, Level.municipality), default='canton', help="Level of details.")
     parser.add_argument('--model', type=str, choices=('seiin', 'seii_c'), default='seiin', help="Model.")
     args = parser.parse_args(argv)
 
-    if args.level == 'canton':
+    if args.level == Level.canton:
         model_data = get_canton_model_data(include_foreign=not args.no_foreign)
         ref_data = get_canton_reference_data()
-    else:
+    elif args.level == Level.municipality:
         model_data = get_municipality_model_data()
         ref_data = None
+    else:
+        assert False
 
     if args.model == 'seiin':
         results = example_run_seiin(model_data, args.days)
@@ -170,7 +249,10 @@ def main(argv):
         results = example_run_seii_c(model_data, args.days)
 
     if args.type == 'video':
-        plot_ode_results(model_data, results)
+        if args.level == Level.canton:
+            plot_ode_results_canton(model_data, results)
+        elif args.level == Level.municipality:
+            plot_ode_results_munic(model_data, results)
     elif args.type == 'timeseries':
         keys = ['TI', 'ZH', 'AG']
         #plot_timeseries(model_data, results, keys, var='Ir', ref_data=ref_data)
