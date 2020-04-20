@@ -109,7 +109,7 @@ class Model( ModelBase ):
     y = y.tolist()
 
     s['Reference Evaluations'] = y
-    s['Standard Deviation Model'] = ( p[-1] * np.maximum(np.sqrt(np.abs(y)),1e-4) ).tolist()
+    s['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
 
@@ -135,7 +135,7 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    js['Standard Deviation Model'] = ( p[-1] * np.maximum(np.sqrt(np.abs(y)),1e-4) ).tolist()
+    js['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
 

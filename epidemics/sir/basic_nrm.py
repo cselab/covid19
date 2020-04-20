@@ -29,6 +29,8 @@ class Model( ModelBase ):
     self.process_data()
 
 
+
+
   def process_data( self ):
 
     y = self.regionalData.infected
@@ -58,6 +60,7 @@ class Model( ModelBase ):
 
 
 
+
   def set_variables_and_distributions( self ):
 
     p = ['beta','gamma','[Sigma]']
@@ -82,8 +85,8 @@ class Model( ModelBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1
-    self.e['Distributions'][k]['Maximum'] = 1000.
+    self.e['Distributions'][k]['Minimum'] = 0.00001
+    self.e['Distributions'][k]['Maximum'] = 20.
 
 
 
@@ -95,11 +98,11 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-    y = ( N - sol.y[0] ).tolist()
+    y = ( N - sol.y[0] )
 
-    s['Reference Evaluations'] = y
+    s['Reference Evaluations'] = y.tolist()
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = ( p[-1] * np.sqrt(t) ).tolist()
+    s['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
 
@@ -111,13 +114,13 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-    y = ( N - sol.y[0] ).tolist()
+    y = ( N - sol.y[0] )
 
     js = {}
     js['Variables'] = [{},{}]
 
     js['Variables'][0]['Name'] = 'Cummulative Infected'
-    js['Variables'][0]['Values'] = y
+    js['Variables'][0]['Values'] = y.tolist()
 
     js['Variables'][1]['Name'] = 'I'
     js['Variables'][1]['Values'] = sol.y[1].tolist()
@@ -126,7 +129,7 @@ class Model( ModelBase ):
     js['Length of Variables'] = sol.y.shape[1]
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = ( p[-1] * np.sqrt(t) ).tolist()
+    js['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
 

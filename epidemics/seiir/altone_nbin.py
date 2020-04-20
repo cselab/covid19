@@ -164,7 +164,6 @@ class Model( ModelBase ):
 
 
 
-
   def plot_intervals( self ):
 
     fig = self.new_figure()

@@ -53,7 +53,6 @@ class EpidemicsBase:
     self.has_been_called = {
       'sample': False,
       'propagate': False,
-      'intervals': False
     }
 
     self.nParameters = 0
@@ -163,15 +162,13 @@ class EpidemicsBase:
 
     k.run(self.e)
 
-    # FIXME: too slow
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.parameters = []
+    myDatabase = self.e['Results']['Sample Database']
     for j in range(self.nParameters):
       self.parameters.append({})
       self.parameters[j]['Name'] = self.e['Variables'][0]['Name']
-      self.parameters[j]['Values'] = np.zeros((self.nSamples,1))
-      for k in range(self.nSamples):
-        self.parameters[j]['Values'][k] = self.e['Results']['Sample Database'][k][j]
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
 
     self.has_been_called['sample'] = True
     self.has_been_called['propagation'] = False
@@ -252,6 +249,7 @@ class EpidemicsBase:
 
 
 
+
   def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
 
     Ns = self.propagatedVariables[varName].shape[0]
@@ -292,7 +290,7 @@ class EpidemicsBase:
       ax.fill_between( self.data['Propagation']['x-data'], q1 , q2,  alpha=0.5, label=f' {100*p:.1f}% credible interval' )
 
     ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color='black')
-    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='black')
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='blue')
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
