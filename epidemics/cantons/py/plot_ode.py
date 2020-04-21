@@ -38,17 +38,27 @@ def example_run_seiin(data: ModelData, num_days: int, level):
     IR0 = [0] * data.num_regions
     IU0 = [0] * data.num_regions
 
+    src = np.zeros(data.num_regions)
     if level == Level.canton:
         IR0[data.key_to_index['TI']] = 0  # Ticino.
         IU0[data.key_to_index['TI']] = 0
-        src = np.zeros(data.num_regions)
-        src[data.key_to_index['GE']] = 10
-        data.ext_com_Iu = [src]
+
+        k_air = 1.
+        if data.airports:
+            for a in data.airports:
+                src[data.key_to_index[a[0]]] = a[2] * k_air
+
     elif level == Level.municipality:
         IR0[data.key_to_index['MUN-5192']] = 1  # Lugano.
         IU0[data.key_to_index['MUN-5192']] = 0
+
+        k_air = 1.
+        if data.airports:
+            for a in data.airports:
+                src[data.key_to_index[a[1]]] = a[2] * k_air
     else:
         assert False
+    data.ext_com_Iu = [src]
 
     S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0 + N0
