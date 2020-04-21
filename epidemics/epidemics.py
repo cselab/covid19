@@ -144,16 +144,30 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
-    self.e['Solver']['Type'] = 'TMCMC'
-    self.e['Solver']['Population Size'] = self.nSamples
+    nested = True
+    if nested == False:
+        self.e['Solver']['Type'] = 'TMCMC'
+        self.e['Solver']['Population Size'] = self.nSamples
+        self.e['File Output']['Frequency'] = 50
+    else:
+        self.e['Solver']['Type'] = 'Nested'
+        self.e['Solver']['Number Live Points'] = self.nSamples
+        self.e['Solver']['Resampling Method'] = 'Ellipse'
+        #self.e['Solver']['Batch Size'] = 100
+        self.e["Solver"]["Termination Criteria"]["Max Generations"] = 1000000
+        self.e["Solver"]["Termination Criteria"]["Max Gain Factor"] = 1e-3
+        self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 50000
+        self.e["Solver"]["Termination Criteria"]["Max Log Likelihood"] = 999999
+        self.e['Console Output']['Frequency'] = 1000
+        self.e['File Output']['Frequency'] = 0
 
     self.set_variables_and_distributions()
 
     self.set_korali_output_files( self.saveInfo['korali samples'] )
 
-    if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
+    self.e['Console Output']['Verbosity'] = 'Detailed'
+    if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
-    self.e['File Output']['Frequency'] = 50
     self.e["Store Sample Information"] = True
 
     k = korali.Engine()

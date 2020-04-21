@@ -85,7 +85,7 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for mu'
@@ -96,32 +96,37 @@ class Model( ModelBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for alpha'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 1.0
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 10
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for D'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 2
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [r]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.01
-    self.e['Distributions'][k]['Maximum'] = 10
+    self.e['Distributions'][k]['Minimum'] = 0
+    self.e['Distributions'][k]['Maximum'] = 1
 
 
 
 
   def computational_model( self, s ):
     p  = s['Parameters']
+    p[0] = p[0]*5
+    p[2] = 0.1+p[2]*0.9
+    p[3] = 0.1+p[3]*9.9
+    p[4] = 2+p[4]*3
+    p[5] = 0.01+p[5]*9.99
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
