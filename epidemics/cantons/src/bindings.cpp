@@ -9,7 +9,7 @@ namespace py = pybind11;
 
 template <typename State>
 auto makeValuesGetter(int valueIndex) {
-    assert(0 <= valueIndex && valueIndex < kVarsPerRegion);
+    assert(0 <= valueIndex && valueIndex < State::kVarsPerRegion);
     /// Extract a subvector of the state corresponding to the given value.
     return [valueIndex](const State &state) {
         const double *p = state.raw().data();
