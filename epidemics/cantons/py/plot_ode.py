@@ -82,7 +82,7 @@ def example_run_seii_c(data, num_days):
     return solver.solve(params, y0, num_days)
 
 
-def plot_ode_results_canton(data: ModelData, results):
+def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True):
     """Plot results from the ODE.
 
     Arguments:
@@ -105,14 +105,16 @@ def plot_ode_results_canton(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    airports = ["ZH", "GE", "BS", "BE", "TI", "SG"]
+    airports = None
+    if data.airports:
+        airports = [v[0] for v in data.airports]
 
     rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False,
             airports=airports)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
-def plot_ode_results_munic(data: ModelData, results):
+def plot_ode_results_munic(data: ModelData, results, air=True, crossborder=True):
     """Plot results from the ODE.
 
     Arguments:
@@ -181,8 +183,9 @@ def plot_ode_results_munic(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    airports = ["MUN-0062", "MUN-6623", "MUN-2701",
-                "MUN-0861", "MUN-5192", "MUN-3237"]
+    airports = None
+    if data.airports:
+        airports = [v[1] for v in data.airports]
 
     rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True, airports=airports)
     rend.save_image()
@@ -252,6 +255,16 @@ def main(argv):
         ref_data = None
     else:
         assert False
+
+    # passengers (millinons per yer)
+    model_data.airports = [
+            ["ZH",  "MUN-0062", 31.,  ],
+            ["GE",  "MUN-6623", 17.5, ],
+            ["BS",  "MUN-2701", 8.5,  ],
+            ["BE",  "MUN-0861", 0.13, ],
+            ["TI",  "MUN-5192", 0.09, ],
+            ["SG",  "MUN-3237", 0.11, ],
+            ]
 
     if args.model == 'seiin':
         results = example_run_seiin(model_data, args.days, args.level)
