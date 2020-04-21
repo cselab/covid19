@@ -22,7 +22,7 @@ class Model( ModelBase ):
 
     self.modelName        = 'sir_basic_nrm'
     self.modelDescription = 'Fit SIR on Cummulative Infected Data with Normal likelihood'
-    self.likelihoodModel  = 'Additive Normal'
+    self.likelihoodModel  = 'Normal'
 
     super().__init__( **kwargs )
 
@@ -102,7 +102,7 @@ class Model( ModelBase ):
 
     s['Reference Evaluations'] = y.tolist()
     d = self.data['Model']['y-data']
-    s['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
+    s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
 
@@ -129,7 +129,7 @@ class Model( ModelBase ):
     js['Length of Variables'] = sol.y.shape[1]
 
     d = self.data['Model']['y-data']
-    js['Standard Deviation Model'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
+    js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
 
@@ -150,6 +150,6 @@ class Model( ModelBase ):
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )
     fig.savefig(file)
-    plt.show()
 
+    plt.show()
     plt.close(fig)

@@ -10,7 +10,7 @@ import os
 import pickle
 import shutil
 import sys
-
+from scipy.stats import truncnorm
 
 def flatten(matrix):
     """
@@ -95,3 +95,8 @@ def make_path( path, *paths):
 def import_from( module, name ):
   module = importlib.import_module( module )
   return getattr( module, name )
+
+
+
+def get_truncated_normal(mean, sd, low, upp):
+    return truncnorm( (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
