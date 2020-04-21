@@ -20,19 +20,13 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_altone_nrm'
-    self.modelDescription = 'Fit SIR on Daily Infected Data with Normal Likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'sir_basic_tnrm'
+    self.modelDescription = 'Fit SIR on Cummulative Infected Data with Positive Normal likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
     self.process_data()
-
-
-
-
-  def save_data_path( self ):
-      return ( self.dataFolder, self.country, self.modelName )
 
 
 
@@ -42,24 +36,25 @@ class Model( ModelBase ):
     y = self.regionalData.infected
     t = self.regionalData.time
     N = self.regionalData.populationSize
+
     I0 = y[0]
     S0 = N - I0
     y0 = S0, I0
 
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:])
+      self.data['Model']['y-data'] = y[1:]
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
+      self.data['Model']['y-data'] = y[1:-self.nValidation]
       self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
+      self.data['Validation']['y-data'] = y[-self.nValidation:]
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
+    self.data['Model']['Population Size'] = N
 
-    T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
+    T = t[-1] + self.futureDays
+    self.data['Propagation']['x-data'] = np.linspace(0,T,self.nPropagation).tolist()
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
@@ -79,19 +74,19 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
+    self.e['Distributions'][k]['Maximum'] = 50.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for gamma'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
+    self.e['Distributions'][k]['Maximum'] = 50.
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0.00001
-    self.e['Distributions'][k]['Maximum'] = 10.
+    self.e['Distributions'][k]['Maximum'] = 20.
 
 
 
@@ -102,13 +97,11 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
+    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
+    y = ( N - sol.y[0] )
 
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
-
-    s['Reference Evaluations'] = y
+    s['Reference Evaluations'] = y.tolist()
+    d = self.data['Model']['y-data']
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
@@ -121,20 +114,21 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
+    y = ( N - sol.y[0] )
 
     js = {}
-    js['Variables'] = []
+    js['Variables'] = [{},{}]
 
-    js['Variables'].append({})
-    js['Variables'][0]['Name']   = 'Daily Incidence'
-    js['Variables'][0]['Values'] = y
+    js['Variables'][0]['Name'] = 'Cummulative Infected'
+    js['Variables'][0]['Values'] = y.tolist()
+
+    js['Variables'][1]['Name'] = 'I'
+    js['Variables'][1]['Values'] = sol.y[1].tolist()
 
     js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = len(t)
+    js['Length of Variables'] = sol.y.shape[1]
 
+    d = self.data['Model']['y-data']
     js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
@@ -146,29 +140,16 @@ class Model( ModelBase ):
 
     fig = self.new_figure()
 
-    ax  = fig.subplots( 2 )
+    ax  = fig.subplots( 1 )
 
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
+    z = self.data['Model']['y-data']
+    ax.plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Infected(data)', color='black')
 
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', 20, ax[0], 'Daily Incidence' )
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-    z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', 20, ax[1], 'Cummulative number of infected', cummulate=1)
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-
-    ax[-1].set_xlabel('time in days')
+    self.compute_plot_intervals( 'Cummulative Infected', 20, ax, 'Daily Incidence' )
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )
     fig.savefig(file)
-
     plt.show()
 
     plt.close(fig)

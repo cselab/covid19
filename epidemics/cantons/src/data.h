@@ -23,6 +23,9 @@ struct ModelData {
     size_t numRegions;
     std::vector<double> invNi;  // 1 / region population.
     std::vector<double> C_plus_Ct;  // Cij + Cji.
+    // Vector `nonzero_Mij[i]` contains indices `j`
+    // for which `Mij[i][j] != 0` or  `Mij[j][i] != 0`.
+    std::vector<std::vector<size_t>> nonzero_Mij;
 
     ModelData() = default;
     ModelData(std::vector<std::string> regionKeys,

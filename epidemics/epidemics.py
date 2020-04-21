@@ -14,8 +14,10 @@ import sys
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from epidemics.tools.tools import prepare_folder, make_path
+from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
+
+
 
 
 class EpidemicsBase:
@@ -33,13 +35,12 @@ class EpidemicsBase:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
 
     self.saveInfo ={
-      'initials': 'initials.pickle',
-      'database': 'data_base.pickle',
       'state': 'state.pickle',
       'korali samples': './_korali_samples/',
       'korali propagation': './_korali_propagation/',
       'inference data': './data_for_inference.pickle',
-      'figures': './figures/'
+      'figures': './figures/',
+      'evidence': 'evidence.json'
     }
 
     for x in self.saveInfo.keys():
@@ -140,7 +141,7 @@ class EpidemicsBase:
     self.nSamples = nSamples
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
-    self.e['Problem']['Likelihood Model'] = self.likelihoodModel + ' General'
+    self.e['Problem']['Likelihood Model'] = self.likelihoodModel
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
@@ -175,6 +176,12 @@ class EpidemicsBase:
     k['Conduit']['Concurrent Jobs'] = self.nThreads
 
     k.run(self.e)
+
+    if self.e['Solver']['Type']=='TMCMC':
+      js = {}
+      js['Evidence'] = self.e['Solver']['LogEvidence']
+      print(f"[Epidemics] Log Evidence = {js['Evidence']}")
+      save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.parameters = []
@@ -238,8 +245,12 @@ class EpidemicsBase:
       for k in range(Ns):
         self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][k]['Saved Results']['Variables'][i]['Values'] )
 
-    if( self.likelihoodModel=='Additive Normal' ):   varName = 'Standard Deviation Model'
-    if( self.likelihoodModel=='Negative Binomial' ): varName = 'Dispersion'
+    if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
+      varName = 'Standard Deviation'
+    elif( self.likelihoodModel=='Negative Binomial' ):
+      varName = 'Dispersion'
+    else:
+      sys.exit('\n[Epidemics] Likelihood not found in propagate.\n')
 
     self.propagatedVariables[varName] = np.zeros((Ns,Nt))
     for k in range(Ns):
@@ -251,16 +262,16 @@ class EpidemicsBase:
     self.e = korali.Experiment()
 
     self.has_been_called['propagation'] = True
-    self.has_been_called['intervals'] = False
 
 
 
 
   def new_figure(self):
+    print('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
+    plt.ion()
     return fig
-
 
 
 
@@ -271,20 +282,31 @@ class EpidemicsBase:
 
     samples = np.zeros((Ns*ns,Nt))
 
-    if self.likelihoodModel=='Additive Normal':
+    if self.likelihoodModel=='Normal':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Standard Deviation Model'][:,k]
+        r = self.propagatedVariables['Standard Deviation'][:,k]
         x = [ np.random.normal(m,r) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 
-    if self.likelihoodModel=='Negative Binomial':
+    elif self.likelihoodModel=='Positive Normal':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        s = self.propagatedVariables['Standard Deviation'][:,k]
+        t = get_truncated_normal(m,s,0,np.Inf)
+        x = [ t.rvs() for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
+
+    elif self.likelihoodModel=='Negative Binomial':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
         r = self.propagatedVariables['Dispersion'][:,k]
         p = p =  m/(m+r)
         x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
+
+    else:
+      sys.exit("\n[Epidemics] Likelihood not found in compute_plot_intervals.\n")
 
     if cummulate>0 :
       samples = np.cumsum(samples,axis=cummulate)
@@ -311,5 +333,8 @@ class EpidemicsBase:
     ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
     ax.grid()
     if( self.logPlot ): ax.set_yscale('log')
+
+    plt.draw()
+    plt.pause(0.001)
 
     return samples

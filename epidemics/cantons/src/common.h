@@ -58,6 +58,9 @@ public:
     double M(int from, int to) const {
         return modelData_.Mij[from * modelData_.numRegions + to];
     }
+    const std::vector<size_t>& nonzero_Mij(size_t from_or_in) const {
+        return modelData_.nonzero_Mij[from_or_in];
+    }
     double C(int from, int to) const {
         return modelData_.Cij[from * modelData_.numRegions + to];
     }
