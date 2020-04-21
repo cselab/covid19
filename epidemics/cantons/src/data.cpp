@@ -35,6 +35,15 @@ void ModelData::init() {
     for (size_t i = 0; i < K; ++i)
     for (size_t j = 0; j < K; ++j)
         C_plus_Ct[i * K + j] = Cij[i * K + j] + Cij[j * K + i];
+
+    nonzero_Mij.resize(numRegions);
+    for (size_t i = 0; i < K; ++i) {
+        for (size_t j = 0; j < K; ++j) {
+            if (Mij[i * K + j] != 0 || Mij[i * K + j] != 0) {
+                nonzero_Mij[i].push_back(j);
+            }
+        }
+    }
 }
 
 /*
