@@ -18,7 +18,8 @@ void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
         double dN = 0;
 
         double inv = 1 / (x.N(i) - x.Ir(i));
-        for (size_t j = 0; j < modelData_.numRegions; ++j) {
+        //for (size_t j = 0; j < modelData_.numRegions; ++j) { // XXX
+        for (size_t j : this->nonzero_Mij(i)) {
             double Tij = this->M(i, j) / (x.N(j) - x.Ir(j));
             double Tji = this->M(j, i) * inv;
             dS += p.theta * (Tij * x.S(j) - Tji * x.S(i));
