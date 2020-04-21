@@ -26,18 +26,21 @@ def plot_ode_results(result,utility,n):
         t = rend.get_frame() * (days - 1) // rend.get_max_frame()
         util = utility[n,:,t]
         res  = result[t,:]
+        max_res = np.max(result)
         
 
         v_u = {}
-        v_r = {}
+        v_r1 = {}
+        v_r2 = {}
         texts = {}
         for i, c in enumerate(rend.get_codes()):
             i_state = CANTON_TO_INDEX[c]
             v_u[c] = util[i_state]
-            v_r[c] = res [i_state]
-            texts[c] = str("{:.3f}".format(v_r[c]))
+            v_r1[c] = res [i_state]/max_res
+            v_r2[c] = res [i_state]
+            texts[c] = str("{:.3f}".format(v_r2[c]))
 
-        rend.set_values(v_r)
+        rend.set_values(v_r1)
         rend.set_texts(texts)
         rend.set_bars(v_u)
         plt.suptitle("Day :" + str(t), fontsize=12)
