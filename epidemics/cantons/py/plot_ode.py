@@ -12,6 +12,7 @@ import collections
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
+import epidemics.data
 from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
 from epidemics.cantons.py.model import \
         get_canton_model_data, get_canton_reference_data, \
@@ -23,6 +24,54 @@ import libsolver
 class Level:
     canton = "canton"
     municipality = "municipality"
+
+def get_foreign_commuters():
+    FR = 'france'
+    GE = 'germany'
+    AU = 'austria'
+    IT = 'italy'
+
+    cases = {
+            AU: 14710,
+            FR: 112606,
+            GE: 145184,
+            IT: 178972,
+            }
+
+    travel = [
+        ('ZH', GE, 10404.7),
+        ('BE', FR, 3514.7),
+        ('LU', GE, 613.8),
+        ('UR', IT, 46.0),
+        ('SZ', AU, 372.9),
+        ('OW', IT, 117.6),
+        ('NW', IT, 88.2),
+        ('GL', AU, 61.4),
+        ('ZG', GE, 996.2),
+        ('FR', FR, 1027.9),
+        ('SO', FR, 2151.6),
+        ('BS', GE, 33932.4),
+        ('BL', GE, 22318.4),
+        ('SH', GE, 4932.3),
+        ('AR', AU, 400.4),
+        ('AI', AU, 99.7),
+        ('SG', AU, 9199.6),
+        ('GR', IT, 6998.4),
+        ('AG', GE, 13915.3),
+        ('TG', GE, 5586.6),
+        ('TI', IT, 67878.4),
+        ('VD', FR, 32425.2),
+        ('VS', FR, 3079.1),
+        ('NE', FR, 12944.3),
+        ('GE', FR, 87103.8),
+        ('JU', FR, 8640.8),
+    ]
+
+    r = {}
+    for v in travel:
+        r[v[0]] = cases[v[1]] * v[2]
+    return r
+
 
 def example_run_seiin(data: ModelData, num_days: int, level):
     """Runs the SEIIN model for some set of parameters and some initial conditions."""
@@ -43,19 +92,32 @@ def example_run_seiin(data: ModelData, num_days: int, level):
         IR0[data.key_to_index['TI']] = 0  # Ticino.
         IU0[data.key_to_index['TI']] = 0
 
-        k_air = 1.
+        # sources from airports
         if data.airports:
+            k_air = 1.
             for a in data.airports:
                 src[data.key_to_index[a[0]]] = a[2] * k_air
 
+        # sources from foreign commuters
+        if data.foreign:
+            foreign = get_foreign_commuters()
+            print(foreign)
+            k_foreign = 1e-8
+            for k in data.key_to_index:
+                src[data.key_to_index[k]] = foreign[k] * k_foreign
+
+
     elif level == Level.municipality:
-        IR0[data.key_to_index['MUN-5192']] = 1  # Lugano.
+        IR0[data.key_to_index['MUN-5192']] = 0  # Lugano.
         IU0[data.key_to_index['MUN-5192']] = 0
 
-        k_air = 1.
+        # sources from airports
         if data.airports:
+            k_air = 1.
             for a in data.airports:
                 src[data.key_to_index[a[1]]] = a[2] * k_air
+
+        # sources from foreign commuters
     else:
         assert False
     data.ext_com_Iu = [src]
@@ -107,10 +169,13 @@ def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True
         values = {}
         texts = {}
         for i, key in enumerate(data.region_keys):
+            N = state.N(data.key_to_index[key])
+            S = state.S(data.key_to_index[key])
             Ir = state.Ir(data.key_to_index[key])
             Iu = state.Iu(data.key_to_index[key])
             print("{:02d} {} Ir={:4.1f} Iu={:4.1f}".format(i, key, Ir, Iu))
-            values[key] = Ir / Ir_max * 2
+            #values[key] = Ir / Ir_max * 2
+            values[key] = (N - S) * 1e-3
             texts[key] = str(int(Ir))
         rend.set_values(values)
         rend.set_texts(texts)
@@ -266,7 +331,7 @@ def main(argv):
     else:
         assert False
 
-    # passengers (millinons per yer)
+    # airport passengers (millions per year)
     model_data.airports = [
             ["ZH",  "MUN-0062", 31.,  ],
             ["GE",  "MUN-6623", 17.5, ],
@@ -275,6 +340,10 @@ def main(argv):
             ["TI",  "MUN-5192", 0.09, ],
             ["SG",  "MUN-3237", 0.11, ],
             ]
+    model_data.foreign = True
+
+    #model_data.airports = None
+    #model_data.foreign = None
 
     if args.model == 'seiin':
         results = example_run_seiin(model_data, args.days, args.level)
