@@ -20,9 +20,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_altone_nrm'
-    self.modelDescription = 'Fit SIR on Daily Infected Data with Normal Likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'sir_altone_tnrm'
+    self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
@@ -90,7 +90,7 @@ class Model( ModelBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.00001
+    self.e['Distributions'][k]['Minimum'] = 0.0001
     self.e['Distributions'][k]['Maximum'] = 10.
 
 
