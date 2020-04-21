@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import matplotlib
+matplotlib.use("Agg")
+
 from matplotlib import animation
 import matplotlib.colors
 import matplotlib.pyplot as plt
