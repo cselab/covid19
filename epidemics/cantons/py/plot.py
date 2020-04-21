@@ -88,7 +88,8 @@ for key in code_to_center_shift:
 
 class Renderer:
     def __init__(self, frame_callback, data: ModelData, draw_zones=False,
-            draw_Mij=True, draw_Cij=True, resolution=(1920,1080)):
+            draw_Mij=True, draw_Cij=True, resolution=(1920,1080),
+            airports=None):
         '''
         frame_callback: callable
             Function that takes Renderer.
@@ -105,6 +106,7 @@ class Renderer:
         self.draw_zones = draw_zones
         self.draw_Mij = draw_Mij
         self.draw_Cij = draw_Cij
+        self.airports = airports
 
         fname = DATA_FILES_DIR / 'canton_shapes.npy'
         self.canton_shapes = np.load(fname, allow_pickle=True).item()
@@ -275,6 +277,14 @@ class Renderer:
                     color=[0,0,0])
             texts[code] = text
             ax.scatter(xc, yc, color='black', s=8, zorder=5)
+
+        if self.airports is not None:
+            for a in self.airports:
+                if a in centers:
+                    marker="$\u2708$"
+                    ax.scatter(*centers[a], marker=marker, zorder=6,
+                            s=200, alpha=0.75, facecolor='green',
+                            lw=0)
 
         return []
 

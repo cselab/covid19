@@ -24,7 +24,7 @@ class Level:
     canton = "canton"
     municipality = "municipality"
 
-def example_run_seiin(data: ModelData, num_days: int):
+def example_run_seiin(data: ModelData, num_days: int, level):
     """Runs the SEIIN model for some set of parameters and some initial conditions."""
 
     # Parameters.
@@ -38,12 +38,17 @@ def example_run_seiin(data: ModelData, num_days: int):
     IR0 = [0] * data.num_regions
     IU0 = [0] * data.num_regions
 
-    if 'TI' in data.key_to_index:
-        IR0[data.key_to_index['TI']] = 1  # Ticino.
+    if level == Level.canton:
+        IR0[data.key_to_index['TI']] = 0  # Ticino.
         IU0[data.key_to_index['TI']] = 0
-    else:
+        src = np.zeros(data.num_regions)
+        src[data.key_to_index['GE']] = 10
+        data.ext_com_Iu = [src]
+    elif level == Level.municipality:
         IR0[data.key_to_index['MUN-5192']] = 1  # Lugano.
         IU0[data.key_to_index['MUN-5192']] = 0
+    else:
+        assert False
 
     S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0 + N0
@@ -100,7 +105,10 @@ def plot_ode_results_canton(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False)
+    airports = ["ZH", "GE", "BS", "BE", "TI", "SG"]
+
+    rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False,
+            airports=airports)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
@@ -173,7 +181,10 @@ def plot_ode_results_munic(data: ModelData, results):
         rend.set_values(values)
         rend.set_texts(texts)
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True)
+    airports = ["MUN-0062", "MUN-6623", "MUN-2701",
+                "MUN-0861", "MUN-5192", "MUN-3237"]
+
+    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True, airports=airports)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
@@ -243,7 +254,7 @@ def main(argv):
         assert False
 
     if args.model == 'seiin':
-        results = example_run_seiin(model_data, args.days)
+        results = example_run_seiin(model_data, args.days, args.level)
     else:
         model_data.Mij *= 0.0
         results = example_run_seii_c(model_data, args.days)
