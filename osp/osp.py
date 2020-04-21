@@ -7,7 +7,7 @@ import itertools
 class OSP:
 
   ############################################################################
-  def __init__(self, path, nSensors, nMeasure, Ny = 100):
+  def __init__(self, path, nSensors, nMeasure, Ny = 100, korali = False):
   ############################################################################
     self.path         = path         # path to output.npy
     self.nSensors     = nSensors     # how many sensors to place
@@ -19,7 +19,7 @@ class OSP:
     self.parameters   = np.load(path+"/params.npy")
     self.Ntheta       = self.data.shape[0] # number of simulations 
 
-
+    self.korali = korali
 
     self.l = 3
     assert nMeasure == 1
@@ -63,12 +63,26 @@ class OSP:
   #####################################
     #time is an array containing the time instance of each one of the nSensors measurements
     #space contains the place where each measurement happens
-    n = int ( len(space_time)/2 )
     space = []
     time  = []
-    for i in range(n):
-      space.append(space_time[i  ])
-      time. append(space_time[i+n])
+    if self.korali:
+      st = space_time["Parameters"]
+      assert( len(st)%2 == 0 )
+      n = int ( len(st)/ 2 )
+      for i in range(n*2):
+        if i%2 == 0:
+          space.append(int(st[-(i+1)]))
+        else:
+          time.append(int(st[-(i+1)]))
+    else:
+      n = int ( len(space_time)/2 )
+      for i in range(n):
+        space.append(space_time[i])
+        time.append(space_time[i+n])
+
+
+
+
 
     M = self.nMeasure
     N = len(time)
@@ -133,8 +147,11 @@ class OSP:
       s2 = np.mean ( np.log( p_theta*np.mean( Pdf_inner,axis=0) ) )
       retval += (s1-s2)*p_theta
 
-    retval /= self.Ntheta    
-    return retval
+    retval /= self.Ntheta
+    if self.korali:
+      space_time["F(x)"] = retval
+    else:
+      return retval
 
   #############################################
   def distance(self,time1,space1,time2,space2):
