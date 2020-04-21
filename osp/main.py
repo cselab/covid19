@@ -34,7 +34,7 @@ def plot_all_2d():
   ax1 = fig.add_subplot(111)
 
   locations = c * np.arange(0,cantons*days)
-  for s in range(args['nSensors']):
+  for s in range(sensors):
     ax1.plot(locations,v[s,:], label= str(s+1) + " sensors ")
 
 
