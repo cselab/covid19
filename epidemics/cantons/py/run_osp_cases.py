@@ -127,7 +127,7 @@ def main(argv):
         for day in range(0,days,c):
             All_results[isim][int(day/c)][:] = results[day].Iu()
             reported   [isim][int(day/c)][:] = results[day].E()
-        reported[isim,:,:] *= (params[2] /params[3])
+        reported[isim,:,:] *= (P[2,isim] /P[3,isim])
         all_params[isim]=P[:,isim]
         print (isim + 1,"/",samples)
     
