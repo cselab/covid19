@@ -1,6 +1,8 @@
 from epidemics.data import DATA_FILES_DIR
 from epidemics.data.regions import region_to_key
 from epidemics.tools.cache import cache
+from epidemics.data.files.canton_population import CANTON_POPULATION
+
 import json
 
 def load_samayo_population_data():
@@ -19,7 +21,6 @@ def load_samayo_population_data():
     }
     return countries
 
-
 @cache
 def get_population_of_all_countries():
     """Returns a dictionary {country key: population}."""
@@ -31,9 +32,16 @@ def get_population_of_all_countries():
     countries[region_to_key('Serbia')] = 6963764
     return countries
 
+@cache
+def get_population_of_all_cantons():
+    return CANTON_POPULATION
 
 def get_region_population(region):
     """Return the population of the given region."""
     # Currently we only have country population.
-    data = get_population_of_all_countries()
-    return data[region_to_key(region)]
+    if region in CANTON_POPULATION.keys():
+        data = get_population_of_all_cantons()
+        return data[region]
+    else:
+        data = get_population_of_all_countries()
+        return data[region_to_key(region)]

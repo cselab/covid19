@@ -1,10 +1,13 @@
 from epidemics.data import DATA_DOWNLOADS_DIR
+from epidemics.data.files.canton_population import CANTON_POPULATION
+
 from epidemics.data.regions import region_to_key
 from epidemics.tools.cache import cache
 from epidemics.tools.io import download_and_save
 
 from collections import namedtuple
 import datetime
+from operator import add
 
 class RegionCasesData:
     """Daily data of number of confirmed cases, recovered cases and death for one region."""
@@ -15,6 +18,13 @@ class RegionCasesData:
         self.confirmed = confirmed
         self.recovered = recovered
         self.deaths = deaths
+
+        # if 'icu' in kwargs.keys(): 
+        #     self.icu = kwargs['icu']
+        # if 'released' in kwargs.keys():
+        #     self.released = kwargs['released']
+        # if 'ventilated' in kwargs.keys():
+        #     self.ventilated = kwargs['ventilated']
 
     def __repr__(self):
         return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(
@@ -76,8 +86,59 @@ def load_and_process_hgis_data(*, days_to_remove=1):
 
     return out
 
+@cache
+def get_data_of_all_cantons():
+    '''
+        Gets confirmed(infected), recovered and deaths from the openzh database
+    '''
+    fields = ['cases','fatalities','released','hospitalized','icu','vent']
+
+    # Get data for all fields
+    data = {}
+    for field in fields:
+        data[field] = get_field_data_all_cantons(field)
+
+    cantons = list(data['cases'].keys())
+    cantons.remove('date')
+    # Rearrange data per canton
+    out = {}
+    for canton in cantons:
+        recovered = list(map(add, data['fatalities'][canton], data['released'][canton]))
+        out[canton] = RegionCasesData(  start_date=data['cases']['date'],
+                                        confirmed=data['cases'][canton],
+                                        recovered=recovered,
+                                        deaths=data['fatalities'][canton])
+                                        # icu = data['icu'][canton],
+                                        # ventilated=data['vent'][canton]
+    return out
+
+@cache
+def get_field_data_all_cantons(field,cache_duration=3600):
+
+    url = 'https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master/covid19_'+field+'_switzerland_openzh.csv'
+    file_path = 'covid19_'+field+'_switzerland_openzh.csv'
+    path = DATA_DOWNLOADS_DIR / file_path
+
+    raw = download_and_save(url, path, cache_duration=cache_duration)
+    rows = raw.decode('utf8').split()
+    cantons = rows[0].split(',')[1:-1]  # Skip the "Date" and "CH" cell.
+
+    data = {canton: [] for canton in cantons}
+    date = []
+    for day in rows[1:]:  # Skip the header.
+        cells = day.split(',')[1:-1]  # Skip "Date" and "CH".
+        date.append(datetime.date.fromisoformat(day.split(',')[0]))
+        assert len(cells) == len(cantons), (len(cells), len(cantons))        
+        for canton, cell in zip(cantons, cells):
+            data[canton].append(float(cell or 'nan'))
+    data['date'] = date
+    return data
 
 def get_region_cases(region):
-    data = load_and_process_hgis_data()  # This is cached.
-    return data[region_to_key(region)]
+    if region in CANTON_POPULATION.keys():
+        data = get_data_of_all_cantons()
+        return data[region]
+    else:
+        data = load_and_process_hgis_data()  # This is cached.
+        return data[region_to_key(region)]
 
