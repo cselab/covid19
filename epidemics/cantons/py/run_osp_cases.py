@@ -81,6 +81,7 @@ def example_run_seii_c(data, num_days,inputs):
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
+    parser.add_argument('samples', type=int, default=100, help="Number of Monte Carlo samples.")
     parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
     parser.add_argument('--level', type=str, choices=(Level.canton, Level.municipality), default='canton', help="Level of details.")
     parser.add_argument('--model', type=str, choices=('seiin', 'seii_c'), default='seiin', help="Model.")
@@ -97,29 +98,14 @@ def main(argv):
 
     if args.model == 'seiin':
         model = example_run_seiin
+        samples = args.samples
         parameters = np.array([1.50,1.00,0.50,3.69,3.47,1.36,   0.3  ,0.1])
-        interval   = np.array([0.50,1.00,0.20,0.00,0.00,0.00,   0.0  ,0.0])
-        points     = np.array([   4,   4,   4,   1,   1,   1,     1  ,  1])
-        discretized = []
-        for par,i,point in zip(parameters,interval,points):
-            discretized.append(np.linspace(par-i,par+i,point))
-        X = np.meshgrid(discretized[0],discretized[1],\
-                        discretized[2],discretized[3],\
-                        discretized[4],discretized[5],\
-                        discretized[6],discretized[7])
+        interval   = np.array([0.50,0.50,0.10,0.30,0.30,0.20,   0.0  ,0.0])
     else:
         model_data.Mij *= 0.0
         model = example_run_seii_c
         parameters = np.array([3.00,1.00,0.60,3.69,3.47, 0.3  ,0.1])
         interval   = np.array([0.50,1.00,0.20,0.00,0.50, 0.0  ,0.0])
-        points     = np.array([4   ,4   ,4   ,1   ,1   , 1    ,1  ])
-        discretized = []
-        for par,i,point in zip(parameters,interval,points):
-            discretized.append(np.linspace(par-i,par+i,point))
-        X = np.meshgrid(discretized[0],discretized[1],\
-                        discretized[2],discretized[3],\
-                        discretized[4],discretized[5],\
-                        discretized[6])
 
 
     assert args.level == Level.canton
@@ -128,30 +114,22 @@ def main(argv):
     c = 1
     days = args.days
 
+    npar = len(parameters)
+    P = np.random.uniform( 0.0, 1.0, (npar,samples))
+    for s in range(samples):
+        P [:,s] = (parameters-interval) + (2*interval)*P[:,s]
 
-    for i in range(len(parameters)):
-        X[i] = X[i].flatten()
-
-    nSimulations = np.prod(points)
-    All_results  = np.zeros( (nSimulations,int(days/c),cantons))
-    reported     = np.zeros( (nSimulations,int(days/c),cantons))
-    all_params   = np.zeros((nSimulations,len(parameters)))
-
-    for isim in range(nSimulations):
-        params = []
-        for p in range(len(parameters)):
-            params.append(X[p][isim])
-
-        results = model(model_data,days,params)
+    All_results  = np.zeros((samples,int(days/c),cantons))
+    reported     = np.zeros((samples,int(days/c),cantons))
+    all_params   = np.zeros((samples,npar))
+    for isim in range(samples):
+        results = model(model_data,days,P[:,isim])
         for day in range(0,days,c):
             All_results[isim][int(day/c)][:] = results[day].Iu()
             reported   [isim][int(day/c)][:] = results[day].E()
-
         reported[isim,:,:] *= (params[2] /params[3])
-
-        all_params[isim]=params
-
-        print (isim + 1,"/",nSimulations)
+        all_params[isim]=P[:,isim]
+        print (isim + 1,"/",samples)
     
     np.save("output.npy"   ,All_results)
     np.save("params.npy"   ,all_params )
