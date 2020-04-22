@@ -85,10 +85,6 @@ class OSP:
         space.append(space_time[i])
         time.append(space_time[i+n])
 
-
-
-
-
     M = self.nMeasure
     N = len(time)
     F = np.zeros((self.Ntheta,  M*N ))
@@ -110,13 +106,10 @@ class OSP:
     #if np.abs( np.linalg.det(cov) ) < 1e-3:
     #  return 0.0
 
-
-
     sigma_mean = np.zeros(N)
     for i in range(N):
       sigma_mean[i] = self.sigma_mean[time[i]]
-
-
+    
     #compute utility
     retval = 0.0
     for theta in range(0,self.Ntheta):
