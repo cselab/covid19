@@ -24,10 +24,11 @@ class ModelBase( EpidemicsBase ):
     self.logPlot      = kwargs.pop('logPlot', False)
     self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.preprocess   = kwargs.pop('preprocess', False)
 
     super().__init__( **kwargs )
 
-    self.regionalData = RegionalData( self.country )
+    self.regionalData = RegionalData( self.country,self.preprocess)
     self.propagationData = {}
 
 
