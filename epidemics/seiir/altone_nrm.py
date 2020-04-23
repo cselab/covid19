@@ -129,7 +129,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
 
-    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
 
     s['Reference Evaluations'] = y.tolist()
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
@@ -145,7 +145,7 @@ class Model( ModelBase ):
 
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
 
-    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
     y = [0] + y.tolist()
 
     js = {}
