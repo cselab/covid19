@@ -23,8 +23,12 @@ from epidemics.epidemics import EpidemicsBase
 from epidemics.data.combined import RegionalData
 
 
-class ModelBase( EpidemicsBase ):
+class Model( EpidemicsBase ):
   def __init__( self, **kwargs ):
+    self.modelName        = 'cantons'
+    self.modelDescription = 'Fit SEI* with cantons on Daily Infected Data'
+    self.likelihoodModel  = 'Negative Binomial'
+
     self.country      = kwargs.pop('country', 'switzerland')
     self.futureDays   = kwargs.pop('futureDays', 2)
     self.nPropagation = kwargs.pop('nPropagation', 100)
@@ -33,37 +37,24 @@ class ModelBase( EpidemicsBase ):
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
 
-    super().__init__( **kwargs )
-
     self.regionalData = RegionalData( self.country,self.preprocess)
     self.propagationData = {}
-
-  def save_data_path( self ):
-    return ( self.dataFolder, self.country, self.modelName )
-
-  # beta, gamma
-  def sir_rhs( self, t, y, N, p ):
-    S, I = y
-    c1 = p[0] * S * I / N
-    c2 = p[1] * I
-    dSdt = -c1
-    dIdt =  c1 - c2
-    return dSdt, dIdt
-
-  def solve_ode( self, y0, T, N, p ):
-    sol = solve_ivp( self.sir_rhs, t_span=[0, T], y0=y0, args=(N, p), dense_output=True)
-    return sol
-
-class Model( ModelBase ):
-  def __init__( self, **kwargs ):
-
-    self.modelName        = 'cantons'
-    self.modelDescription = 'Fit SEI* with cantons on Daily Infected Data'
-    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
     self.process_data()
+
+  def solve_model(self, t_span, y0, N, p, t_eval):
+    def sir_rhs(t, y, N, p):
+      S, I = y
+      beta, gamma = p[:2]
+      c1 = beta * S * I / N
+      c2 = gamma * I
+      dSdt = -c1
+      dIdt =  c1 - c2
+      return dSdt, dIdt
+    sol = solve_ivp(sir_rhs, t_span=t_span, y0=y0, args=(N,p), t_eval=t_eval)
+    return sol.y
 
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
@@ -126,13 +117,13 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
 
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
+    y = self.solve_model(t_span=[0, t[-1]], y0=y0, N=N, p=p, t_eval=tt)
+    S = y[0]
+    Idaily = -np.diff(S)
 
-    s['Reference Evaluations'] = y
-    s['Dispersion'] = len(y)*[p[-1]]
+    s['Reference Evaluations'] = list(Idaily)
+    s['Dispersion'] = len(Idaily) * [p[-1]]
 
   def computational_model_propagate( self, s ):
     p = s['Parameters']
@@ -140,22 +131,22 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
+    y = self.solve_model(t_span=[0, t[-1]], y0=y0, N=N, p=p, t_eval=t)
+    S = y[0]
+    Idaily = -np.diff(S)
+    Idaily = [0] + list(Idaily)
 
     js = {}
     js['Variables'] = []
 
     js['Variables'].append({})
     js['Variables'][0]['Name']   = 'Daily Incidence'
-    js['Variables'][0]['Values'] = y
+    js['Variables'][0]['Values'] = Idaily
 
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    js['Dispersion'] = len(y)*[p[-1]]
+    js['Dispersion'] = len(Idaily) * [p[-1]]
 
     s['Saved Results'] = js
 
@@ -192,7 +183,7 @@ x = argparse.Namespace()
 x.dataFolder = "data/"
 x.country = "switzerland"
 x.nPropagation = 100
-x.percentages = [0.95]
+x.percentages = [0.5]
 x.nThreads = 4
 
 a = Model( **vars(x) )
