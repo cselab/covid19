@@ -1,1 +1,0 @@
-python3 -m korali.plotter --dir data/switzerland/cantons/_korali_samples/ --output samples.png

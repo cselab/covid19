@@ -29,15 +29,13 @@ class Model( EpidemicsBase ):
     self.modelDescription = 'Fit SEI* with cantons on Daily Infected Data'
     self.likelihoodModel  = 'Negative Binomial'
 
-    self.country      = kwargs.pop('country', 'switzerland')
     self.futureDays   = kwargs.pop('futureDays', 2)
     self.nPropagation = kwargs.pop('nPropagation', 100)
     self.logPlot      = kwargs.pop('logPlot', False)
-    self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
 
-    self.regionalData = RegionalData( self.country,self.preprocess)
+    self.regionalData = RegionalData( 'switzerland',self.preprocess)
     self.propagationData = {}
 
     super().__init__( **kwargs )
@@ -64,7 +62,7 @@ class Model( EpidemicsBase ):
     return sol.y
 
   def save_data_path( self ):
-      return ( self.dataFolder, self.country, self.modelName )
+      return ( self.dataFolder, self.modelName )
 
   def process_data( self ):
     y = self.regionalData.infected
@@ -74,14 +72,8 @@ class Model( EpidemicsBase ):
     S0 = N - I0
     y0 = S0, I0
 
-    if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:])
-    else:
-      self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
-      self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
+    self.data['Model']['x-data'] = t[1:]
+    self.data['Model']['y-data'] = np.diff( y[0:])
 
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size'] = self.regionalData.populationSize
@@ -167,12 +159,12 @@ class Model( EpidemicsBase ):
     s['Saved Results'] = js
 
   def plot_intervals( self ):
-    fig = self.new_figure()
+    print('[Epidemics] Compute and Plot credible intervals.')
+    fig = plt.figure(figsize=(12, 8))
+    fig.suptitle(self.modelDescription)
+
     ax  = fig.subplots( 2 )
     ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
     self.compute_plot_intervals( 'Daily Incidence', 20, ax[0], 'Daily Incidence' )
 
@@ -197,7 +189,6 @@ def main():
     nSamples = 500
     x = argparse.Namespace()
     x.dataFolder = "data/"
-    x.country = "switzerland"
     x.nPropagation = 100
     x.percentages = [0.5]
     x.nThreads = 4
@@ -210,7 +201,7 @@ def main():
 
     a.save()
 
-    a.plot_intervals()
+    #a.plot_intervals()
 
 if __name__ == "__main__":
     main()
