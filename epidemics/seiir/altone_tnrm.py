@@ -21,9 +21,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'seiir_altone_nrm'
-    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Normal likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'seiir_altone_tnrm'
+    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Positive Normal likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 

@@ -10,6 +10,7 @@ import json
 import os
 import pickle
 import sys
+import time
 
 import matplotlib.pyplot as plt
 plt.ioff()
@@ -28,6 +29,7 @@ class EpidemicsBase:
 
     self.nThreads    = kwargs.pop('nThreads', 1)
     self.silent      = kwargs.pop('silent', False)
+    self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
 
@@ -256,7 +258,9 @@ class EpidemicsBase:
     print('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
-    plt.ion()
+
+    if(self.silentPlot): plt.ion()
+
     return fig
 
 
@@ -267,6 +271,10 @@ class EpidemicsBase:
     Nt = self.propagatedVariables[varName].shape[1]
 
     samples = np.zeros((Ns*ns,Nt))
+
+    print(f"[Epidemics] Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
+
+    start = time.process_time()
 
     if self.likelihoodModel=='Normal':
       for k in range(Nt):
@@ -296,6 +304,11 @@ class EpidemicsBase:
 
     if cummulate>0 :
       samples = np.cumsum(samples,axis=cummulate)
+
+    elapsed = time.process_time() - start
+    print(f" elapsed {elapsed:.2f} sec")
+
+    print(f"[Epidemics] Computing quantiles... ")
 
     mean   = np.zeros((Nt,1))
     median = np.zeros((Nt,1))

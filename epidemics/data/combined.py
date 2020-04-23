@@ -23,13 +23,13 @@ class RegionalData:
         if skip is None:
             raise ValueError(f"Region `{region}` has no cases.")
         else:
-            print('Removing {} leading zeros, {} days of usable data'.format(skip,
+            print('[Epidemics] Removing {} leading zeros, {} days of usable data'.format(skip,
                                                     len(cases.confirmed[skip:])))
         # TODO: 'infected' or 'confirmed'?
         self.infected  = add_attribute(cases.confirmed,skip)
         self.recovered = add_attribute(cases.recovered,skip)
         self.deaths    = add_attribute(cases.deaths,skip)
-        
+
         self.hospitalized = add_attribute(cases.hospitalized,skip)
         self.icu = add_attribute(cases.icu,skip)
         self.ventilated = add_attribute(cases.ventilated,skip)

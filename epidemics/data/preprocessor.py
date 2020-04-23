@@ -20,7 +20,7 @@ def preprocess_data(cases):
     cases.confirmed = truncate_field(cases.confirmed,len_confirmed)
     cases.recovered = truncate_field(cases.recovered,len_confirmed)
     cases.deaths = truncate_field(cases.deaths,len_confirmed)
-    
+
     cases.icu = truncate_field(cases.icu,len_confirmed)
     cases.hospitalized = truncate_field(cases.hospitalized,len_confirmed)
     cases.ventilated = truncate_field(cases.ventilated,len_confirmed)
@@ -55,7 +55,7 @@ def preprocess_field(dat,field):
         # 2. Remove nan data at the end
         last_day = np.where(np.isfinite(dat))[0][-1]
         dat = dat[:last_day+1]
-        print('Removing last {} days in {}'.format(n-last_day,field))
+        print('[Epidemics] Removing last {} days in {}'.format(n-last_day,field))
 
         # 3. Interpolate missing data
         nan_idx = np.where(np.isnan(dat))[0]
@@ -76,7 +76,7 @@ def interpolate_missing_data(a,b,n):
     f = interpolate.interp1d([0,1], [a,b])
     return f(x[1:-1])
 
-def sublist_split(nan_idx): 
+def sublist_split(nan_idx):
     idx = np.where(np.diff(nan_idx)!=1)[0]
     intervals = []
     previous_interval_length = 0

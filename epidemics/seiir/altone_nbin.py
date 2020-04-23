@@ -175,13 +175,13 @@ class Model( ModelBase ):
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 40, ax[0], 'Daily Reported Incidence' )
+    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[0], 'Daily Reported Incidence' )
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 40, ax[1], 'Cummulative number of infected', cummulate=1)
+    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[1], 'Cummulative number of reported infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
 
