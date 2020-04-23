@@ -28,8 +28,8 @@ import matplotlib.pyplot as plt
 
 
 
-import epidemics.seiir.modelBase as sir
-x = sir.modelBase(rawData=[1,2,3],populationSize=1000)
+import epidemics.seiir.model_base as sir
+x = sir.ModelBase(rawData=[1,2,3],populationSize=1000)
 N = int(1e3)
 T = 30
 sol = x.solve_ode( [N-100,0,100,0], T, N, [ 1.5, 0.5, 0.2, 3, 5 ] )
@@ -52,4 +52,4 @@ ax.grid()
 ax.legend(loc='upper left')
 # ax[k].set_yscale('log')
 
-plt.show()
+plt.savefig('ode.pdf')
