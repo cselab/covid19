@@ -2,7 +2,9 @@
 # Author: George Arampatzis
 # Date:   27/3/2020
 # Email:  garampat@ethz.ch
-
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import argparse
 import copy
@@ -19,6 +21,7 @@ parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate 
 parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that many data from the end of the data list to validate the prediction.')
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
+parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 args = parser.parse_args()
 
 
