@@ -1,30 +1,46 @@
 from scipy import interpolate
 import numpy as np
 
-def preprocess_data(data):
+def preprocess_data(cases):
     # data is a dictionary of lists, each list the times seris of a field
     # 1. Replaces all leading nans with zeros
-    # 2. Truncates end of all time series if missing data in infected
+    # 2. Truncates end of all time series if missing data in confirmed
     # 3. Interpolates gaps in data (when nan)
-    lengths = {}
-    for field in data.keys():
-        data[field], lengths[field]= preprocess_field(np.array(data[field]),field)
-    print(lengths)
+
+    cases.confirmed, len_confirmed       = preprocess_field(np.array(cases.confirmed),'confirmed')
+    cases.recovered, len_recovered       = preprocess_field(np.array(cases.recovered),'recovered')
+    cases.deaths, len_deaths             = preprocess_field(np.array(cases.deaths),'deaths')
+
+    cases.icu, len_icu                   = preprocess_field(np.array(cases.icu),'icu')
+    cases.hospitalized, len_hospitalized = preprocess_field(np.array(cases.hospitalized),'hospitalized')
+    cases.ventilated, len_ventilated     = preprocess_field(np.array(cases.ventilated),'ventilated')
+    cases.released, len_released         = preprocess_field(np.array(cases.released),'released')
+
+    # For now truncate at number of confirmed
+    cases.confirmed = truncate_field(cases.confirmed,len_confirmed)
+    cases.recovered = truncate_field(cases.recovered,len_confirmed)
+    cases.deaths = truncate_field(cases.deaths,len_confirmed)
     
-    # For now truncate at number of infected
-    for field in data.keys(): 
-        if not np.isnan(data[field]).all(): 
-            data[field] = data[field][:lengths['confirmed']]
-    return data
+    cases.icu = truncate_field(cases.icu,len_confirmed)
+    cases.hospitalized = truncate_field(cases.hospitalized,len_confirmed)
+    cases.ventilated = truncate_field(cases.ventilated,len_confirmed)
+    cases.released = truncate_field(cases.released,len_confirmed)
+
+    return cases
+
+def truncate_field(dat,len):
+    if dat is not None:
+        return dat[:len]
+    else:
+        return None
 
 def preprocess_field(dat,field):
     print('Processing {}'.format(field))
 
     if  np.isnan(dat).all():
         print('No data available')
-
-        dat = np.nan
-        length = np.nan
+        dat = None
+        length = None
     else:
         n = len(dat)
         # 1. Replace all leading nan with zeros
@@ -45,6 +61,7 @@ def preprocess_field(dat,field):
                 b = dat[interval[-1]+1]
                 dat[interval] = interpolate_missing_data(a,b,len(interval))
         length = len(dat)
+        print('{} days of data available for {}'.format(length,field))
 
     return dat, length
 
@@ -61,7 +78,7 @@ def sublist_split(nan_idx):
     for i in idx:
         i -=previous_interval_length
         intervals.append(nan_idx[:i+1])
-        previous_interval_length = len(intervals[-1])
+        previous_interval_length = sum((len(interval) for interval in intervals))
         nan_idx = nan_idx[i+1:]
 
     intervals.append(nan_idx)

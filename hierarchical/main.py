@@ -20,6 +20,8 @@ parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate 
 parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that many data from the end of the data list to validate the prediction.')
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
+parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
+
 args = parser.parse_args()
 
 

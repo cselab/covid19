@@ -6,40 +6,27 @@
 import argparse
 import copy
 import sys
-# sys.path.append('../')
+sys.path.append('../')
 from epidemics.tools.tools import import_from
+from epidemics.data.files.canton_population import CANTON_LIST
 
 # Phase 1 for Hierarchical Bayesian Inferance: Individual level fit
 
 model = 'sir.altone_nbin'
-data_folder = './data'
-
-countries = [   'switzerland',
-                'spain',
-                'italy',
-                'france',
-                'germany',
-                'netherlands',
-                'uk',
-            ]
-
-# countries = [   'VD',
-#                 'ZH',
-#             ]
-
+regions = CANTON_LIST
 n_samples = 2000
+params = {'dataFolder': './data',
+          'preprocess':True,
+          'nThreads': 12,
+          'nPropagation': 100,
+          'futureDays': 2,
+          'nValidation': 0,
+          'percentages': [0.5, 0.95, 0.99],
+          'silent': False}
 
-for country in countries:
+for region in regions:
 
-    params = {'dataFolder': data_folder,
-              'country': country,
-              'nThreads': 1,
-              'nPropagation': 100,
-              'futureDays': 2,
-              'nValidation': 0,
-              'percentages': [0.5, 0.95, 0.99],
-              'silent': False}
-
+    params['country'] = region
     model_class = import_from( 'epidemics.' + model, 'Model')
 
     a = model_class(**params)

@@ -17,26 +17,28 @@ class RegionalData:
         cases = get_region_cases(region)
 
         if self.preprocess==True:
-            cases.data = preprocess_data(cases.data)
+            cases = preprocess_data(cases)
 
-        skip = next((i for i, x in enumerate(cases.data['confirmed']) if x), None)
+        skip = next((i for i, x in enumerate(cases.confirmed) if x), None)
         if skip is None:
             raise ValueError(f"Region `{region}` has no cases.")
-
+        else:
+            print('Removing {} leading zeros, {} days of usable data'.format(skip,
+                                                    len(cases.confirmed[skip:])))
         # TODO: 'infected' or 'confirmed'?
-        self.infected  = add_attribute(cases.data,'confirmed',skip)
-        self.recovered = add_attribute(cases.data,'recovered',skip)
-        self.deaths    = add_attribute(cases.data,'deaths',skip)
+        self.infected  = add_attribute(cases.confirmed,skip)
+        self.recovered = add_attribute(cases.recovered,skip)
+        self.deaths    = add_attribute(cases.deaths,skip)
         
-        self.hospitalized = add_attribute(cases.data,'hospitalized',skip)
-        self.icu = add_attribute(cases.data,'icu',skip)
-        self.ventilated = add_attribute(cases.data,'ventilated',skip)
-        self.released = add_attribute(cases.data,'released',skip)
+        self.hospitalized = add_attribute(cases.hospitalized,skip)
+        self.icu = add_attribute(cases.icu,skip)
+        self.ventilated = add_attribute(cases.ventilated,skip)
+        self.released = add_attribute(cases.released,skip)
 
         self.time = np.asarray(range(len(self.infected)))
 
-def add_attribute(data,field,skip):
-    if field in data.keys() and not np.isnan(data[field]).all():
-        return data[field][skip:]
+def add_attribute(data,skip):
+    if data is not None:
+        return data[skip:]
     else:
-        return np.nan
+        return None

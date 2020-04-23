@@ -12,13 +12,18 @@ from operator import add
 class RegionCasesData:
     """Daily data of number of confirmed cases, recovered cases and death for one region."""
 
-    def __init__(self, start_date, confirmed, recovered, deaths):
+    def __init__(self, start_date, confirmed, recovered, deaths,
+                    hospitalized=None, icu=None, released=None, ventilated=None):
         self.start_date = start_date
 
-        self.data = {}
-        self.data['confirmed'] = confirmed
-        self.data['recovered'] = recovered
-        self.data['deaths'] = deaths
+        self.confirmed = confirmed
+        self.recovered = recovered
+        self.deaths = deaths
+
+        self.hospitalized = hospitalized
+        self.icu = icu
+        self.released = released
+        self.ventilated = ventilated
 
     def __repr__(self):
         return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(
@@ -36,20 +41,6 @@ class RegionCasesData:
             if value:
                 return self.start_date + datetime.timedelta(days=day)
         raise Exception("Region does not even have confirmed cases.")
-
-class CantonCasesData(RegionCasesData):
-    '''
-        New class for canton data as icu, ventilated, and released are available
-    '''
-
-    def __init__(self, start_date,  confirmed, recovered, deaths, 
-                                    hospitalized, icu, released, ventilated):
-        super().__init__(start_date, confirmed, recovered, deaths)
-       
-        self.data['hospitalized'] = hospitalized
-        self.data['icu'] = icu
-        self.data['released'] = released
-        self.data['ventilated'] = ventilated
 
 @cache
 def load_and_process_hgis_data(*, days_to_remove=1):
@@ -111,7 +102,7 @@ def get_data_of_all_cantons():
     out = {}
     for canton in cantons:
         recovered = list(map(add, data['fatalities'][canton], data['released'][canton]))
-        out[canton] = CantonCasesData(  start_date=data['cases']['date'],
+        out[canton] = RegionCasesData(  start_date=data['cases']['date'],
                                         confirmed=data['cases'][canton],
                                         recovered=recovered,
                                         deaths=data['fatalities'][canton],
