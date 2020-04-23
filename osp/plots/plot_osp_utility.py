@@ -38,7 +38,7 @@ def plot_ode_results(result,utility,n):
             v_u[c] = util[i_state]
             v_r1[c] = res [i_state]/max_res
             v_r2[c] = res [i_state]
-            texts[c] = str("{:.3f}".format(v_r2[c]))
+            texts[c] = str("{:.0f}".format(v_r2[c]))
 
         rend.set_values(v_r1)
         rend.set_texts(texts)
