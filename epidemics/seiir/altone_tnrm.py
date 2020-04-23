@@ -21,9 +21,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'seiir_altone_nrm'
-    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Normal likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'seiir_altone_tnrm'
+    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Positive Normal likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
@@ -114,8 +114,8 @@ class Model( ModelBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 10
-    self.e['Distributions'][k]['Maximum'] = 1000
+    self.e['Distributions'][k]['Minimum'] = 0.01
+    self.e['Distributions'][k]['Maximum'] = 10
 
 
 
@@ -130,10 +130,9 @@ class Model( ModelBase ):
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
 
     y = -np.diff(sol.y[0])-np.diff(sol.y[1])
-    y = y.tolist()
 
-    s['Reference Evaluations'] = y
-    s['Standard Deviation'] = ( p[-1] * np.sqrt(t) ).tolist()
+    s['Reference Evaluations'] = y.tolist()
+    s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
 
@@ -158,7 +157,7 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
-    js['Standard Deviation'] = ( p[-1] * np.sqrt(t) ).tolist()
+    js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
 
