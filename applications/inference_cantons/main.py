@@ -177,21 +177,24 @@ class Model( EpidemicsBase ):
 
     plt.close(fig)
 
+def main():
+    nSamples = 500
+    x = argparse.Namespace()
+    x.dataFolder = "data/"
+    x.country = "switzerland"
+    x.nPropagation = 100
+    x.percentages = [0.5]
+    x.nThreads = 4
 
-nSamples = 500
-x = argparse.Namespace()
-x.dataFolder = "data/"
-x.country = "switzerland"
-x.nPropagation = 100
-x.percentages = [0.5]
-x.nThreads = 4
+    a = Model( **vars(x) )
 
-a = Model( **vars(x) )
+    a.sample( nSamples )
 
-a.sample( nSamples )
+    a.propagate()
 
-a.propagate()
+    a.save()
 
-a.save()
+    a.plot_intervals()
 
-a.plot_intervals()
+if __name__ == "__main__":
+    main()
