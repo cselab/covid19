@@ -11,20 +11,19 @@ from operator import add
 
 class RegionCasesData:
     """Daily data of number of confirmed cases, recovered cases and death for one region."""
-    __slots__ = ('start_date', 'confirmed', 'recovered', 'deaths')
 
-    def __init__(self, start_date, confirmed, recovered, deaths):
+    def __init__(self, start_date, confirmed, recovered, deaths,
+                    hospitalized=None, icu=None, released=None, ventilated=None):
         self.start_date = start_date
+
         self.confirmed = confirmed
         self.recovered = recovered
         self.deaths = deaths
 
-        # if 'icu' in kwargs.keys(): 
-        #     self.icu = kwargs['icu']
-        # if 'released' in kwargs.keys():
-        #     self.released = kwargs['released']
-        # if 'ventilated' in kwargs.keys():
-        #     self.ventilated = kwargs['ventilated']
+        self.hospitalized = hospitalized
+        self.icu = icu
+        self.released = released
+        self.ventilated = ventilated
 
     def __repr__(self):
         return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(
@@ -42,7 +41,6 @@ class RegionCasesData:
             if value:
                 return self.start_date + datetime.timedelta(days=day)
         raise Exception("Region does not even have confirmed cases.")
-
 
 @cache
 def load_and_process_hgis_data(*, days_to_remove=1):
@@ -107,9 +105,11 @@ def get_data_of_all_cantons():
         out[canton] = RegionCasesData(  start_date=data['cases']['date'],
                                         confirmed=data['cases'][canton],
                                         recovered=recovered,
-                                        deaths=data['fatalities'][canton])
-                                        # icu = data['icu'][canton],
-                                        # ventilated=data['vent'][canton]
+                                        deaths=data['fatalities'][canton],
+                                        hospitalized = data['hospitalized'][canton],
+                                        icu = data['icu'][canton],
+                                        ventilated=data['vent'][canton],
+                                        released = data['released'][canton])
     return out
 
 @cache
