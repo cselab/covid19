@@ -7,3 +7,5 @@ __pycache__
 covid19_cases_switzerland_openzh.csv
 ._README.rst
 ._*
+/hierarchical/data/
+/hierarchical/results/
