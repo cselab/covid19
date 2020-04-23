@@ -7,14 +7,14 @@ def preprocess_data(cases):
     # 2. Truncates end of all time series if missing data in confirmed
     # 3. Interpolates gaps in data (when nan)
 
-    cases.confirmed, len_confirmed       = preprocess_field(np.array(cases.confirmed),'confirmed')
-    cases.recovered, len_recovered       = preprocess_field(np.array(cases.recovered),'recovered')
-    cases.deaths, len_deaths             = preprocess_field(np.array(cases.deaths),'deaths')
+    cases.confirmed, len_confirmed       = preprocess_field(cases.confirmed,'confirmed')
+    cases.recovered, len_recovered       = preprocess_field(cases.recovered,'recovered')
+    cases.deaths, len_deaths             = preprocess_field(cases.deaths,'deaths')
 
-    cases.icu, len_icu                   = preprocess_field(np.array(cases.icu),'icu')
-    cases.hospitalized, len_hospitalized = preprocess_field(np.array(cases.hospitalized),'hospitalized')
-    cases.ventilated, len_ventilated     = preprocess_field(np.array(cases.ventilated),'ventilated')
-    cases.released, len_released         = preprocess_field(np.array(cases.released),'released')
+    cases.icu, len_icu                   = preprocess_field(cases.icu,'icu')
+    cases.hospitalized, len_hospitalized = preprocess_field(cases.hospitalized,'hospitalized')
+    cases.ventilated, len_ventilated     = preprocess_field(cases.ventilated,'ventilated')
+    cases.released, len_released         = preprocess_field(cases.released,'released')
 
     # For now truncate at number of confirmed
     cases.confirmed = truncate_field(cases.confirmed,len_confirmed)
@@ -36,12 +36,17 @@ def truncate_field(dat,len):
 
 def preprocess_field(dat,field):
     print('Processing {}'.format(field))
-
-    if  np.isnan(dat).all():
+    print(dat)
+    if  dat is None:
+        print('No data available')
+        dat = None
+        length = None
+    elif np.isnan(dat).all():
         print('No data available')
         dat = None
         length = None
     else:
+        dat = np.asarray(dat)
         n = len(dat)
         # 1. Replace all leading nan with zeros
         first_day = np.where(np.isfinite(dat))[0][0]

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 sys.path.append('../')
 
 from epidemics.data.combined import RegionalData
-vd_data = RegionalData('BE',True)
+vd_data = RegionalData('switzerland',True)
 
 fig = plt.figure()
 plt.plot(vd_data.infected,label='infected')

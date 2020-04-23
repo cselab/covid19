@@ -12,7 +12,7 @@ class RegionalData:
     def __init__(self, region,preprocess=False):
         self.region = region
         self.populationSize = get_region_population(region)
-        self.preprocess =preprocess
+        self.preprocess = preprocess
 
         cases = get_region_cases(region)
 
@@ -39,6 +39,6 @@ class RegionalData:
 
 def add_attribute(data,skip):
     if data is not None:
-        return data[skip:]
+        return np.asarray(data[skip:])
     else:
         return None
