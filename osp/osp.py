@@ -26,7 +26,7 @@ class OSP:
     self.sigma = 0.2 #np.std(self.data.flatten())
 
 
-    self.sigma_mean = np.mean ( np.mean(self.data,axis=0) , axis = 1)
+    self.sigma_mean = self.sigma * np.mean ( np.mean(self.data,axis=0) , axis = 1)
 
 
 
@@ -109,6 +109,7 @@ class OSP:
     sigma_mean = np.zeros(N)
     for i in range(N):
       sigma_mean[i] = self.sigma_mean[time[i]]
+    #sig = np.mean(sigma_mean)
     
     #compute utility
     retval = 0.0
@@ -129,11 +130,14 @@ class OSP:
       #sig = (self.sigma*mean)**2 * np.eye(N)
       #sig = (self.sigma)**2 * np.eye(N)
 
-      sig = sigma_mean**2 * np.eye(N)
+      #sig = sigma_mean**2 * np.eye(N)
+      sig = sigma_mean * np.eye(N)
 
 
-      rv  = sp.multivariate_normal(np.zeros(n), sig*cov,allow_singular=True)
-      y   = np.random.multivariate_normal(mean, sig*cov, self.Ny)  
+      #rv  = sp.multivariate_normal(np.zeros(n), sig*cov,allow_singular=True)
+      #y   = np.random.multivariate_normal(mean, sig*cov, self.Ny)  
+      rv  = sp.multivariate_normal(np.zeros(n), sig*cov*sig,allow_singular=True)
+      y   = np.random.multivariate_normal(mean, sig*cov*sig, self.Ny)  
       s1  = np.mean(rv.logpdf(y-mean))    
       
       #this is a faster way to avoid a second for loop over Ntheta
