@@ -155,7 +155,7 @@ def plot_all_cantons():
 def post_processing(osp):
 ######################  
   plot_all_2d()
-  #plot_all_cantons()
+  plot_all_cantons()
   #plot_all_3d()
   
   #max_posterior = osp.computePosterior()
@@ -188,7 +188,7 @@ if __name__ == '__main__':
   
   timer = 0
   timer -= time.time()
-  t,s = osp.Sequential_Placement()
+  #t,s = osp.Sequential_Placement()
   timer += time.time()
   print ("time=",timer)
 
