@@ -44,16 +44,23 @@ class Model( EpidemicsBase ):
 
     self.process_data()
 
-  def solve_model(self, t_span, y0, N, p, t_eval):
-    def sir_rhs(t, y, N, p):
+    self.params_fixed = {"beta":80., "gamma":80.}
+    self.params_prior = {"beta":(1,100), "gamma":(1,100)}
+    #self.params_to_infer = ["beta", "gamma"]
+    self.params_to_infer = ["beta"]
+
+  def solve_model(self, t_span, y0, params, t_eval):
+    def rhs(t, y):
+      N = params['N']
+      beta = params['beta']
+      gamma = params['gamma']
       S, I = y
-      beta, gamma = p[:2]
       c1 = beta * S * I / N
       c2 = gamma * I
       dSdt = -c1
       dIdt =  c1 - c2
       return dSdt, dIdt
-    sol = solve_ivp(sir_rhs, t_span=t_span, y0=y0, args=(N,p), t_eval=t_eval)
+    sol = solve_ivp(rhs, t_span=t_span, y0=y0, t_eval=t_eval)
     return sol.y
 
   def save_data_path( self ):
@@ -85,30 +92,37 @@ class Model( EpidemicsBase ):
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
   def set_variables_and_distributions( self ):
-    p = ['beta','gamma','[r]']
-    for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
+    p = self.params_to_infer + ['[r]']
+    for k,name in enumerate(p):
+      self.e['Variables'][k]['Name'] = name
+      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + name
 
     self.nParameters = len(p)
 
-    k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
-    k+=1
+    k = 0
 
-    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
-    k+=1
+    for name in self.params_to_infer:
+      self.e['Distributions'][k]['Name'] = 'Prior for ' + name
+      self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+      minmax = self.params_prior[name]
+      self.e['Distributions'][k]['Minimum'] = minmax[0]
+      self.e['Distributions'][k]['Maximum'] = minmax[1]
+      k += 1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [r]'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0.01
     self.e['Distributions'][k]['Maximum'] = 10.
+    k += 1
+
+  def get_params(self, p, N):
+    params = {'N':N}
+    for name,value in self.params_fixed.items():
+      params[name] = value
+    for i,name in enumerate(self.params_to_infer):
+      params[name] = p[i]
+    return params
+
 
   def computational_model( self, s ):
     p = s['Parameters']
@@ -118,7 +132,8 @@ class Model( EpidemicsBase ):
 
     tt = [t[0]-1] + t.tolist()
 
-    y = self.solve_model(t_span=[0, t[-1]], y0=y0, N=N, p=p, t_eval=tt)
+    params = self.get_params(p, N)
+    y = self.solve_model(t_span=[0, t[-1]], y0=y0, params=params, t_eval=tt)
     S = y[0]
     Idaily = -np.diff(S)
 
@@ -131,7 +146,8 @@ class Model( EpidemicsBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    y = self.solve_model(t_span=[0, t[-1]], y0=y0, N=N, p=p, t_eval=t)
+    params = self.get_params(p, N)
+    y = self.solve_model(t_span=[0, t[-1]], y0=y0, params=params, t_eval=t)
     S = y[0]
     Idaily = -np.diff(S)
     Idaily = [0] + list(Idaily)
