@@ -25,10 +25,12 @@ import time
 def repeat(v, numRegions):
   return list(np.array([v] * numRegions).T.flatten())
 
-def mul2(v):
-  v = np.array(v).astype(float)
-  v[::2] *= 0.5
-  return list(v)
+def mul2(v, nr):
+  if nr == 2:
+    v = np.array(v).astype(float)
+    v[::2] *= 0.5
+    return list(v)
+  return v
 
 class Models:
   SIR = "SIR"
@@ -42,7 +44,7 @@ class Model( EpidemicsBase ):
     self.nPropagation = nPropagation
     self.percentages  = percentages
     self.logPlot = logPlot
-    self.numRegions = 2
+    self.numRegions = 1
 
     self.model = Models.SEI
     #self.model = Models.SIR
@@ -55,17 +57,19 @@ class Model( EpidemicsBase ):
 
     if self.model == Models.SEI:
       self.params_fixed = {
-          'R0':1.75, 'Z':2, 'D':0.8, 'tact':24}
+          'R0':1.75, 'Z':2, 'D':0.8, 'tact':1000, 'kbeta':0.5}
       self.params_prior = {
-          'R0':(0.5,4), 'Z':(0.1,10), 'D':(0.1,10), 'tact':(10,50)}
-      self.params_to_infer = ['R0', 'Z', 'D', 'tact']
+          'R0':(0.5,4), 'Z':(0.01,10), 'D':(0.01,10), 'tact':(0,60), 'kbeta':(0.,1.)}
+      self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
+      #self.params_to_infer = ['R0', 'Z', 'D']
       #self.params_to_infer = []
     elif self.model == Models.SIR:
       self.params_fixed = {
-          'gamma':60., 'R0':1.002}
+          'R0':1.002, 'gamma':60.}
       self.params_prior = {
-          'gamma':(0.01,100), 'R0':(0.5,4)}
+          'R0':(0.5,3), 'gamma':(1,100)}
       self.params_to_infer = ['R0', 'gamma']
+      #self.params_to_infer = []
     else:
       raise NotImplementedError()
 
@@ -93,9 +97,8 @@ class Model( EpidemicsBase ):
       D = params['D']
       beta = params['R0'] / D
       #beta = params['beta']
-      beta = smooth_trans(beta, beta * 0.5, t, params['tact'], 0)
+      beta = smooth_trans(beta, beta * params['kbeta'], t, params['tact'], 0)
       S, E, I = y
-
 
       c1 = beta * S * I / N
       c2 = E / Z
@@ -128,7 +131,8 @@ class Model( EpidemicsBase ):
     y0 = S0, I0
 
     self.data['Model']['x-data'] = repeat(t[1:], self.numRegions)
-    self.data['Model']['y-data'] = mul2(repeat(np.diff(y), self.numRegions))
+    self.data['Model']['y-data'] = mul2(
+        repeat(np.diff(y), self.numRegions), self.numRegions)
 
     self.data['Model']['Initial Condition'] = [y0]
     self.data['Model']['Population Size'] = [N]
@@ -183,7 +187,8 @@ class Model( EpidemicsBase ):
     y = self.solve_ode(t_span=[0, t[-1]], y0=y0, params=params, t_eval=tt[::self.numRegions])
     S = y[0]
     Idaily = -np.diff(S)
-    Idaily = mul2(repeat(Idaily, self.numRegions))
+    Idaily = mul2(
+        repeat(Idaily, self.numRegions), self.numRegions)
 
     s['Reference Evaluations'] = list(Idaily)
     s['Dispersion'] = len(Idaily) * [p[-1]]
@@ -200,7 +205,7 @@ class Model( EpidemicsBase ):
     S = y[0]
     Idaily = -np.diff(S)
     Idaily = [0] + list(Idaily)
-    Idaily = mul2(repeat(Idaily, self.numRegions))
+    Idaily = mul2(repeat(Idaily, self.numRegions), self.numRegions)
 
     js = {}
     js['Variables'] = []
@@ -291,9 +296,12 @@ class Model( EpidemicsBase ):
     return samples
 
   def plot_intervals(self, region=0):
+    if region >= self.numRegions:
+      print("skpping region={:}".format(region))
+      return
     print('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
-    fig.suptitle(self.modelDescription)
+    #fig.suptitle(self.modelDescription)
 
     xdata = self.data['Model']['x-data'][region::self.numRegions]
     ydata = self.data['Model']['y-data'][region::self.numRegions]
@@ -324,7 +332,7 @@ class Model( EpidemicsBase ):
     plt.close(fig)
 
 def main():
-    nSamples = 1000
+    nSamples = 3000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -332,7 +340,7 @@ def main():
     x.nThreads = 8
 
     data = argparse.Namespace()
-    if 0: # actual data
+    if 1: # actual data
       from epidemics.data.combined import RegionalData
       regionalData = RegionalData('switzerland')
       data.infected = regionalData.infected
@@ -353,7 +361,7 @@ def main():
               s[i] += x[j]
               q[i] += 1
         return s / q
-      data.infected = moving_average(data.infected, 2)
+      data.infected = moving_average(data.infected, 0)
       data.time = regionalData.time
       sel = len(data.infected)
       #sel = 30
