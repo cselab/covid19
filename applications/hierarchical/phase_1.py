@@ -4,7 +4,7 @@
 # Email:  mboden@ethz.ch
 
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 from epidemics.tools.tools import import_from
 from epidemics.data.files.canton_population import CANTON_LIST
 

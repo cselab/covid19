@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-sys.path.append('../')
+sys.path.append('../../')
 
 from epidemics.data.combined import RegionalData
 vd_data = RegionalData('VD',True)

@@ -5,14 +5,14 @@ import sys
 import os
 import korali
 
-sys.path.append('../')
+sys.path.append('../../')
 from epidemics.data.files.canton_population import CANTON_LIST
 
 '''
     Hierearchical setup for SIR models with negative binomial
 '''
 
-model = 'altone_nbin'
+model = 'sir_altone_nbin'
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------------- Setup ----------------------------------- #
@@ -98,7 +98,7 @@ e["Distributions"][8]["Maximum"] = 2.5
 # ---------------------------------------------------------------------------- #
 
 e["Solver"]["Type"] = "TMCMC"
-e["Solver"]["Population Size"] = 1000
+e["Solver"]["Population Size"] = 2000
 e["Solver"]["Default Burn In"] = 3;
 e["Solver"]["Target Coefficient Of Variation"] = 0.6
 e["Solver"]["Covariance Scaling"] = 0.01
@@ -109,6 +109,6 @@ e["File Output"]["Path"] = "data/phase_2_results/"
 # Starting Korali's Engine and running experiment
 k = korali.Engine()
 k["Conduit"]["Type"] = "Concurrent"
-k["Conduit"]["Concurrent Jobs"] = 4
+k["Conduit"]["Concurrent Jobs"] = 12
 k.run(e)
 

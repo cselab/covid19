@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 from epidemics.data.files.canton_population import CANTON_LIST
 import os
 from subprocess import call
