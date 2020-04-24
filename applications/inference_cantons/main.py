@@ -25,6 +25,10 @@ import time
 def repeat(v, numRegions):
   return list(np.array([v] * numRegions).T.flatten())
 
+class Models:
+  sir = "sir"
+  sei = "sei"
+
 class Model( EpidemicsBase ):
   def __init__( self, data, nPropagation=100, percentages=[0.5, 0.95, 0.99], logPlot=False, **kwargs):
     self.modelName        = 'cantons'
@@ -35,34 +39,58 @@ class Model( EpidemicsBase ):
     self.logPlot = logPlot
     self.numRegions = 1
 
+    self.model = Models.sei
+
     self.propagationData = {}
 
     super().__init__( **kwargs )
 
     self.process_data(data)
 
-    self.params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
-    self.params_prior = {'beta':(1,100), 'gamma':(1,100), 'R0':(0.5,2)}
-    self.params_to_infer = ['beta', 'gamma']
-    #self.params_to_infer = ['beta']
-    #self.params_to_infer = ['gamma']
-    #self.params_to_infer = ['R0', 'gamma']
-    self.params_to_infer = []
+    if self.model == Models.sei:
+      self.params_fixed = {'beta':4, 'Z':3, 'D':3}
+      self.params_prior = {'beta':(1,100), 'Z':(0.1,10), 'D':(0.01,0.03)}
+      self.params_to_infer = ['beta', 'Z', 'D']
+    elif self.model == Models.sir:
+      self.params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
+      self.params_prior = {'beta':(1,100), 'gamma':(1,100), 'R0':(0.5,2)}
+      self.params_to_infer = ['beta', 'gamma']
+    else:
+      raise NotImplementedError()
 
   def solve_ode(self, t_span, y0, params, t_eval):
-    def rhs(t, y):
+    def sir(t, y):
       N = params['N']
-      #beta = params['beta']
+      beta = params['beta']
       gamma = params['gamma']
-      beta = params['R0'] * gamma
       S, I = y
       c1 = beta * S * I / N
       c2 = gamma * I
       dSdt = -c1
       dIdt =  c1 - c2
       return dSdt, dIdt
-    sol = solve_ivp(rhs, t_span=t_span, y0=y0, t_eval=t_eval)
-    return sol.y
+    def sei(t, y):
+      N = params['N']
+      beta = params['beta']
+      Z = params['Z']
+      D = params['D']
+      S, E, I = y
+      c1 = beta * S * I / N
+      dSdt = -c1
+      dEdt = c1
+      dIdt = E / Z - I / D
+      return dSdt, dEdt, dIdt
+
+    if self.model == Models.sei:
+      S,I = y0
+      E = 0
+      sol = solve_ivp(sei, t_span=t_span, y0=[S,E,I], t_eval=t_eval)
+      S,E,I = sol.y
+      return [S,I]
+    elif self.model == Models.sir:
+      sol = solve_ivp(sir, t_span=t_span, y0=y0, t_eval=t_eval)
+    else:
+      raise NotImplementedError()
 
   def save_data_path( self ):
       return ( self.dataFolder, self.modelName )
@@ -282,7 +310,7 @@ def main():
     x.nThreads = 8
 
     data = argparse.Namespace()
-    if 0:
+    if 1:
       from epidemics.data.combined import RegionalData
       regionalData = RegionalData('switzerland')
       data.infected = regionalData.infected
@@ -292,7 +320,7 @@ def main():
       N = 8e6
       I = 15
       t = range(0, 40)
-      params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
+      params_fixed = {'beta':4, 'Z':3, 'D':3}
       params = {'N':N}
       params.update(params_fixed)
       y = Model.solve_ode(None, [0,max(t)], [N-I,I], params,t)
