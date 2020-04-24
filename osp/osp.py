@@ -7,7 +7,7 @@ import itertools
 class OSP:
 
   ############################################################################
-  def __init__(self, path, nSensors, nMeasure, Ny = 100, korali = False):
+  def __init__(self, path, nSensors, nMeasure, Ntheta=0, Ny = 100, korali = False):
   ############################################################################
     self.path         = path         # path to output.npy
     self.nSensors     = nSensors     # how many sensors to place
@@ -15,9 +15,16 @@ class OSP:
     self.Ny = Ny                     # how many samples to draw when evaluating utility
 
     #output.npy should contain a 3D numpy array [Simulations][Time][Space]
-    self.data         = np.load(path+"/output.npy")
-    self.parameters   = np.load(path+"/params.npy")
-    self.Ntheta       = self.data.shape[0] # number of simulations 
+    self.data = np.empty(0)
+    self.paramters = np.empty(0)
+    if Ntheta == 0:
+        self.Ntheta = self.data.shape[0] # number of simulations
+        self.data         = np.load(path+"/output.npy")
+        self.parameters   = np.load(path+"/params.npy")
+    else:
+        self.Ntheta = Ntheta 
+        self.data         = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
+        self.parameters   = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
 
     self.korali = korali
 
