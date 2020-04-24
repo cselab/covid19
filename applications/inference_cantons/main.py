@@ -39,8 +39,8 @@ class Model( EpidemicsBase ):
     self.logPlot = logPlot
     self.numRegions = 1
 
-    #self.model = Models.SEI
-    self.model = Models.SIR
+    self.model = Models.SEI
+    #self.model = Models.SIR
 
     self.propagationData = {}
 
@@ -49,18 +49,24 @@ class Model( EpidemicsBase ):
     self.process_data(data)
 
     if self.model == Models.SEI:
-      self.params_fixed = {'beta':65.2, 'Z':0.1, 'D':1./60}
-      self.params_prior = {'beta':(1,100), 'Z':(1,100), 'D':(1,100)}
-      #self.params_to_infer = ['beta', 'Z', 'D']
-      self.params_to_infer = []
+      self.params_fixed = {'beta':65.2, 'Z':0.1, 'D':1./60, 'tact':25}
+      self.params_prior = {'beta':(0.01,100), 'Z':(1,10), 'D':(1,10)}
+      self.params_to_infer = ['beta', 'Z', 'D']
+      #self.params_to_infer = []
     elif self.model == Models.SIR:
       self.params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
-      self.params_prior = {'beta':(1,100), 'gamma':(1,100), 'R0':(0.9,1.1)}
+      self.params_prior = {'beta':(0.01,100), 'gamma':(0.01,100), 'R0':(0.5,4)}
       self.params_to_infer = ['R0', 'gamma']
     else:
       raise NotImplementedError()
 
+
   def solve_ode(self, t_span, y0, params, t_eval):
+    def smooth_trans(u0, u1, t, tact, teps):
+        t0 = tact - teps
+        t1 = tact + teps
+        return u0 if t <= t0 else u1 if t > t1 else \
+            u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
     def SIR(t, y):
       N = params['N']
       gamma = params['gamma']
@@ -75,9 +81,12 @@ class Model( EpidemicsBase ):
     def SEI(t, y):
       N = params['N']
       beta = params['beta']
+      beta = smooth_trans(beta, beta * 0.5, t, params['tact'], 0)
       Z = params['Z']
       D = params['D']
       S, E, I = y
+
+
       c1 = beta * S * I / N
       c2 = E / Z
       dSdt = -c1
@@ -264,7 +273,7 @@ class Model( EpidemicsBase ):
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
-    ax.set_xticks( range( np.ceil( max( xdata )+1 ).astype(int) ) )
+    #ax.set_xticks( range( np.ceil( max( xdata )+1 ).astype(int) ) )
     ax.grid()
     if( self.logPlot ): ax.set_yscale('log')
 
@@ -319,8 +328,31 @@ def main():
       from epidemics.data.combined import RegionalData
       regionalData = RegionalData('switzerland')
       data.infected = regionalData.infected
+      def moving_average(x, w):
+        '''
+        x: `numpy.ndarray`, (N)
+        w: int
+          Window half-width.
+        Returns:
+        xa: `numpy.ndarray`, (N)
+          Array `x` averaged over window [-w,w].
+        '''
+        s = np.zeros_like(x)
+        q = np.zeros_like(x)
+        for i in range(len(x)):
+          for j in range(max(0, i - w), min(i + w + 1, len(x))):
+            if np.isfinite(x[j]):
+              s[i] += x[j]
+              q[i] += 1
+        return s / q
+      data.infected = moving_average(data.infected, 2)
       data.time = regionalData.time
+      sel = len(data.infected)
+      #sel = 30
+      data.infected = data.infected[:sel]
+      data.time = data.time[:sel]
       data.populationSize = regionalData.populationSize
+      #data.populationSize = 30000
     else: # synthetic data
       N = 8e6
       I = 15
