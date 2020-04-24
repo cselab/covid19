@@ -49,13 +49,17 @@ class Model( EpidemicsBase ):
     self.process_data(data)
 
     if self.model == Models.SEI:
-      self.params_fixed = {'beta':65.2, 'Z':0.1, 'D':1./60, 'tact':25}
-      self.params_prior = {'beta':(0.01,100), 'Z':(1,10), 'D':(1,10)}
-      self.params_to_infer = ['beta', 'Z', 'D']
+      self.params_fixed = {
+          'Z':0.1, 'D':1./60, 'tact':25, 'R0':1.2}
+      self.params_prior = {
+          'Z':(0.1,10), 'D':(0.1,10), 'tact':(10,50), 'R0':(0.5,4)}
+      self.params_to_infer = ['R0', 'Z', 'D', 'tact']
       #self.params_to_infer = []
     elif self.model == Models.SIR:
-      self.params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
-      self.params_prior = {'beta':(0.01,100), 'gamma':(0.01,100), 'R0':(0.5,4)}
+      self.params_fixed = {
+          'gamma':60., 'R0':1.002}
+      self.params_prior = {
+          'gamma':(0.01,100), 'R0':(0.5,4)}
       self.params_to_infer = ['R0', 'gamma']
     else:
       raise NotImplementedError()
@@ -80,10 +84,11 @@ class Model( EpidemicsBase ):
       return dSdt, dIdt
     def SEI(t, y):
       N = params['N']
-      beta = params['beta']
-      beta = smooth_trans(beta, beta * 0.5, t, params['tact'], 0)
       Z = params['Z']
       D = params['D']
+      beta = params['R0'] / D
+      #beta = params['beta']
+      beta = smooth_trans(beta, beta * 0.5, t, params['tact'], 0)
       S, E, I = y
 
 
@@ -206,7 +211,6 @@ class Model( EpidemicsBase ):
     js['Length of Variables'] = len(t1)
 
     js['Dispersion'] = len(t1) * [p[-1]]
-
     s['Saved Results'] = js
 
   def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
