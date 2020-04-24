@@ -25,6 +25,11 @@ import time
 def repeat(v, numRegions):
   return list(np.array([v] * numRegions).T.flatten())
 
+def mul2(v):
+  v = np.array(v).astype(float)
+  v[::2] *= 0.5
+  return list(v)
+
 class Models:
   SIR = "SIR"
   SEI = "SEI"
@@ -37,7 +42,7 @@ class Model( EpidemicsBase ):
     self.nPropagation = nPropagation
     self.percentages  = percentages
     self.logPlot = logPlot
-    self.numRegions = 1
+    self.numRegions = 2
 
     self.model = Models.SEI
     #self.model = Models.SIR
@@ -123,7 +128,7 @@ class Model( EpidemicsBase ):
     y0 = S0, I0
 
     self.data['Model']['x-data'] = repeat(t[1:], self.numRegions)
-    self.data['Model']['y-data'] = repeat(np.diff(y), self.numRegions)
+    self.data['Model']['y-data'] = mul2(repeat(np.diff(y), self.numRegions))
 
     self.data['Model']['Initial Condition'] = [y0]
     self.data['Model']['Population Size'] = [N]
@@ -178,7 +183,7 @@ class Model( EpidemicsBase ):
     y = self.solve_ode(t_span=[0, t[-1]], y0=y0, params=params, t_eval=tt[::self.numRegions])
     S = y[0]
     Idaily = -np.diff(S)
-    Idaily = repeat(Idaily, self.numRegions)
+    Idaily = mul2(repeat(Idaily, self.numRegions))
 
     s['Reference Evaluations'] = list(Idaily)
     s['Dispersion'] = len(Idaily) * [p[-1]]
@@ -195,7 +200,7 @@ class Model( EpidemicsBase ):
     S = y[0]
     Idaily = -np.diff(S)
     Idaily = [0] + list(Idaily)
-    Idaily = repeat(Idaily, self.numRegions)
+    Idaily = mul2(repeat(Idaily, self.numRegions))
 
     js = {}
     js['Variables'] = []
@@ -285,12 +290,10 @@ class Model( EpidemicsBase ):
 
     return samples
 
-  def plot_intervals( self ):
+  def plot_intervals(self, region=0):
     print('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription)
-
-    region = 0
 
     xdata = self.data['Model']['x-data'][region::self.numRegions]
     ydata = self.data['Model']['y-data'][region::self.numRegions]
@@ -311,9 +314,10 @@ class Model( EpidemicsBase ):
     #-----------------------------------------------------------------------------
     ax[-1].set_xlabel('time in days')
 
-    file = os.path.join(self.saveInfo['figures'],'prediction.png');
-    prepare_folder( os.path.dirname(file) )
-    fig.savefig(file)
+    name = "prediction{:}.png".format(str(region) if region else "")
+    f = os.path.join(self.saveInfo['figures'], name);
+    prepare_folder( os.path.dirname(f), clean=False )
+    fig.savefig(f)
 
     plt.show()
 

@@ -27,3 +27,4 @@ a = load_model(f)
 # a.save()
 
 a.plot_intervals()
+a.plot_intervals(region=1)
