@@ -86,7 +86,7 @@ for i in range(min(yy.shape[1], 10000)):
     like = np.clip(np.maximum(1., 1 - dist*3)**10, 0, 0.2)
     #like = (N0 - y[-1]) / N0
     plt.plot(t, y, alpha=like, lw=2, color=color)
-    plt.title("""SIE model with N={:.0e},
+    plt.title("""SEI model with N={:.0e},
 beta={:}±{:}, Z={:}±{:}, D={:}±{:}""".format(
         N0, p0[0], eps0, p0[1], eps1, p0[2], eps2))
     plt.xlabel("$t$ [days]")
