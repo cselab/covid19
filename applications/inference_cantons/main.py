@@ -50,9 +50,9 @@ class Model( EpidemicsBase ):
 
     if self.model == Models.SEI:
       self.params_fixed = {
-          'Z':0.1, 'D':1./60, 'tact':25, 'R0':1.2}
+          'R0':1.75, 'Z':2, 'D':0.8, 'tact':24}
       self.params_prior = {
-          'Z':(0.1,10), 'D':(0.1,10), 'tact':(10,50), 'R0':(0.5,4)}
+          'R0':(0.5,4), 'Z':(0.1,10), 'D':(0.1,10), 'tact':(10,50)}
       self.params_to_infer = ['R0', 'Z', 'D', 'tact']
       #self.params_to_infer = []
     elif self.model == Models.SIR:
@@ -328,7 +328,7 @@ def main():
     x.nThreads = 8
 
     data = argparse.Namespace()
-    if 1:
+    if 0: # actual data
       from epidemics.data.combined import RegionalData
       regionalData = RegionalData('switzerland')
       data.infected = regionalData.infected
@@ -361,10 +361,13 @@ def main():
       N = 8e6
       I = 15
       t = range(0, 40)
-      params_fixed = {'beta':4, 'Z':3, 'D':3}
+      params_fixed = {
+          'R0':1.75, 'Z':2, 'D':0.8, 'tact':24}
       params = {'N':N}
       params.update(params_fixed)
-      y = Model.solve_ode(None, [0,max(t)], [N-I,I], params,t)
+      m = argparse.Namespace()
+      m.model = Models.SEI
+      y = Model.solve_ode(m, [0,max(t)], [N-I,I], params,t)
       data.infected = y[0][0] - y[0] + I
       data.time = t
       data.populationSize = N
