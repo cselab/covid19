@@ -36,6 +36,52 @@ class Models:
   SIR = "SIR"
   SEI = "SEI"
 
+def solve_ode(model, t_span, y0, params, t_eval):
+  def smooth_trans(u0, u1, t, tact, teps):
+      t0 = tact - teps
+      t1 = tact + teps
+      return u0 if t <= t0 else u1 if t > t1 else \
+          u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
+  def SIR(t, y):
+    N = params['N']
+    gamma = params['gamma']
+    beta = params['R0'] * gamma
+    #beta = params['beta']
+    S, I = y
+    c1 = beta * S * I / N
+    c2 = gamma * I
+    dSdt = -c1
+    dIdt =  c1 - c2
+    return dSdt, dIdt
+  def SEI(t, y):
+    N = params['N']
+    Z = params['Z']
+    D = params['D']
+    beta = params['R0'] / D
+    #beta = params['beta']
+    beta = smooth_trans(beta, beta * params['kbeta'], t, params['tact'], 0)
+    S, E, I = y
+
+    c1 = beta * S * I / N
+    c2 = E / Z
+    dSdt = -c1
+    dEdt = c1 - c2
+    dIdt = c2 - I / D
+    return dSdt, dEdt, dIdt
+
+  if model == Models.SEI:
+    S,I = y0
+    E = 0
+    sol = solve_ivp(SEI, t_span=t_span, y0=[S,E,I], t_eval=t_eval)
+    S,E,I = sol.y
+    return [S,I]
+  elif model == Models.SIR:
+    sol = solve_ivp(SIR, t_span=t_span, y0=y0, t_eval=t_eval)
+    return sol.y
+  else:
+    raise NotImplementedError()
+
+
 class Model( EpidemicsBase ):
   def __init__( self, data, nPropagation=100, percentages=[0.5, 0.95, 0.99], logPlot=False, **kwargs):
     self.modelName        = 'cantons'
@@ -57,11 +103,12 @@ class Model( EpidemicsBase ):
 
     if self.model == Models.SEI:
       self.params_fixed = {
-          'R0':1.75, 'Z':2, 'D':0.8, 'tact':1000, 'kbeta':0.5}
+          'R0':1.75, 'Z':2, 'D':0.8, 'tact':24., 'kbeta':0.5}
       self.params_prior = {
           'R0':(0.5,4), 'Z':(0.01,10), 'D':(0.01,10), 'tact':(0,60), 'kbeta':(0.,1.)}
-      self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
-      #self.params_to_infer = ['R0', 'Z', 'D']
+      #self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
+      #self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
+      self.params_to_infer = ['R0', 'Z', 'D']
       #self.params_to_infer = []
     elif self.model == Models.SIR:
       self.params_fixed = {
@@ -70,52 +117,6 @@ class Model( EpidemicsBase ):
           'R0':(0.5,3), 'gamma':(1,100)}
       self.params_to_infer = ['R0', 'gamma']
       #self.params_to_infer = []
-    else:
-      raise NotImplementedError()
-
-
-  def solve_ode(self, t_span, y0, params, t_eval):
-    def smooth_trans(u0, u1, t, tact, teps):
-        t0 = tact - teps
-        t1 = tact + teps
-        return u0 if t <= t0 else u1 if t > t1 else \
-            u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
-    def SIR(t, y):
-      N = params['N']
-      gamma = params['gamma']
-      beta = params['R0'] * gamma
-      #beta = params['beta']
-      S, I = y
-      c1 = beta * S * I / N
-      c2 = gamma * I
-      dSdt = -c1
-      dIdt =  c1 - c2
-      return dSdt, dIdt
-    def SEI(t, y):
-      N = params['N']
-      Z = params['Z']
-      D = params['D']
-      beta = params['R0'] / D
-      #beta = params['beta']
-      beta = smooth_trans(beta, beta * params['kbeta'], t, params['tact'], 0)
-      S, E, I = y
-
-      c1 = beta * S * I / N
-      c2 = E / Z
-      dSdt = -c1
-      dEdt = c1 - c2
-      dIdt = c2 - I / D
-      return dSdt, dEdt, dIdt
-
-    if self.model == Models.SEI:
-      S,I = y0
-      E = 0
-      sol = solve_ivp(SEI, t_span=t_span, y0=[S,E,I], t_eval=t_eval)
-      S,E,I = sol.y
-      return [S,I]
-    elif self.model == Models.SIR:
-      sol = solve_ivp(SIR, t_span=t_span, y0=y0, t_eval=t_eval)
-      return sol.y
     else:
       raise NotImplementedError()
 
@@ -184,7 +185,7 @@ class Model( EpidemicsBase ):
     tt = [t[0]-1] + list(t)
 
     params = self.get_params(p, N)
-    y = self.solve_ode(t_span=[0, t[-1]], y0=y0, params=params, t_eval=tt[::self.numRegions])
+    y = solve_ode(self.model, t_span=[0, t[-1]], y0=y0, params=params, t_eval=tt[::self.numRegions])
     S = y[0]
     Idaily = -np.diff(S)
     Idaily = mul2(
@@ -201,7 +202,7 @@ class Model( EpidemicsBase ):
 
     params = self.get_params(p, N)
     t1 = t[0::self.numRegions]
-    y = self.solve_ode(t_span=[0, t[-1]], y0=y0, params=params, t_eval=t1)
+    y = solve_ode(self.model, t_span=[0, t[-1]], y0=y0, params=params, t_eval=t1)
     S = y[0]
     Idaily = -np.diff(S)
     Idaily = [0] + list(Idaily)
@@ -332,7 +333,7 @@ class Model( EpidemicsBase ):
     plt.close(fig)
 
 def main():
-    nSamples = 3000
+    nSamples = 1000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -377,15 +378,12 @@ def main():
           'R0':1.75, 'Z':2, 'D':0.8, 'tact':24}
       params = {'N':N}
       params.update(params_fixed)
-      m = argparse.Namespace()
-      m.model = Models.SEI
-      y = Model.solve_ode(m, [0,max(t)], [N-I,I], params,t)
+      y = Model.solve_ode(Models.SEI, [0,max(t)], [N-I,I], params,t)
       data.infected = y[0][0] - y[0] + I
       data.time = t
       data.populationSize = N
 
     x.data = data
-
 
     a = Model( **vars(x) )
 
