@@ -188,8 +188,8 @@ if __name__ == '__main__':
   
   timer = 0
   timer -= time.time()
-  #t,s = osp.Sequential_Placement()
+  t,s = osp.Sequential_Placement()
   timer += time.time()
   print ("time=",timer)
 
-  post_processing(osp)
+  #post_processing(osp)
