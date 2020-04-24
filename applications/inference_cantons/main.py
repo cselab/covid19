@@ -26,8 +26,8 @@ def repeat(v, numRegions):
   return list(np.array([v] * numRegions).T.flatten())
 
 class Models:
-  sir = "sir"
-  sei = "sei"
+  SIR = "SIR"
+  SEI = "SEI"
 
 class Model( EpidemicsBase ):
   def __init__( self, data, nPropagation=100, percentages=[0.5, 0.95, 0.99], logPlot=False, **kwargs):
@@ -39,7 +39,8 @@ class Model( EpidemicsBase ):
     self.logPlot = logPlot
     self.numRegions = 1
 
-    self.model = Models.sei
+    #self.model = Models.SEI
+    self.model = Models.SIR
 
     self.propagationData = {}
 
@@ -47,48 +48,52 @@ class Model( EpidemicsBase ):
 
     self.process_data(data)
 
-    if self.model == Models.sei:
-      self.params_fixed = {'beta':4, 'Z':3, 'D':3}
-      self.params_prior = {'beta':(1,100), 'Z':(0.1,10), 'D':(0.01,0.03)}
-      self.params_to_infer = ['beta', 'Z', 'D']
-    elif self.model == Models.sir:
+    if self.model == Models.SEI:
+      self.params_fixed = {'beta':65.2, 'Z':0.1, 'D':1./60}
+      self.params_prior = {'beta':(1,100), 'Z':(1,100), 'D':(1,100)}
+      #self.params_to_infer = ['beta', 'Z', 'D']
+      self.params_to_infer = []
+    elif self.model == Models.SIR:
       self.params_fixed = {'beta':65.2, 'gamma':60., 'R0':1.002}
-      self.params_prior = {'beta':(1,100), 'gamma':(1,100), 'R0':(0.5,2)}
-      self.params_to_infer = ['beta', 'gamma']
+      self.params_prior = {'beta':(1,100), 'gamma':(1,100), 'R0':(0.9,1.1)}
+      self.params_to_infer = ['R0', 'gamma']
     else:
       raise NotImplementedError()
 
   def solve_ode(self, t_span, y0, params, t_eval):
-    def sir(t, y):
+    def SIR(t, y):
       N = params['N']
-      beta = params['beta']
       gamma = params['gamma']
+      beta = params['R0'] * gamma
+      #beta = params['beta']
       S, I = y
       c1 = beta * S * I / N
       c2 = gamma * I
       dSdt = -c1
       dIdt =  c1 - c2
       return dSdt, dIdt
-    def sei(t, y):
+    def SEI(t, y):
       N = params['N']
       beta = params['beta']
       Z = params['Z']
       D = params['D']
       S, E, I = y
       c1 = beta * S * I / N
+      c2 = E / Z
       dSdt = -c1
-      dEdt = c1
-      dIdt = E / Z - I / D
+      dEdt = c1 - c2
+      dIdt = c2 - I / D
       return dSdt, dEdt, dIdt
 
-    if self.model == Models.sei:
+    if self.model == Models.SEI:
       S,I = y0
       E = 0
-      sol = solve_ivp(sei, t_span=t_span, y0=[S,E,I], t_eval=t_eval)
+      sol = solve_ivp(SEI, t_span=t_span, y0=[S,E,I], t_eval=t_eval)
       S,E,I = sol.y
       return [S,I]
-    elif self.model == Models.sir:
-      sol = solve_ivp(sir, t_span=t_span, y0=y0, t_eval=t_eval)
+    elif self.model == Models.SIR:
+      sol = solve_ivp(SIR, t_span=t_span, y0=y0, t_eval=t_eval)
+      return sol.y
     else:
       raise NotImplementedError()
 
