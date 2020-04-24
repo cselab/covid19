@@ -27,7 +27,7 @@ class ModelBase( EpidemicsBase ):
     self.nPropagation   = kwargs.pop('nPropagation', 100)
     self.logPlot        = kwargs.pop('logPlot', False)
     self.nValidation    = kwargs.pop('nValidation', 0)
-    self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
 
     super().__init__( **kwargs )
 
@@ -48,7 +48,7 @@ class ModelBase( EpidemicsBase ):
 
 
     dSdt  = - c1 - c2
-    dEdt  =   c1 + c2 - (c3 + c4)
+    dEdt  =   c1 + c2 - E/p[3]
     dIrdt =   c3 - Ir/p[4]
     dIudt =   c4 - Iu/p[4]
     return dSdt, dEdt, dIrdt, dIudt

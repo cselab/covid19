@@ -82,6 +82,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
     parser.add_argument('samples', type=int, default=100, help="Number of Monte Carlo samples.")
+    parser.add_argument('--TMCMC', type=int,  help="Use TMCMC samples or not.")
     parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
     parser.add_argument('--level', type=str, choices=(Level.canton, Level.municipality), default='canton', help="Level of details.")
     parser.add_argument('--model', type=str, choices=('seiin', 'seii_c'), default='seiin', help="Model.")
@@ -99,8 +100,8 @@ def main(argv):
     if args.model == 'seiin':
         model = example_run_seiin
         samples = args.samples
-        parameters = np.array([1.50,1.00,0.50,3.69,3.47,1.36,   0.3  ,0.1])
-        interval   = np.array([0.50,0.50,0.10,0.30,0.30,0.20,   0.0  ,0.0])
+        parameters = np.array([1.50,1.00,0.50,3.69,3.47,1.36, 0.3, 0.1])
+        interval   = np.array([0.50,0.50,0.10,0.30,0.30,0.20, 0.0, 0.0])
     else:
         model_data.Mij *= 0.0
         model = example_run_seii_c
@@ -113,11 +114,24 @@ def main(argv):
     cantons = 26
     c = 1
     days = args.days
+    print ("days = ",days)
+    print ("samples = ",args.samples)
 
     npar = len(parameters)
-    P = np.random.uniform( 0.0, 1.0, (npar,samples))
-    for s in range(samples):
-        P [:,s] = (parameters-interval) + (2*interval)*P[:,s]
+    
+    if args.TMCMC == 0:
+       print("UNIFORM PRIORS")
+       P = np.random.uniform( 0.0, 1.0, (npar,samples))
+       for s in range(samples):
+           P [:,s] = (parameters-interval) + (2*interval)*P[:,s]
+    else:
+       print("NON UNIFORM PRIORS")
+       P = np.zeros((npar,samples))
+       sam = np.load("samples.npy")
+       for s in range(samples):
+           P [0:6,s] = sam[s,:]
+       
+
 
     All_results  = np.zeros((samples,int(days/c),cantons))
     reported     = np.zeros((samples,int(days/c),cantons))
@@ -131,8 +145,8 @@ def main(argv):
         all_params[isim]=P[:,isim]
         print (isim + 1,"/",samples)
     
-    np.save("output.npy"   ,All_results)
-    np.save("params.npy"   ,all_params )
+    np.save("output_Ntheta={:05d}.npy".format(samples)   ,All_results)
+    np.save("params_Ntheta={:05d}.npy".format(samples)   ,all_params )
     np.save("reported.npy" ,reported   )
 
 if __name__ == '__main__':

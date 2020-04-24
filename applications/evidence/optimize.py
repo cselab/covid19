@@ -15,6 +15,7 @@ parser.add_argument('--compModel', '-cm', default='sir.altone_nbin', help='The c
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
+parser.add_argument('--nGenerations', '-ng', type=int, default=20, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate that many days in future, after the time of observation of the last data.')
@@ -28,12 +29,13 @@ args = parser.parse_args()
 x = copy.deepcopy(args)
 del x.compModel
 del x.nSamples
+del x.nGenerations
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample( args.nSamples )
+a.optimize( args.nGenerations )
 
 a.propagate()
 
