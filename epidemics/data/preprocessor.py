@@ -7,7 +7,7 @@ def preprocess_data(cases):
     # 2. Truncates end of all time series if missing data in confirmed
     # 3. Interpolates gaps in data (when nan)
 
-    print('[Epidemics] Processing data')
+    print('[Epidemics] [Preprocessing]')
 
     cases.confirmed, len_confirmed       = preprocess_field(cases.confirmed,'confirmed')
     cases.recovered, len_recovered       = preprocess_field(cases.recovered,'recovered')
@@ -37,13 +37,13 @@ def truncate_field(dat,len):
         return None
 
 def preprocess_field(dat,field):
-    print('[Epidemics] Processing {}'.format(field))
+    print('   Processing {}'.format(field))
     if  dat is None:
-        print('No data available')
+        print('     No data available')
         dat = None
         length = None
     elif np.isnan(dat).all():
-        print('No data available')
+        print('     No data available')
         dat = None
         length = None
     else:
@@ -56,7 +56,7 @@ def preprocess_field(dat,field):
         # 2. Remove nan data at the end
         last_day = np.where(np.isfinite(dat))[0][-1]
         dat = dat[:last_day+1]
-        print('[Epidemics] Removing last {} days in {}'.format(n-last_day,field))
+        print('     Removing last {} days in {}'.format(n-last_day,field))
 
         # 3. Interpolate missing data
         nan_idx = np.where(np.isnan(dat))[0]
@@ -67,7 +67,7 @@ def preprocess_field(dat,field):
                 b = dat[interval[-1]+1]
                 dat[interval] = interpolate_missing_data(a,b,len(interval))
         length = len(dat)
-        print('[Epidemics] {} days of data available for {}'.format(length,field))
+        print('     {} days of data available for {}'.format(length,field))
 
     return dat, length
 

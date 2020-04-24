@@ -23,4 +23,4 @@ if vd_data.ventilated is not None:
     plt.plot(vd_data.ventilated,label='ventilated')
 
 plt.legend()
-plt.savefig('data.pdf')
+plt.savefig('data/data.pdf')
