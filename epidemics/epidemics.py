@@ -10,6 +10,7 @@ import json
 import os
 import pickle
 import sys
+import time
 
 import matplotlib.pyplot as plt
 plt.ioff()
@@ -28,6 +29,7 @@ class EpidemicsBase:
 
     self.nThreads    = kwargs.pop('nThreads', 1)
     self.silent      = kwargs.pop('silent', False)
+    self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
 
@@ -54,6 +56,7 @@ class EpidemicsBase:
     self.has_been_called = {
       'sample': False,
       'propagate': False,
+      'optimize': False
     }
 
     self.nParameters = 0
@@ -192,7 +195,57 @@ class EpidemicsBase:
       self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
 
     self.has_been_called['sample'] = True
-    self.has_been_called['propagation'] = False
+    self.has_been_called['propagate'] = False
+    print('[Epidemics] Done copying variables.')
+
+
+
+  def optimize( self, maxGenerations):
+
+    self.nSamples = 1
+    self.maxGenerations = maxGenerations
+
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Bayesian/Reference'
+    self.e['Problem']['Likelihood Model'] = self.likelihoodModel
+    self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Computational Model'] = self.computational_model
+
+    self.e["Solver"]["Type"] = "CMAES"
+    self.e["Solver"]["Population Size"] = 24
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-5
+
+    self.set_variables_and_distributions()
+
+    for k in range(self.nParameters):
+      self.e["Variables"][k]["Initial Mean"] = ( self.e['Distributions'][k]['Maximum'] + self.e['Distributions'][k]['Minimum'] ) / 2
+      self.e["Variables"][k]["Initial Standard Deviation"] = ( self.e['Distributions'][k]['Maximum'] - self.e['Distributions'][k]['Minimum'] ) / 4
+
+    self.set_korali_output_files( self.saveInfo['korali samples'] )
+
+    if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
+
+    self.e['File Output']['Frequency'] = 10
+    self.e["Store Sample Information"] = True
+
+    k = korali.Engine()
+    k['Conduit']['Type'] = 'Concurrent'
+    k['Conduit']['Concurrent Jobs'] = self.nThreads
+
+    k.run(self.e)
+
+    print('[Epidemics] Copy variables from Korali to Epidemics...')
+    self.parameters = []
+    myDatabase = self.e['Results']['Best Sample']['Parameters']
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[j]] )
+
+    self.has_been_called['optimize'] = True
+    self.has_been_called['propagate'] = False
     print('[Epidemics] Done copying variables.')
 
 
@@ -200,8 +253,8 @@ class EpidemicsBase:
 
   def propagate( self ):
 
-    if not self.has_been_called['sample']:
-      print('[Epidemics] Sample before propagation')
+    if not self.has_been_called['sample'] and not self.has_been_called['optimize'] :
+      sys.exit('[Epidemics] [Error] Sample or Optimize before propagation')
       return
 
     self.e = korali.Experiment()
@@ -211,7 +264,8 @@ class EpidemicsBase:
 
     for k in range(self.nParameters):
       self.e['Variables'][k]['Name'] = self.parameters[k]['Name']
-      self.e['Variables'][k]['Precomputed Values'] = np.squeeze(self.parameters[k]['Values']).tolist()
+      self.e['Variables'][k]['Precomputed Values'] = self.parameters[k]['Values'].tolist()
+
 
     self.e['Solver']['Type'] = 'Executor'
 
@@ -224,9 +278,6 @@ class EpidemicsBase:
 
     k = korali.Engine()
 
-    k['Conduit']['Type'] = 'Concurrent'
-    k['Conduit']['Concurrent Jobs'] = self.nThreads
-
     k.run(self.e)
 
     Ns = self.nSamples
@@ -237,7 +288,6 @@ class EpidemicsBase:
     for k in range(Nv):
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
 
-    # FIXME: too slow
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.propagatedVariables = {}
     for i,x in enumerate(varNames):
@@ -261,7 +311,7 @@ class EpidemicsBase:
     # TODO clear variable?
     self.e = korali.Experiment()
 
-    self.has_been_called['propagation'] = True
+    self.has_been_called['propagate'] = True
 
 
 
@@ -270,7 +320,9 @@ class EpidemicsBase:
     print('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
-    plt.ion()
+
+    if(self.silentPlot): plt.ion()
+
     return fig
 
 
@@ -281,6 +333,10 @@ class EpidemicsBase:
     Nt = self.propagatedVariables[varName].shape[1]
 
     samples = np.zeros((Ns*ns,Nt))
+
+    print(f"[Epidemics] Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
+
+    start = time.process_time()
 
     if self.likelihoodModel=='Normal':
       for k in range(Nt):
@@ -310,6 +366,11 @@ class EpidemicsBase:
 
     if cummulate>0 :
       samples = np.cumsum(samples,axis=cummulate)
+
+    elapsed = time.process_time() - start
+    print(f" elapsed {elapsed:.2f} sec")
+
+    print(f"[Epidemics] Computing quantiles... ")
 
     mean   = np.zeros((Nt,1))
     median = np.zeros((Nt,1))

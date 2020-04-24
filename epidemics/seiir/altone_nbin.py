@@ -134,7 +134,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
 
-    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
     y = y.tolist()
 
     s['Reference Evaluations'] = y
@@ -151,7 +151,7 @@ class Model( ModelBase ):
 
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
 
-    y = -np.diff(sol.y[0])-np.diff(sol.y[1])
+    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
     y = [0] + y.tolist()
 
     js = {}
@@ -180,13 +180,13 @@ class Model( ModelBase ):
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 40, ax[0], 'Daily Reported Incidence' )
+    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[0], 'Daily Reported Incidence' )
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 40, ax[1], 'Cummulative number of infected', cummulate=1)
+    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[1], 'Cummulative number of reported infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
 

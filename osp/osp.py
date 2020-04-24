@@ -7,7 +7,7 @@ import itertools
 class OSP:
 
   ############################################################################
-  def __init__(self, path, nSensors, nMeasure, Ny = 100, korali = False):
+  def __init__(self, path, nSensors, nMeasure, Ntheta=0, Ny = 100, korali = False):
   ############################################################################
     self.path         = path         # path to output.npy
     self.nSensors     = nSensors     # how many sensors to place
@@ -15,47 +15,59 @@ class OSP:
     self.Ny = Ny                     # how many samples to draw when evaluating utility
 
     #output.npy should contain a 3D numpy array [Simulations][Time][Space]
-    self.data         = np.load(path+"/output.npy")
-    self.parameters   = np.load(path+"/params.npy")
-    self.Ntheta       = self.data.shape[0] # number of simulations 
+    self.data = np.empty(0)
+    self.paramters = np.empty(0)
+    if Ntheta == 0:
+        self.Ntheta = self.data.shape[0] # number of simulations
+        self.data         = np.load(path+"/output.npy")
+        self.parameters   = np.load(path+"/params.npy")
+    else:
+        self.Ntheta = Ntheta 
+        self.data         = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
+        self.parameters   = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
 
     self.korali = korali
 
     self.l = 3
     assert nMeasure == 1
-    self.sigma = 1.2 #np.std(self.data.flatten()) 
-    '''
-    reported = np.load(path+"/reported.npy")
-    simulations = reported.shape[0]
-    days        = reported.shape[1]
-    cantons     = reported.shape[2]
-    
-    self.var = []
-    for theta in range (self.Ntheta):
-      print (theta,self.Ntheta)
-      v_theta = []
-      for d in range(0,days):
-        time  = np.repeat(np.arange(d+1),cantons)
-        space = np.tile(np.arange(cantons),d+1)
-        T1,T2 = np.meshgrid(time ,time )
-        X1,X2 = np.meshgrid(space,space)
-        
-        mean = reported[theta,0:d+1,0:cantons]
-        mean = mean.flatten()
+    self.sigma = 0.2 #np.std(self.data.flatten())
 
-        #sig = np.eye(cantons*d)
-        #for c in range(cantons):
-        #  for d1 in range(d):
-        #    i  = c + d1 * cantons
-        #    #sig[i,i] = 1.0 #0.1*np.mean(reported[:,d1,c])
-  
-        block = (0.1*mean) * np.exp( -self.distance(T1,X1,T2,X2) ) 
-        cov   = np.kron(np.eye(self.nMeasure), block)
-        v_theta.append(cov)
 
-      self.var.append(v_theta)
-    '''
-    self.UseReported = False #True
+    self.sigma_mean = self.sigma * np.mean ( np.mean(self.data,axis=0) , axis = 1)
+
+
+
+#
+#
+#    reported = np.load(path+"/reported.npy")
+#    simulations = reported.shape[0]
+#    days        = reported.shape[1]
+#    cantons     = reported.shape[2]
+#    self.var = []
+#    for theta in range (self.Ntheta):
+#      print (theta,self.Ntheta)
+#      v_theta = []
+#      for d in range(0,days):
+#        time  = np.repeat(np.arange(d+1),cantons)
+#        space = np.tile(np.arange(cantons),d+1)
+#        T1,T2 = np.meshgrid(time ,time )
+#        X1,X2 = np.meshgrid(space,space)
+#        
+#        mean = reported[theta,0:d+1,0:cantons]
+#        mean = mean.flatten()
+#
+#        #sig = np.eye(cantons*d)
+#        #for c in range(cantons):
+#        #  for d1 in range(d):
+#        #    i  = c + d1 * cantons
+#        #    #sig[i,i] = 1.0 #0.1*np.mean(reported[:,d1,c])
+#  
+#        block = (self.sigma*mean)**2  * np.exp( -self.distance(T1,X1,T2,X2) ) 
+#        cov   = np.kron(np.eye(self.nMeasure), block)
+#        v_theta.append(cov)
+#
+#      self.var.append(v_theta)
+#    self.UseReported = False #True
 
   
   #####################################
@@ -80,10 +92,6 @@ class OSP:
         space.append(space_time[i])
         time.append(space_time[i+n])
 
-
-
-
-
     M = self.nMeasure
     N = len(time)
     F = np.zeros((self.Ntheta,  M*N ))
@@ -105,12 +113,11 @@ class OSP:
     #if np.abs( np.linalg.det(cov) ) < 1e-3:
     #  return 0.0
 
-
-
-
-
-
-
+    sigma_mean = np.zeros(N)
+    for i in range(N):
+      sigma_mean[i] = self.sigma_mean[time[i]]
+    #sig = np.mean(sigma_mean)
+    
     #compute utility
     retval = 0.0
     for theta in range(0,self.Ntheta):
@@ -123,11 +130,21 @@ class OSP:
       #    rv1 = sp.multivariate_normal(np.zeros((t_tilde+1) * cantons), self.var[theta][t_tilde], allow_singular=True)
       #    p_theta = rv1.pdf(np.zeros((t_tilde+1) * cantons)) + 1e-8
 
-      mean = F[theta][:]      
-      sig = (self.sigma*mean)**2 * np.eye(N)
+      mean = F[theta][:]
 
-      rv  = sp.multivariate_normal(np.zeros(n), sig*cov,allow_singular=True)
-      y   = np.random.multivariate_normal(mean, sig*cov, self.Ny)  
+
+
+      #sig = (self.sigma*mean)**2 * np.eye(N)
+      #sig = (self.sigma)**2 * np.eye(N)
+
+      #sig = sigma_mean**2 * np.eye(N)
+      sig = sigma_mean * np.eye(N)
+
+
+      #rv  = sp.multivariate_normal(np.zeros(n), sig*cov,allow_singular=True)
+      #y   = np.random.multivariate_normal(mean, sig*cov, self.Ny)  
+      rv  = sp.multivariate_normal(np.zeros(n), sig*cov*sig,allow_singular=True)
+      y   = np.random.multivariate_normal(mean, sig*cov*sig, self.Ny)  
       s1  = np.mean(rv.logpdf(y-mean))    
       
       #this is a faster way to avoid a second for loop over Ntheta
