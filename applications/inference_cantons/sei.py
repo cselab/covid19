@@ -7,6 +7,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import time
 
+
 def Solve(beta=2, Z=0.5, D=0.5, N=1000, I=1, tmax=30):
     beta = np.array(beta).flatten()
     Z = np.array(Z).flatten()
@@ -18,14 +19,19 @@ def Solve(beta=2, Z=0.5, D=0.5, N=1000, I=1, tmax=30):
         S, E, I = y.reshape((3, len(y) // 3))
         mu = 0
         return np.array([
-                mu*(N-S)  -beta * I * S / N,
-                beta * I * S / N - E * (1 / Z + mu),
-                E / Z - I * (1 / D + mu),
-                ]).flatten()
+            mu * (N - S) - beta * I * S / N,
+            beta * I * S / N - E * (1 / Z + mu),
+            E / Z - I * (1 / D + mu),
+        ]).flatten()
+
     y0 = np.array([N, np.zeros_like(N), I])
-    sol = solve_ivp(rhs, [0, tmax], y0.flatten(), vectorized=True, max_step=0.1)
+    sol = solve_ivp(rhs, [0, tmax],
+                    y0.flatten(),
+                    vectorized=True,
+                    max_step=0.1)
 
     return sol.t, (sol.y).reshape((y0.shape[0], y0.shape[1], len(sol.y[0])))
+
 
 # russia
 #data_y = [13,14,17,20,20,28,34,45,59,64,93,114,147,199,253,306,367,438,498,658,840,1036,1264,1534,1836,2337,2777]
@@ -47,9 +53,9 @@ nsmp = 1000
 eps0 = 2
 eps1 = 2
 eps2 = 2
-rbeta = np.array([p0[0]-eps0, p0[0]+eps0])
-rZ = np.array([p0[1]-eps1, p0[1]+eps1])
-rD = np.array([p0[2]-eps2, p0[2]+eps2])
+rbeta = np.array([p0[0] - eps0, p0[0] + eps0])
+rZ = np.array([p0[1] - eps1, p0[1] + eps1])
+rD = np.array([p0[2] - eps2, p0[2] + eps2])
 rN = np.array([N0, N0])
 
 vbeta = np.random.uniform(*rbeta, nsmp)
@@ -62,14 +68,15 @@ vI = np.ones(nsmp) * I0
 def rescale(a, r):
     if r[1] - r[0] == 0:
         return 0
-    return np.clip((a - r[0]) / (r[1] - r[0])*1.6, 0., 1.)
+    return np.clip((a - r[0]) / (r[1] - r[0]) * 1.6, 0., 1.)
+
 
 time0 = time.time()
 
 t, yy = Solve(vbeta, vZ, vD, vN, vI, tmax=tmax)
 
-data_i = np.argmin(abs(t[:,np.newaxis] - np.array(data_t)[np.newaxis,:]), axis=0)
-
+data_i = np.argmin(abs(t[:, np.newaxis] - np.array(data_t)[np.newaxis, :]),
+                   axis=0)
 
 time1 = time.time()
 print("solve: {:.2f} s".format(time1 - time0))
@@ -78,19 +85,19 @@ print("solve: {:.2f} s".format(time1 - time0))
 
 for i in range(min(yy.shape[1], 10000)):
     color = [
-            rescale(vbeta[i], rbeta),
-            rescale(vZ[i], rZ),
-            rescale(vD[i], rD),
-            ]
+        rescale(vbeta[i], rbeta),
+        rescale(vZ[i], rZ),
+        rescale(vD[i], rD),
+    ]
     y = N0 - yy[0, i, :]
     #dist = ((y[data_i] - data_y) ** 2).mean() ** 0.5
     dist = np.mean(abs(y[data_i] - data_y)) / np.mean(data_y)
-    like = np.clip(np.maximum(1., 1 - dist*3)**10, 0, 0.2)
+    like = np.clip(np.maximum(1., 1 - dist * 3)**10, 0, 0.2)
     #like = (N0 - y[-1]) / N0
     plt.plot(t, y, alpha=like, lw=2, color=color)
     plt.title("""SEI model with N={:.0e},
-beta={:}±{:}, Z={:}±{:}, D={:}±{:}""".format(
-        N0, p0[0], eps0, p0[1], eps1, p0[2], eps2))
+beta={:}±{:}, Z={:}±{:}, D={:}±{:}""".format(N0, p0[0], eps0, p0[1], eps1,
+                                             p0[2], eps2))
     plt.xlabel("$t$ [days]")
     plt.ylabel("$N - S$")
 
