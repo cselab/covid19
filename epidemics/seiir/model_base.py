@@ -27,7 +27,7 @@ class ModelBase( EpidemicsBase ):
     self.nPropagation   = kwargs.pop('nPropagation', 100)
     self.logPlot        = kwargs.pop('logPlot', False)
     self.nValidation    = kwargs.pop('nValidation', 0)
-    self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
 
     super().__init__( **kwargs )
 

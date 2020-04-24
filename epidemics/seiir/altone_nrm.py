@@ -85,7 +85,7 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Maximum'] = 50
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for mu'
@@ -102,14 +102,14 @@ class Model( ModelBase ):
 
     self.e['Distributions'][k]['Name'] = 'Prior for Z'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 10
+    self.e['Distributions'][k]['Minimum'] = 0.0001
+    self.e['Distributions'][k]['Maximum'] = 50
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for D'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 2
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Minimum'] = 0.0001
+    self.e['Distributions'][k]['Maximum'] = 50
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
@@ -133,8 +133,8 @@ class Model( ModelBase ):
 
     s['Reference Evaluations'] = y.tolist()
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
-
-
+    # s['Standard Deviation'] = ( p[-1] * np.minimum( np.maximum(np.abs(y),1e-4), 2e3) ).tolist()
+    # s['Standard Deviation'] = len(y)*[ 100*p[-1]]
 
 
   def computational_model_propagate( self, s ):
@@ -158,6 +158,8 @@ class Model( ModelBase ):
     js['Length of Variables'] = len(js['Variables'][0]['Values'])
 
     js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
+    # js['Standard Deviation'] = ( p[-1] * np.minimum( np.maximum(np.abs(y),1e-4), 2e3) ).tolist()
+    # js['Standard Deviation'] = len(y)*[100*p[-1]]
 
     s['Saved Results'] = js
 
