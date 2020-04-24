@@ -82,6 +82,7 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('days', type=int, default=50, help="Number of days to evaluate.")
     parser.add_argument('samples', type=int, default=100, help="Number of Monte Carlo samples.")
+    parser.add_argument('--TMCMC', type=int,  help="Use TMCMC samples or not.")
     parser.add_argument('--no-foreign', action='store_true', help="Disable foreign commuters from the model.")
     parser.add_argument('--level', type=str, choices=(Level.canton, Level.municipality), default='canton', help="Level of details.")
     parser.add_argument('--model', type=str, choices=('seiin', 'seii_c'), default='seiin', help="Model.")
@@ -113,11 +114,24 @@ def main(argv):
     cantons = 26
     c = 1
     days = args.days
+    print ("days = ",days)
+    print ("samples = ",args.samples)
 
     npar = len(parameters)
-    P = np.random.uniform( 0.0, 1.0, (npar,samples))
-    for s in range(samples):
-        P [:,s] = (parameters-interval) + (2*interval)*P[:,s]
+    
+    if args.TMCMC == 0:
+       print("UNIFORM PRIORS")
+       P = np.random.uniform( 0.0, 1.0, (npar,samples))
+       for s in range(samples):
+           P [:,s] = (parameters-interval) + (2*interval)*P[:,s]
+    else:
+       print("NON UNIFORM PRIORS")
+       P = np.zeros((npar,samples))
+       sam = np.load("samples.npy")
+       for s in range(samples):
+           P [0:6,s] = sam[s,:]
+       
+
 
     All_results  = np.zeros((samples,int(days/c),cantons))
     reported     = np.zeros((samples,int(days/c),cantons))
