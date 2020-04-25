@@ -35,109 +35,108 @@ def mul2(v, nr):
     return v
 
 
-class Models:
-    SIR = "SIR"
-    SEI = "SEI"
+def smooth_trans(u0, u1, t, tc, teps):
+    """
+    Smooth transition from u0 to u1 in interval `tc - teps < t < tc + teps`.
+    """
+    t0 = tc - teps
+    t1 = tc + teps
+    return u0 if t <= t0 else u1 if t > t1 else \
+        u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
 
-
-def solve_ode(model, t_span, y0, params, t_eval):
-    def smooth_trans(u0, u1, t, tact, teps):
-        t0 = tact - teps
-        t1 = tact + teps
-        return u0 if t <= t0 else u1 if t > t1 else \
-            u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
-
-    def SIR(t, y):
-        N = params['N']
-        gamma = params['gamma']
-        beta = params['R0'] * gamma
-        #beta = params['beta']
-        S, I = y
-        c1 = beta * S * I / N
-        c2 = gamma * I
-        dSdt = -c1
-        dIdt = c1 - c2
-        return dSdt, dIdt
-
-    def SEI(t, y):
-        N = params['N']
-        Z = params['Z']
-        D = params['D']
-        beta = params['R0'] / D
-        #beta = params['beta']
-        beta = smooth_trans(beta, beta * params['kbeta'], t, params['tact'], 0)
-        S, E, I = y
-
-        c1 = beta * S * I / N
-        c2 = E / Z
-        dSdt = -c1
-        dEdt = c1 - c2
-        dIdt = c2 - I / D
-        return dSdt, dEdt, dIdt
-
-    if model == Models.SEI:
-        S, I = y0
-        E = 0
-        sol = solve_ivp(SEI, t_span=t_span, y0=[S, E, I], t_eval=t_eval)
-        S, E, I = sol.y
-        return [S, I]
-    elif model == Models.SIR:
-        sol = solve_ivp(SIR, t_span=t_span, y0=y0, t_eval=t_eval)
-        return sol.y
-    else:
+class Ode:
+    params_fixed = dict()
+    params_prior = dict()
+    """
+    Solves model equations.
+    t_span: `2-tuple of floats`
+        Interval of integration.
+    y0: `array_like`, (numRegions * 2)
+        Initial state.
+    t_eval: `array_like`
+        Times at which to store the computed solution.
+    """
+    def solve(self, params, t_span, y0, t_eval):
         raise NotImplementedError()
+
+
+class Sir(Ode):
+    params_fixed = {'R0': 1.002, 'gamma': 60.}
+    params_prior = {'R0': (0.5, 3), 'gamma': (1, 100)}
+
+    def solve(self, params, t_span, y0, t_eval):
+        def rhs(t, y):
+            N = params['N']
+            gamma = params['gamma']
+            beta = params['R0'] * gamma
+            #beta = params['beta']
+            S, I = y
+            c1 = beta * S * I / N
+            c2 = gamma * I
+            dSdt = -c1
+            dIdt = c1 - c2
+            return dSdt, dIdt
+
+        sol = solve_ivp(rhs, t_span=t_span, y0=y0, t_eval=t_eval)
+        return sol.y
+
+
+class Seir(Ode):
+    params_fixed = {'R0': 1.75, 'Z': 2, 'D': 0.8, 'tact': 24., 'kbeta': 0.5}
+    params_prior = {
+        'R0': (0.5, 4),
+        'Z': (0.01, 10),
+        'D': (0.01, 10),
+        'tact': (0, 60),
+        'kbeta': (0., 1.)
+    }
+
+    def solve(self, params, t_span, y0, t_eval):
+        def rhs(t, y):
+            N = params['N']
+            Z = params['Z']
+            D = params['D']
+            beta = params['R0'] / D
+            #beta = params['beta']
+            beta = smooth_trans(beta, beta * params['kbeta'], t,
+                                params['tact'], 0)
+            S, E, I = y
+
+            c1 = beta * S * I / N
+            c2 = E / Z
+            dSdt = -c1
+            dEdt = c1 - c2
+            dIdt = c2 - I / D
+            return dSdt, dEdt, dIdt
+
+        sol = solve_ivp(rhs, t_span=t_span, y0=y0, t_eval=t_eval)
+        return sol.y
 
 
 class Model(EpidemicsBase):
     def __init__(self,
                  data,
+                 ode: Ode,
+                 params_to_infer: list,
                  nPropagation=100,
                  percentages=[0.5, 0.95, 0.99],
                  logPlot=False,
                  **kwargs):
         self.modelName = 'cantons'
-        self.modelDescription = 'Fit SEI* with cantons on Daily Infected Data'
+        self.modelDescription = 'Fit SEIR* with cantons on Daily Infected Data'
         self.likelihoodModel = 'Negative Binomial'
         self.nPropagation = nPropagation
         self.percentages = percentages
         self.logPlot = logPlot
         self.numRegions = 1
-
-        self.model = Models.SEI
-        #self.model = Models.SIR
+        self.ode = ode
+        self.params_to_infer = params_to_infer
 
         self.propagationData = {}
 
         super().__init__(**kwargs)
 
         self.process_data(data)
-
-        if self.model == Models.SEI:
-            self.params_fixed = {
-                'R0': 1.75,
-                'Z': 2,
-                'D': 0.8,
-                'tact': 24.,
-                'kbeta': 0.5
-            }
-            self.params_prior = {
-                'R0': (0.5, 4),
-                'Z': (0.01, 10),
-                'D': (0.01, 10),
-                'tact': (0, 60),
-                'kbeta': (0., 1.)
-            }
-            #self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
-            #self.params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
-            self.params_to_infer = ['R0', 'Z', 'D']
-            #self.params_to_infer = []
-        elif self.model == Models.SIR:
-            self.params_fixed = {'R0': 1.002, 'gamma': 60.}
-            self.params_prior = {'R0': (0.5, 3), 'gamma': (1, 100)}
-            self.params_to_infer = ['R0', 'gamma']
-            #self.params_to_infer = []
-        else:
-            raise NotImplementedError()
 
     def save_data_path(self):
         return (self.dataFolder, self.modelName)
@@ -177,7 +176,7 @@ class Model(EpidemicsBase):
         for name in self.params_to_infer:
             self.e['Distributions'][k]['Name'] = 'Prior for ' + name
             self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-            minmax = self.params_prior[name]
+            minmax = self.ode.params_prior[name]
             self.e['Distributions'][k]['Minimum'] = minmax[0]
             self.e['Distributions'][k]['Maximum'] = minmax[1]
             k += 1
@@ -188,12 +187,12 @@ class Model(EpidemicsBase):
         self.e['Distributions'][k]['Maximum'] = 10.
         k += 1
 
-    def get_params(self, p, N):
+    def get_params(self, korali_p, N):
         params = {'N': N}
-        for name, value in self.params_fixed.items():
+        for name, value in self.ode.params_fixed.items():
             params[name] = value
         for i, name in enumerate(self.params_to_infer):
-            params[name] = p[i]
+            params[name] = korali_p[i]
         return params
 
     def computational_model(self, s):
@@ -205,11 +204,7 @@ class Model(EpidemicsBase):
         tt = [t[0] - 1] + list(t)
 
         params = self.get_params(p, N)
-        y = solve_ode(self.model,
-                      t_span=[0, t[-1]],
-                      y0=y0,
-                      params=params,
-                      t_eval=tt[::self.numRegions])
+        y = self.ode.solve(params, [0, t[-1]], y0, tt[::self.numRegions])
         S = y[0]
         Idaily = -np.diff(S)
         Idaily = mul2(repeat(Idaily, self.numRegions), self.numRegions)
@@ -225,11 +220,7 @@ class Model(EpidemicsBase):
 
         params = self.get_params(p, N)
         t1 = t[0::self.numRegions]
-        y = solve_ode(self.model,
-                      t_span=[0, t[-1]],
-                      y0=y0,
-                      params=params,
-                      t_eval=t1)
+        y = self.ode.solve(params, [0, t[-1]], y0, t1)
         S = y[0]
         Idaily = -np.diff(S)
         Idaily = [0] + list(Idaily)
@@ -382,6 +373,55 @@ class Model(EpidemicsBase):
         plt.close(fig)
 
 
+def get_data_switzerland():
+    from epidemics.data.combined import RegionalData
+    regionalData = RegionalData('switzerland')
+    data = argparse.Namespace()
+    data.infected = regionalData.infected
+
+    def moving_average(x, w):
+        '''
+        x: `numpy.ndarray`, (N)
+        w: int
+          Window half-width.
+        Returns:
+        xa: `numpy.ndarray`, (N)
+          Array `x` averaged over window [-w,w].
+        '''
+        s = np.zeros_like(x)
+        q = np.zeros_like(x)
+        for i in range(len(x)):
+            for j in range(max(0, i - w), min(i + w + 1, len(x))):
+                if np.isfinite(x[j]):
+                    s[i] += x[j]
+                    q[i] += 1
+        return s / q
+
+    data.infected = moving_average(data.infected, 0)
+    data.time = regionalData.time
+    sel = len(data.infected)
+    #sel = 30
+    data.infected = data.infected[:sel]
+    data.time = data.time[:sel]
+    data.populationSize = regionalData.populationSize
+    return data
+
+
+def get_data_synthetic():
+    data = argparse.Namespace()
+    N = 8e6
+    I = 15
+    t = range(0, 40)
+    params = {'N': N}
+    params.update(params_fixed)
+    ode = Seir()
+    y = ode.solve(params, [0, max(t)], [N - I, I], t)
+    data.infected = y[0][0] - y[0] + I
+    data.time = t
+    data.populationSize = N
+    return data
+
+
 def main():
     nSamples = 1000
     x = argparse.Namespace()
@@ -390,60 +430,17 @@ def main():
     x.percentages = [0.5]
     x.nThreads = 8
 
-    data = argparse.Namespace()
-    if 1:  # actual data
-        from epidemics.data.combined import RegionalData
-        regionalData = RegionalData('switzerland')
-        data.infected = regionalData.infected
+    data = get_data_switzerland()
+    #data = get_data_synthetic()
+    ode = Sir()
 
-        def moving_average(x, w):
-            '''
-        x: `numpy.ndarray`, (N)
-        w: int
-          Window half-width.
-        Returns:
-        xa: `numpy.ndarray`, (N)
-          Array `x` averaged over window [-w,w].
-        '''
-            s = np.zeros_like(x)
-            q = np.zeros_like(x)
-            for i in range(len(x)):
-                for j in range(max(0, i - w), min(i + w + 1, len(x))):
-                    if np.isfinite(x[j]):
-                        s[i] += x[j]
-                        q[i] += 1
-            return s / q
-
-        data.infected = moving_average(data.infected, 0)
-        data.time = regionalData.time
-        sel = len(data.infected)
-        #sel = 30
-        data.infected = data.infected[:sel]
-        data.time = data.time[:sel]
-        data.populationSize = regionalData.populationSize
-        #data.populationSize = 30000
-    else:  # synthetic data
-        N = 8e6
-        I = 15
-        t = range(0, 40)
-        params_fixed = {'R0': 1.75, 'Z': 2, 'D': 0.8, 'tact': 24}
-        params = {'N': N}
-        params.update(params_fixed)
-        y = Model.solve_ode(Models.SEI, [0, max(t)], [N - I, I], params, t)
-        data.infected = y[0][0] - y[0] + I
-        data.time = t
-        data.populationSize = N
-
-    x.data = data
-
-    a = Model(**vars(x))
+    params_to_infer = ['R0', 'gamma']
+    #params_to_infer = ['R0', 'Z', 'D']
+    a = Model(data, ode, params_to_infer, **vars(x))
 
     a.sample(nSamples)
-
     a.propagate()
-
     a.save()
-
     #a.plot_intervals()
 
 

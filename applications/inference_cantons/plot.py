@@ -14,7 +14,7 @@ import argparse
 import os
 
 # required for load_model
-from main import Model
+from main import Model, Ode, Sir, Seir
 
 dataFolder = Path("data")
 f = dataFolder / 'cantons' / 'state.pickle'
