@@ -20,6 +20,7 @@ import numpy as np
 
 from epidemics.tools.tools import prepare_folder, save_file
 from epidemics.epidemics import EpidemicsBase
+import epidemics.data.swiss_cantons as swiss_cantons
 import time
 
 def repeat(v, numRegions):
@@ -86,7 +87,8 @@ class Ode:
 class Data:
     total_infected = None
     time = None
-    populationSize = None
+    population = None
+    names = None
 
 class Sir(Ode):
     params_fixed = {'R0': 1.002, 'gamma': 60.}
@@ -192,12 +194,13 @@ class Model(EpidemicsBase):
     def process_data(self, data: Data):
         Itotal = np.array(data.total_infected) # shape (n_regions, nt)
         t = np.array(data.time)
-        N = np.array(data.populationSize)
+        N = np.array(data.population)
         I0 = Itotal[:,0]
         S0 = N - I0
         y0 = S0, I0
 
         self.n_regions = Itotal.shape[0]
+        self.region_names = data.name
 
         Idaily = np.diff(Itotal, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T # shape (nt-1, n_regions)
@@ -390,7 +393,8 @@ class Model(EpidemicsBase):
             return
         print('[Epidemics] Compute and Plot credible intervals.')
         fig = plt.figure(figsize=(12, 8))
-        #fig.suptitle(self.modelDescription)
+        if self.region_names:
+            fig.suptitle(self.region_names[region])
 
         xdata = self.data['Model']['x-data'][region::self.n_regions]
         ydata = self.data['Model']['y-data'][region::self.n_regions]
@@ -433,6 +437,63 @@ class Model(EpidemicsBase):
 
         plt.close(fig)
 
+def moving_average(x, w):
+    '''
+    x: `numpy.ndarray`, (N)
+    w: int
+      Window half-width.
+    Returns:
+    xa: `numpy.ndarray`, (N)
+      Array `x` averaged over window [-w,w].
+    '''
+    s = np.zeros_like(x)
+    q = np.zeros_like(x)
+    for i in range(len(x)):
+        for j in range(max(0, i - w), min(i + w + 1, len(x))):
+            if np.isfinite(x[j]):
+                s[i] += x[j]
+                q[i] += 1
+    xa = s / q
+    return xa
+
+def fill_nans_nearest(x):
+    '''
+    x: `numpy.ndarray`, (N)
+    Returns:
+    `numpy.ndarray`, (N)
+      Array `x` where each NaN value is replaced by a finite value from:
+      - nearest index to the left
+      - if not found, nearest index to the right
+    '''
+    def left(x, i):
+        for v in reversed(x[:i + 1]):
+            if np.isfinite(v):
+                return v
+        return x[i]
+    def right(x, i):
+        for v in x[i:]:
+            if np.isfinite(v):
+                return v
+        return x[i]
+
+    x = np.array(x)
+    for i in range(len(x)):
+        x[i] = left(x, i)
+        x[i] = right(x, i)
+    return x
+
+def fill_nans_interp(t, x):
+    from scipy.interpolate import interp1d
+    x = np.copy(x)
+    nans = np.isnan(x)
+
+    #x[nans]= np.interp(t[nans], t[~nans], x[~nans], left=np.nan, right=np.nan)
+
+    f = interp1d(t[~nans], x[~nans], fill_value='extrapolate')
+    for i in range(len(x)):
+        if np.isnan(x[i]):
+            x[i] = f(t[i])
+    return x
 
 def get_data_switzerland() -> Data:
     data = Data()
@@ -440,31 +501,42 @@ def get_data_switzerland() -> Data:
     regionalData = RegionalData('switzerland')
     data.total_infected = regionalData.infected
 
-    def moving_average(x, w):
-        '''
-        x: `numpy.ndarray`, (N)
-        w: int
-          Window half-width.
-        Returns:
-        xa: `numpy.ndarray`, (N)
-          Array `x` averaged over window [-w,w].
-        '''
-        s = np.zeros_like(x)
-        q = np.zeros_like(x)
-        for i in range(len(x)):
-            for j in range(max(0, i - w), min(i + w + 1, len(x))):
-                if np.isfinite(x[j]):
-                    s[i] += x[j]
-                    q[i] += 1
-        return s / q
-
     data.total_infected = moving_average(data.total_infected, 0)
     data.time = regionalData.time
-    sel = len(data.total_infected)
-    #sel = 30
-    data.total_infected = data.total_infected[:sel]
-    data.time = data.time[:sel]
-    data.populationSize = regionalData.populationSize
+    data.total_infected = data.total_infected
+    data.time = data.time
+    data.population = regionalData.populationSize
+    return data
+
+def get_data_switzerland_cantons(keys=None) -> Data:
+    """
+    keys: `array_like` or None
+    List of canton keys to select (e.g ['ZH', 'TI']), select all if None.
+    """
+    key_to_total_infected = swiss_cantons.fetch_openzh_covid_data()
+    key_to_population = swiss_cantons.CANTON_POPULATION
+
+    if keys is None:
+        keys = sorted(list(key_to_population))
+    n_regions = len(keys)
+
+    data = Data()
+    if n_regions == 0:
+        return data
+
+    nt = len(key_to_total_infected[keys[0]])
+    data.time = np.arange(nt)
+    data.total_infected = np.empty((n_regions, nt))
+    data.population = np.empty((n_regions))
+
+    for i,k in enumerate(keys):
+        Itotal = key_to_total_infected[k]
+        #Itotal = fill_nans_nearest(Itotal)
+        Itotal[0] = 1
+        Itotal = fill_nans_interp(data.time, Itotal)
+        data.total_infected[i,:] = Itotal[:]
+        data.population[i] = key_to_population[k]
+    data.name = keys
     return data
 
 
@@ -473,14 +545,14 @@ def get_data_synthetic(ode=Seir()) -> Data:
     n_regions = 3
     N = np.array([8e6] * n_regions) / (10 ** np.arange(n_regions))
     I0 = np.array([16] * n_regions)
-    t = np.arange(1, 60)
+    t = np.arange(0, 60)
     params = {'N':N}
     params.update(ode.params_fixed)
     S0 = N - I0
     S,I = ode.solve_SI(params, [0, max(t)], [S0, I0], t)
     data.total_infected = N[:,None] - S
     data.time = t
-    data.populationSize = N
+    data.population = N
     return data
 
 
@@ -493,7 +565,8 @@ def main():
     x.nThreads = 8
 
     #data = get_data_switzerland()
-    data = get_data_synthetic()
+    data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
+    #data = get_data_synthetic()
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
