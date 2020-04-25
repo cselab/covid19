@@ -132,6 +132,9 @@ class Seir(Ode):
         'tact': (0, 60),
         'kbeta': (0., 1.),
         'nu': (0.1, 10.),
+        'C01': (0.5e4, 5e4),
+        'C02': (0.5e4, 5e4),
+        'C12': (0.5e4, 5e4),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -263,12 +266,16 @@ class Model(EpidemicsBase):
         Commute matrix.
         """
         params = dict()
-        params['N'] = np.array(N)
-        params['C'] = np.array(C)
         for name, value in self.ode.params_fixed.items():
             params[name] = value
         for i, name in enumerate(self.params_to_infer):
             params[name] = korali_p[i]
+        params['N'] = np.array(N)
+        C = np.array(C)
+        C[0,1] = params.get('C01', C[0,1])
+        C[0,2] = params.get('C02', C[0,2])
+        C[1,2] = params.get('C12', C[1,2])
+        params['C'] = C
         return params
 
     def computational_model(self, s):
@@ -456,7 +463,7 @@ def get_data_switzerland_cantons(keys=None) -> Data:
         #Itotal = fill_nans_nearest(Itotal)
         Itotal[0] = 1
         Itotal = fill_nans_interp(data.time, Itotal)
-        Itotal = moving_average(Itotal, 2)
+        Itotal = moving_average(Itotal, 0)
         data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
@@ -489,25 +496,28 @@ def main():
 
     #data = get_data_switzerland()
     data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
-    N = data.population
+    #data = get_data_synthetic()
+
     data.commute_matrix = np.array([
-        [0, 0, 0],  #
-        [0, 0, 0],  #
+        [0, 1e4, 1e4],  #
+        [0, 0, 3e4],  #
         [0, 0, 0],  #
     ])
-    #data = get_data_synthetic()
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
 
     ode = Seir()
+    #params_to_infer = ['R0', 'Z', 'D', 'C01', 'C02', 'C12']
     params_to_infer = ['R0', 'Z', 'D']
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
-    #a.sample(nSamples)
-    #a.propagate()
-    a.evaluate([1.8, 1., 2., 2.5])
+    if 1:
+        a.sample(nSamples)
+        a.propagate()
+    else:
+        a.evaluate([1.68, 1., 2., 2.5])
 
     a.save()
 
