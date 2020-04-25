@@ -166,5 +166,6 @@ def main():
     for region in range(model.n_regions):
         plot_intervals(model, region=region)
 
+
 if __name__ == "__main__":
     main()

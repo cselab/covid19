@@ -18,16 +18,9 @@ from epidemics.tools.tools import save_file
 from epidemics.epidemics import EpidemicsBase
 import epidemics.data.swiss_cantons as swiss_cantons
 
+
 def repeat(v, numRegions):
     return list(np.array([v] * numRegions).T.flatten())
-
-
-def mul2(v, nr):
-    if nr == 2:
-        v = np.array(v).astype(float)
-        v[::2] *= 0.5
-        return list(v)
-    return v
 
 
 def smooth_trans(u0, u1, t, tc, teps):
@@ -39,10 +32,10 @@ def smooth_trans(u0, u1, t, tc, teps):
     return u0 if t <= t0 else u1 if t > t1 else \
         u0 + (u1 - u0) * (1 - np.cos(np.pi/(t1 - t0)*(t - t0))) * 0.5
 
+
 class Ode:
     params_fixed = dict()
     params_prior = dict()
-
     """
     Solves model equations.
     params: dict()
@@ -76,14 +69,18 @@ class Ode:
     si: `array_like`, (2, n_regions, nt)
         Solution.
     """
+
     def solve_SI(self, params, t_span, y0, t_eval):
         raise NotImplementedError()
+
 
 class Data:
     total_infected = None
     time = None
     population = None
     names = None
+    commute_matrix = None
+
 
 class Sir(Ode):
     params_fixed = {'R0': 1.002, 'gamma': 60.}
@@ -113,30 +110,43 @@ class Sir(Ode):
         y_flat = sol.y
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
+
     def solve_SI(self, params, t_span, si0, t_eval):
         si = self.solve(params, t_span, si0, t_eval)
         return si
 
+
 class Seir(Ode):
-    params_fixed = {'R0': 1.75, 'Z': 2, 'D': 0.8, 'tact': 24., 'kbeta': 0.5}
+    params_fixed = {
+        'R0': 1.75,
+        'Z': 2,
+        'D': 0.8,
+        'tact': 24.,
+        'kbeta': 0.5,
+        'nu': 1,
+    }
     params_prior = {
         'R0': (0.5, 4),
         'Z': (0.01, 10),
         'D': (0.01, 10),
         'tact': (0, 60),
-        'kbeta': (0., 1.)
+        'kbeta': (0., 1.),
+        'nu': (0.1, 10.),
     }
 
     def solve(self, params, t_span, y0, t_eval):
         def rhs(t, y_flat):
             S, E, I = y_flat.reshape(3, -1)
             N = params['N']
+            C = params['C']
             Z = params['Z']
             D = params['D']
             beta = params['R0'] / D
             beta = smooth_trans(beta, beta * params['kbeta'], t,
                                 params['tact'], 0)
-            c1 = beta * S * I / N
+            nu = params['nu']
+            k1 = I + nu * np.dot(C + C.T, I / N)
+            c1 = beta * S * k1 / N
             c2 = E / Z
             dSdt = -c1
             dEdt = c1 - c2
@@ -152,6 +162,7 @@ class Seir(Ode):
         y_flat = sol.y
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
+
     def solve_SI(self, params, t_span, si0, t_eval):
         S0, I0 = np.array(si0)
         E0 = np.zeros_like(S0)
@@ -187,10 +198,10 @@ class Model(EpidemicsBase):
         return (self.dataFolder, self.modelName)
 
     def process_data(self, data: Data):
-        Itotal = np.array(data.total_infected) # shape (n_regions, nt)
+        Itotal = np.array(data.total_infected)  # shape (n_regions, nt)
         t = np.array(data.time)
         N = np.array(data.population)
-        I0 = Itotal[:,0]
+        I0 = Itotal[:, 0]
         S0 = N - I0
         y0 = S0, I0
 
@@ -198,13 +209,20 @@ class Model(EpidemicsBase):
         self.region_names = data.name
 
         Idaily = np.diff(Itotal, axis=1)  # shape (n_regions, nt-1)
-        Idaily = Idaily.T # shape (nt-1, n_regions)
+        Idaily = Idaily.T  # shape (nt-1, n_regions)
 
         self.data['Model']['x-data'] = repeat(t[1:], self.n_regions)
         self.data['Model']['y-data'] = Idaily.flatten()
 
         self.data['Model']['Initial Condition'] = y0
         self.data['Model']['Population Size'] = N
+
+        if data.commute_matrix is None:
+            C = np.zeros([self.n_regions] * 2)
+        else:
+            C = np.array(data.commute_matrix)
+            assert list(C.shape) == [self.n_regions] * 2
+        self.data['Model']['Commute Matrix'] = C
 
         T = np.ceil(t[-1])
         self.data['Propagation']['x-data'] = repeat(
@@ -237,12 +255,16 @@ class Model(EpidemicsBase):
         self.e['Distributions'][k]['Maximum'] = 10.
         k += 1
 
-    def get_params(self, korali_p, N):
+    def get_params(self, korali_p, N, C):
         """
         N: `array_like`, (n_regions)
         Population of regions.
+        C: `array_like`, (n_regions,n_regions)
+        Commute matrix.
         """
-        params = {'N': np.array(N)}
+        params = dict()
+        params['N'] = np.array(N)
+        params['C'] = np.array(C)
         for name, value in self.ode.params_fixed.items():
             params[name] = value
         for i, name in enumerate(self.params_to_infer):
@@ -254,15 +276,16 @@ class Model(EpidemicsBase):
         t = self.data['Model']['x-data']
         y0 = self.data['Model']['Initial Condition']
         N = self.data['Model']['Population Size']
+        C = self.data['Model']['Commute Matrix']
 
         tt1 = [min(t) - 1] + list(t[0::self.n_regions])
         assert min(tt1) >= 0
 
-        params = self.get_params(p, N)
-        S,_ = self.ode.solve_SI(params, [0, max(t)], y0, tt1)
+        params = self.get_params(p, N, C)
+        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, tt1)
         # S: shape (n_regions, nt)
         Idaily = -np.diff(S, axis=1)  # shape (n_regions, nt-1)
-        Idaily = Idaily.T   # shape (nt-1, n_regions)
+        Idaily = Idaily.T  # shape (nt-1, n_regions)
         Idaily = list(Idaily.flatten())
 
         s['Reference Evaluations'] = Idaily
@@ -273,12 +296,13 @@ class Model(EpidemicsBase):
         t = self.data['Propagation']['x-data']
         y0 = self.data['Model']['Initial Condition']
         N = self.data['Model']['Population Size']
+        C = self.data['Model']['Commute Matrix']
 
         t1 = list(t[0::self.n_regions])
         assert min(t1) >= 0
 
-        params = self.get_params(p, N)
-        S,_ = self.ode.solve_SI(params, [0, max(t)], y0, t1)
+        params = self.get_params(p, N, C)
+        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, t1)
         # S: shape (n_regions, nt)
         # shape (n_regions, nt-1)
         Idaily = -np.diff(S, axis=1)
@@ -301,6 +325,34 @@ class Model(EpidemicsBase):
         js['Dispersion'] = len(t1) * [p[-1]]
         s['Saved Results'] = js
 
+    def evaluate(self, korali_p):
+        """
+        Evaluates one sample of the model with given set of parametrs.
+        korali_p: `list`
+            Parameters that would be passed
+            to`computational_model_propagate` in `s['Parameters']`.
+        Output:
+            Fills `self.propagatedVariables` with one sample.
+        """
+        s = dict()
+        s['Parameters'] = korali_p
+        self.computational_model_propagate(s)
+        js = s['Saved Results']
+        self.propagatedVariables = {}
+        Ns = 1
+        Nv = js['Number of Variables']
+        Nt = js['Length of Variables']
+        for i in range(len(js['Variables'])):
+            varName = js['Variables'][i]['Name']
+            self.propagatedVariables[varName] = np.zeros((Ns, Nt))
+            for k in range(Ns):
+                self.propagatedVariables[varName][k] = np.asarray(
+                    js['Variables'][i]['Values'])
+        varName = 'Dispersion'
+        self.propagatedVariables[varName] = np.zeros((Ns,Nt))
+        for k in range(Ns):
+            self.propagatedVariables[varName][k] = np.asarray(js['Dispersion'])
+
 
 def moving_average(x, w):
     '''
@@ -321,6 +373,7 @@ def moving_average(x, w):
     xa = s / q
     return xa
 
+
 def fill_nans_nearest(x):
     '''
     x: `numpy.ndarray`, (N)
@@ -335,6 +388,7 @@ def fill_nans_nearest(x):
             if np.isfinite(v):
                 return v
         return x[i]
+
     def right(x, i):
         for v in x[i:]:
             if np.isfinite(v):
@@ -346,6 +400,7 @@ def fill_nans_nearest(x):
         x[i] = left(x, i)
         x[i] = right(x, i)
     return x
+
 
 def fill_nans_interp(t, x):
     from scipy.interpolate import interp1d
@@ -360,6 +415,7 @@ def fill_nans_interp(t, x):
             x[i] = f(t[i])
     return x
 
+
 def get_data_switzerland() -> Data:
     data = Data()
     from epidemics.data.combined import RegionalData
@@ -372,6 +428,7 @@ def get_data_switzerland() -> Data:
     data.time = data.time
     data.population = regionalData.populationSize
     return data
+
 
 def get_data_switzerland_cantons(keys=None) -> Data:
     """
@@ -394,12 +451,13 @@ def get_data_switzerland_cantons(keys=None) -> Data:
     data.total_infected = np.empty((n_regions, nt))
     data.population = np.empty((n_regions))
 
-    for i,k in enumerate(keys):
+    for i, k in enumerate(keys):
         Itotal = key_to_total_infected[k]
         #Itotal = fill_nans_nearest(Itotal)
         Itotal[0] = 1
         Itotal = fill_nans_interp(data.time, Itotal)
-        data.total_infected[i,:] = Itotal[:]
+        Itotal = moving_average(Itotal, 2)
+        data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
     return data
@@ -408,14 +466,14 @@ def get_data_switzerland_cantons(keys=None) -> Data:
 def get_data_synthetic(ode=Seir()) -> Data:
     data = Data()
     n_regions = 3
-    N = np.array([8e6] * n_regions) / (10 ** np.arange(n_regions))
+    N = np.array([8e6] * n_regions) / (10**np.arange(n_regions))
     I0 = np.array([16] * n_regions)
     t = np.arange(0, 60)
-    params = {'N':N}
+    params = {'N': N}
     params.update(ode.params_fixed)
     S0 = N - I0
-    S,I = ode.solve_SI(params, [0, max(t)], [S0, I0], t)
-    data.total_infected = N[:,None] - S
+    S, I = ode.solve_SI(params, [0, max(t)], [S0, I0], t)
+    data.total_infected = N[:, None] - S
     data.time = t
     data.population = N
     return data
@@ -431,6 +489,12 @@ def main():
 
     #data = get_data_switzerland()
     data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
+    N = data.population
+    data.commute_matrix = np.array([
+        [0, 0, 0],  #
+        [0, 0, 0],  #
+        [0, 0, 0],  #
+    ])
     #data = get_data_synthetic()
 
     #ode = Sir()
@@ -441,9 +505,12 @@ def main():
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
-    a.sample(nSamples)
-    a.propagate()
+    #a.sample(nSamples)
+    #a.propagate()
+    a.evaluate([1.8, 1., 2., 2.5])
+
     a.save()
+
 
 if __name__ == "__main__":
     main()
