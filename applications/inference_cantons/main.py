@@ -3,10 +3,6 @@
 # Date:   23/04/2020
 # Email:  kpetr@ethz.ch
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -18,10 +14,9 @@ import argparse
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.tools.tools import save_file
 from epidemics.epidemics import EpidemicsBase
 import epidemics.data.swiss_cantons as swiss_cantons
-import time
 
 def repeat(v, numRegions):
     return list(np.array([v] * numRegions).T.flatten())
@@ -306,136 +301,6 @@ class Model(EpidemicsBase):
         js['Dispersion'] = len(t1) * [p[-1]]
         s['Saved Results'] = js
 
-    def compute_plot_intervals(self, varName, ns, ax, ylabel, cummulate=-1):
-        xdata = self.data['Propagation']['x-data'][::self.n_regions]
-        Ns = self.propagatedVariables[varName].shape[0]
-        Nt = self.propagatedVariables[varName].shape[1]
-
-        samples = np.zeros((Ns * ns, Nt))
-
-        print(
-            f"[Epidemics] Sampling from {self.likelihoodModel} for '{varName}' variable... ",
-            end='',
-            flush=True)
-
-        start = time.process_time()
-
-        if self.likelihoodModel == 'Normal':
-            for k in range(Nt):
-                m = self.propagatedVariables[varName][:, k]
-                r = self.propagatedVariables['Standard Deviation'][:, k]
-                x = [np.random.normal(m, r) for _ in range(ns)]
-                samples[:, k] = np.asarray(x).flatten()
-
-        elif self.likelihoodModel == 'Positive Normal':
-            for k in range(Nt):
-                m = self.propagatedVariables[varName][:, k]
-                s = self.propagatedVariables['Standard Deviation'][:, k]
-                t = get_truncated_normal(m, s, 0, np.Inf)
-                x = [t.rvs() for _ in range(ns)]
-                samples[:, k] = np.asarray(x).flatten()
-
-        elif self.likelihoodModel == 'Negative Binomial':
-            for k in range(Nt):
-                m = self.propagatedVariables[varName][:, k]
-                r = self.propagatedVariables['Dispersion'][:, k]
-                p = p = m / (m + r)
-                x = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
-                samples[:, k] = np.asarray(x).flatten()
-
-        else:
-            sys.exit(
-                "\n[Epidemics] Likelihood not found in compute_plot_intervals.\n"
-            )
-
-        if cummulate > 0:
-            samples = np.cumsum(samples, axis=cummulate)
-
-        elapsed = time.process_time() - start
-        print(f" elapsed {elapsed:.2f} sec")
-
-        print(f"[Epidemics] Computing quantiles... ")
-
-        mean = np.zeros((Nt, 1))
-        median = np.zeros((Nt, 1))
-        for k in range(Nt):
-            median[k] = np.quantile(samples[:, k], 0.5)
-            mean[k] = np.mean(samples[:, k])
-
-        for p in np.sort(self.percentages)[::-1]:
-            q1 = np.zeros((Nt, ))
-            q2 = np.zeros((Nt, ))
-            for k in range(Nt):
-                q1[k] = np.quantile(samples[:, k], 0.5 - p / 2)
-                q2[k] = np.quantile(samples[:, k], 0.5 + p / 2)
-            ax.fill_between(xdata,
-                            q1,
-                            q2,
-                            alpha=0.5,
-                            label=f' {100*p:.1f}% credible interval')
-
-        ax.plot(xdata, mean, '-', lw=2, label='Mean', color='black')
-        ax.plot(xdata, median, '--', lw=2, label='Median', color='blue')
-
-        ax.legend(loc='upper left')
-        ax.set_ylabel(ylabel)
-        #ax.set_xticks( range( np.ceil( max( xdata )+1 ).astype(int) ) )
-        ax.grid()
-        if (self.logPlot): ax.set_yscale('log')
-
-        plt.draw()
-
-        return samples
-
-    def plot_intervals(self, region=0):
-        if region >= self.n_regions:
-            print("skpping region={:}".format(region))
-            return
-        print('[Epidemics] Compute and Plot credible intervals.')
-        fig = plt.figure(figsize=(12, 8))
-        if self.region_names:
-            fig.suptitle(self.region_names[region])
-
-        xdata = self.data['Model']['x-data'][region::self.n_regions]
-        ydata = self.data['Model']['y-data'][region::self.n_regions]
-
-        ax = fig.subplots(2)
-        ax[0].plot(xdata,
-                   ydata,
-                   'o',
-                   lw=2,
-                   label='Daily Infected(data)',
-                   color='black')
-
-        var = 'Daily Incidence {:}'.format(region)
-
-        self.compute_plot_intervals(var, self.nPropagation, ax[0],
-                                    'Daily Incidence')
-
-        z = np.cumsum(ydata)
-        ax[1].plot(xdata,
-                   z,
-                   'o',
-                   lw=2,
-                   label='Cummulative Infected (data)',
-                   color='black')
-
-        self.compute_plot_intervals(var,
-                                    self.nPropagation,
-                                    ax[1],
-                                    'Cummulative number of infected',
-                                    cummulate=1)
-
-        ax[-1].set_xlabel('time in days')
-
-        name = "prediction{:}.png".format(str(region) if region else "")
-        f = os.path.join(self.saveInfo['figures'], name)
-        prepare_folder(os.path.dirname(f), clean=False)
-        fig.savefig(f)
-
-        plt.show()
-
-        plt.close(fig)
 
 def moving_average(x, w):
     '''
@@ -579,8 +444,6 @@ def main():
     a.sample(nSamples)
     a.propagate()
     a.save()
-    #a.plot_intervals()
-
 
 if __name__ == "__main__":
     main()
