@@ -26,5 +26,5 @@ a = load_model(f)
 # a.propagate()
 # a.save()
 
-a.plot_intervals()
-a.plot_intervals(region=1)
+for region in range(a.n_regions):
+    a.plot_intervals(region=region)
