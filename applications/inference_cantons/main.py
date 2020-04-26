@@ -131,8 +131,8 @@ class Seir(Ode):
     }
     params_prior = {
         'R0': (0.5, 4),
-        'Z': (0.01, 10),
-        'D': (0.01, 10),
+        'Z': (0.5, 10),
+        'D': (0.5, 10),
         'tact': (0, 60),
         'kbeta': (0., 1.),
         'nu': (0.1, 10.),
@@ -533,7 +533,7 @@ def get_data_synthetic(ode=Seir()) -> Data:
 
 
 def main():
-    nSamples = 1000
+    nSamples = 10000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -541,7 +541,7 @@ def main():
     x.nThreads = 8
 
     #data = get_data_switzerland()
-    data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
+    #data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
     #data = get_data_synthetic()
 
     data.commute_matrix = np.array([
@@ -557,11 +557,15 @@ def main():
     ode = SeirCpp()
     #params_to_infer = ['R0', 'Z', 'D', 'C01', 'C02', 'C12']
     #params_to_infer = ['R0', 'Z', 'D', 'C12']
+    #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
+    #params_to_infer = ['R0', 'Z', 'D', 'tact']
+    #params_to_infer = ['R0', 'Z', 'D']
     params_to_infer = ['R0', 'Z', 'D']
+    #params_to_infer = ['R0']
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
-    if 0:
+    if 1:
         a.sample(nSamples)
         a.propagate()
     else:
