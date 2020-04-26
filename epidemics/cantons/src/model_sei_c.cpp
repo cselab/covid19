@@ -5,13 +5,19 @@ namespace sei_c {
 
 void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
 {
+    double beta = p.beta;
+    // FIXME: rhs should take `double day` (same in lambda `rhs`)
+    //        then replace `day + 1` by `day`
+    if (day + 1 > p.tact) {
+      beta *= p.kbeta;
+    }
     const double * __restrict__ invNi = modelData_.invNi.data();
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
         double sumIC_N = modelData_.getExternalCommutersIu(day, i);
         for (size_t j = 0; j < modelData_.numRegions; ++j) {
             sumIC_N += x.I(j) * this->C_plus_Ct(i, j) * invNi[j];
         }
-        const double A = p.beta * x.S(i) * invNi[i] * (x.I(i) + p.nu * sumIC_N);
+        const double A = beta * x.S(i) * invNi[i] * (x.I(i) + p.nu * sumIC_N);
         const double E_Z = x.E(i) / p.Z;
 
         const double dS = -A;

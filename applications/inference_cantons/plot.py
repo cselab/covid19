@@ -20,7 +20,7 @@ import numpy as np
 import time
 
 # required for load_model
-from main import Model, Ode, Sir, Seir
+from main import Model, Ode, Sir, Seir, SeirCpp
 
 from epidemics.tools.tools import prepare_folder
 

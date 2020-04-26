@@ -121,13 +121,14 @@ void exportSEI_C(py::module &m) {
     using namespace sei_c;
 
     py::class_<Parameters>(m, "Parameters")
-        .def(py::init<double, double, double, double, double>(),
-             "beta"_a, "nu"_a, "Z"_a, "D"_a, "tact"_a)
+        .def(py::init<double, double, double, double, double, double>(),
+             "beta"_a, "nu"_a, "Z"_a, "D"_a, "tact"_a, "kbeta"_a)
         .def_readwrite("beta", &Parameters::beta)
         .def_readwrite("nu", &Parameters::nu)
         .def_readwrite("Z", &Parameters::Z)
         .def_readwrite("D", &Parameters::D)
-        .def_readwrite("tact", &Parameters::tact);
+        .def_readwrite("tact", &Parameters::tact)
+        .def_readwrite("kbeta", &Parameters::kbeta);
 
     py::class_<State>(m, "State")
         .def(py::init<std::vector<double>>())
@@ -136,7 +137,7 @@ void exportSEI_C(py::module &m) {
         }, "Convert to a Python list of floats.")
         .def("S", makeValuesGetter<State>(0), "Get a list of S for each region.")
         .def("E", makeValuesGetter<State>(1), "Get a list of E for each region.")
-        .def("I", makeValuesGetter<State>(3), "Get a list of I for each region.")
+        .def("I", makeValuesGetter<State>(2), "Get a list of I for each region.")
         .def("S", py::overload_cast<size_t>(&State::S, py::const_), "Get S_i.")
         .def("E", py::overload_cast<size_t>(&State::E, py::const_), "Get E_i.")
         .def("I", py::overload_cast<size_t>(&State::I, py::const_), "Get I_i.");

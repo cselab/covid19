@@ -22,7 +22,8 @@ struct Parameters {
     double nu;     // Corrective multiplicative factor for Cij.
     double Z;      // Average latency period.
     double D;      // Average duration of infection.
-    double tact;   // Time of intervention
+    double tact;   // Time of intervention.
+    double kbeta;   // Factor for `beta` after intervention.
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {

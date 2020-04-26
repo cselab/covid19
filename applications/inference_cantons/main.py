@@ -18,6 +18,10 @@ from epidemics.tools.tools import save_file
 from epidemics.epidemics import EpidemicsBase
 import epidemics.data.swiss_cantons as swiss_cantons
 
+# also appends `sys.path` by `build/`
+from epidemics.cantons.py.model import ModelData
+import libsolver
+
 
 def repeat(v, numRegions):
     return list(np.array([v] * numRegions).T.flatten())
@@ -47,7 +51,7 @@ class Ode:
     t_eval: `array_like`, (nt)
         Times at which to store the computed solution.
     Returns:
-    y: `array_like`, (n_vars, n_regions)
+    y: `array_like`, (n_vars, n_regions, nt)
         Solution.
     """
     def solve(self, params, t_span, y0, t_eval):
@@ -132,9 +136,9 @@ class Seir(Ode):
         'tact': (0, 60),
         'kbeta': (0., 1.),
         'nu': (0.1, 10.),
-        'C01': (0.5e4, 5e4),
-        'C02': (0.5e4, 5e4),
-        'C12': (0.5e4, 5e4),
+        'C01': (1e3, 1e5),
+        'C02': (1e3, 1e5),
+        'C12': (1e3, 1e5),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -149,12 +153,13 @@ class Seir(Ode):
                                 params['tact'], 0)
             nu = params['nu']
             k1 = I + nu * np.dot(C + C.T, I / N)
-            c1 = beta * S * k1 / N
-            c2 = E / Z
-            dSdt = -c1
-            dEdt = c1 - c2
-            dIdt = c2 - I / D
-            return np.array((dSdt, dEdt, dIdt)).flatten()
+            A = beta * S * k1 / N
+            #A = beta * k1 # XXX linearized
+            E_Z = E / Z
+            dS = -A
+            dE = A - E_Z
+            dI = E_Z - I / D
+            return np.array((dS, dE, dI)).flatten()
 
         y0 = np.array(y0)
         n_vars = 3
@@ -171,6 +176,46 @@ class Seir(Ode):
         E0 = np.zeros_like(S0)
         S, E, I = self.solve(params, t_span, [S0, E0, I0], t_eval)
         return np.array((S, I))
+
+
+class SeirCpp(Seir):
+    def solve(self, params, t_span, y0, t_eval):
+        beta = params['R0'] / params['D']
+        N = params['N']
+        keys = list(map(str, range(len(N))))
+        Cij = np.array(params['C'])
+        Mij = np.zeros_like(Cij)
+
+        y0 = np.array(y0).astype(float)
+        n_vars = 3
+        assert y0.shape[0] == n_vars
+        n_regions = y0.shape[1]
+
+        data = ModelData(keys, N, Mij, Cij)
+        src = np.zeros(n_regions)
+        data.ext_com_Iu = [src]
+
+        solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
+
+        p = libsolver.solvers.sei_c.Parameters(beta=beta,
+                                               nu=params['nu'],
+                                               Z=params['Z'],
+                                               D=params['D'],
+                                               tact=params['tact'],
+                                               kbeta=params['kbeta'])
+        n_days = int(max(t_span)) + 1
+        sol = solver.solve(p, list(y0.flatten()), n_days)
+
+
+        y = np.zeros((n_vars, n_regions, len(t_eval)))
+
+        for i,t in enumerate(t_eval):
+            q = min(len(sol) - 1, int(len(sol) * t / n_days))
+            y[0, :, i] = sol[q].S()
+            y[1, :, i] = sol[q].E()
+            y[2, :, i] = sol[q].I()
+
+        return y
 
 
 class Model(EpidemicsBase):
@@ -272,9 +317,9 @@ class Model(EpidemicsBase):
             params[name] = korali_p[i]
         params['N'] = np.array(N)
         C = np.array(C)
-        C[0,1] = params.get('C01', C[0,1])
-        C[0,2] = params.get('C02', C[0,2])
-        C[1,2] = params.get('C12', C[1,2])
+        C[0, 1] = params.get('C01', C[0, 1])
+        C[0, 2] = params.get('C02', C[0, 2])
+        C[1, 2] = params.get('C12', C[1, 2])
         params['C'] = C
         return params
 
@@ -356,7 +401,7 @@ class Model(EpidemicsBase):
                 self.propagatedVariables[varName][k] = np.asarray(
                     js['Variables'][i]['Values'])
         varName = 'Dispersion'
-        self.propagatedVariables[varName] = np.zeros((Ns,Nt))
+        self.propagatedVariables[varName] = np.zeros((Ns, Nt))
         for k in range(Ns):
             self.propagatedVariables[varName][k] = np.asarray(js['Dispersion'])
 
@@ -409,6 +454,7 @@ def fill_nans_nearest(x):
     return x
 
 
+#
 def fill_nans_interp(t, x):
     from scipy.interpolate import interp1d
     x = np.copy(x)
@@ -463,7 +509,7 @@ def get_data_switzerland_cantons(keys=None) -> Data:
         #Itotal = fill_nans_nearest(Itotal)
         Itotal[0] = 1
         Itotal = fill_nans_interp(data.time, Itotal)
-        Itotal = moving_average(Itotal, 0)
+        #Itotal = moving_average(Itotal, 2) # XXX
         data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
@@ -507,17 +553,19 @@ def main():
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
 
-    ode = Seir()
+    #ode = Seir()
+    ode = SeirCpp()
     #params_to_infer = ['R0', 'Z', 'D', 'C01', 'C02', 'C12']
+    #params_to_infer = ['R0', 'Z', 'D', 'C12']
     params_to_infer = ['R0', 'Z', 'D']
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
-    if 1:
+    if 0:
         a.sample(nSamples)
         a.propagate()
     else:
-        a.evaluate([1.68, 1., 2., 2.5])
+        a.evaluate([1.74, 1., 2., 2.5])
 
     a.save()
 
