@@ -505,8 +505,6 @@ def fill_nans_interp(t, x):
     x = np.copy(x)
     nans = np.isnan(x)
 
-    #x[nans]= np.interp(t[nans], t[~nans], x[~nans], left=np.nan, right=np.nan)
-
     f = interp1d(t[~nans], x[~nans], fill_value='extrapolate')
     for i in range(len(x)):
         if np.isnan(x[i]):
@@ -571,7 +569,7 @@ def get_data_switzerland_cantons(keys) -> Data:
     for i, k in enumerate(keys):
         Itotal = key_to_total_infected[k]
         #Itotal = fill_nans_nearest(Itotal)
-        Itotal[0] = 1
+        Itotal[0] = 0
         Itotal = fill_nans_interp(data.time, Itotal)
         #Itotal = moving_average(Itotal, 2) # XXX
         data.total_infected[i, :] = Itotal[:]
@@ -694,7 +692,6 @@ def main():
     x.nPropagation = 20
     x.percentages = [0.5]
     x.nThreads = 8
-    #x.nThreads = 1
 
     #data = get_data_switzerland()
     #data = get_data_synthetic()
@@ -706,10 +703,7 @@ def main():
 
     data.fit_importance = [1] * len(keys)
     key_sel = []
-    #key_sel = ['ZH', 'TI', 'VD']
     #key_sel = ['ZH', 'TI']
-    #key_sel = ['VD', 'ZH']
-    #key_sel = ['VD']
     for k in key_sel:
         data.fit_importance[keys.index(k)] *= 100
 
@@ -719,24 +713,14 @@ def main():
     #ode = Seir()
     ode = SeirCpp()
     #params_to_infer = []
-    #params_to_infer = ['R0']
-    #params_to_infer = ['R0', 'Z', 'D', 'theta_b', 'nu']
-    #params_to_infer = ['R0', 'Z', 'D', 'theta_a', 'nu']
-    #params_to_infer = ['tact', 'kbeta']
-    #params_to_infer = ['R0', 'Z', 'D', 'tact']
-    #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
-    #params_to_infer = ['nu', 'theta_a', 'theta_b']
-    #params_to_infer = ['R0', 'nu', 'theta_a', 'theta_b']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact', 'kbeta']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact', 'kbeta']
     params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
+    ode.params_fixed['theta_a'] = 0.
+
+    #ode.params_fixed['tact'] = 1e10
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b']
 
     #ode.params_fixed['nu'] = 0
-    ode.params_fixed['theta_a'] = 0.
-    #ode.params_fixed['theta_b'] = 0.001
+    #params_to_infer = ['R0', 'Z', 'D', 'theta_b', 'tact']
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
@@ -744,8 +728,7 @@ def main():
         a.sample(nSamples)
         a.propagate()
     else:
-        #a.evaluate([1.34, 1., 2., 2.5])
-        a.evaluate([2.5])
+        a.evaluate([1.34, 1., 2., 2.5])
 
     a.save()
 
