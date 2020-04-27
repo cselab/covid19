@@ -40,41 +40,41 @@ def smooth_trans(u0, u1, t, tc, teps):
 class Ode:
     params_fixed = dict()
     params_prior = dict()
-    """
-    Solves model equations.
-    params: dict()
-        Parameters.
-    t_span: `2-tuple of floats`
-        Interval of integration.
-    y0: `array_like`, (n_vars, n_regions)
-        Initial state.
-    t_eval: `array_like`, (nt)
-        Times at which to store the computed solution.
-    Returns:
-    y: `array_like`, (n_vars, n_regions, nt)
-        Solution.
-    """
+
     def solve(self, params, t_span, y0, t_eval):
+        """
+        Solves model equations.
+        params: dict()
+            Parameters.
+        t_span: `2-tuple of floats`
+            Interval of integration.
+        y0: `array_like`, (n_vars, n_regions)
+            Initial state.
+        t_eval: `array_like`, (nt)
+            Times at which to store the computed solution.
+        Returns:
+        y: `array_like`, (n_vars, n_regions, nt)
+            Solution.
+        """
         raise NotImplementedError()
 
-    """
-    Solves model equations converting initial state and solution from/to [S, I]
-    S (susceptible), I (infected)
-
-    params: dict()
-        Parameters.
-    t_span: `2-tuple of floats`
-        Interval of integration.
-    si0: `array_like`, (2, n_regions)
-        Initial state.
-    t_eval: `array_like`, (nt)
-        Times at which to store the computed solution.
-    Returns:
-    si: `array_like`, (2, n_regions, nt)
-        Solution.
-    """
-
     def solve_SI(self, params, t_span, y0, t_eval):
+        """
+        Solves model equations converting initial state and solution
+        from/to [S, I]: S (susceptible), I (infected)
+
+        params: dict()
+            Parameters.
+        t_span: `2-tuple of floats`
+            Interval of integration.
+        si0: `array_like`, (2, n_regions)
+            Initial state.
+        t_eval: `array_like`, (nt)
+            Times at which to store the computed solution.
+        Returns:
+        si: `array_like`, (2, n_regions, nt)
+            Solution.
+        """
         raise NotImplementedError()
 
 
@@ -206,10 +206,9 @@ class SeirCpp(Seir):
         n_days = int(max(t_span)) + 1
         sol = solver.solve(p, list(y0.flatten()), n_days)
 
-
         y = np.zeros((n_vars, n_regions, len(t_eval)))
 
-        for i,t in enumerate(t_eval):
+        for i, t in enumerate(t_eval):
             q = min(len(sol) - 1, int(len(sol) * t / n_days))
             y[0, :, i] = sol[q].S()
             y[1, :, i] = sol[q].E()
@@ -258,6 +257,8 @@ class Model(EpidemicsBase):
 
         Idaily = np.diff(Itotal, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T  # shape (nt-1, n_regions)
+
+        Idaily = np.maximum(0.1, Idaily)  # XXX adhoc, requires positive values
 
         self.data['Model']['x-data'] = repeat(t[1:], self.n_regions)
         self.data['Model']['y-data'] = Idaily.flatten()
@@ -407,14 +408,14 @@ class Model(EpidemicsBase):
 
 
 def moving_average(x, w):
-    '''
+    """
     x: `numpy.ndarray`, (N)
     w: int
       Window half-width.
     Returns:
     xa: `numpy.ndarray`, (N)
       Array `x` averaged over window [-w,w].
-    '''
+    """
     s = np.zeros_like(x)
     q = np.zeros_like(x)
     for i in range(len(x)):
@@ -427,14 +428,14 @@ def moving_average(x, w):
 
 
 def fill_nans_nearest(x):
-    '''
+    """
     x: `numpy.ndarray`, (N)
     Returns:
     `numpy.ndarray`, (N)
       Array `x` where each NaN value is replaced by a finite value from:
       - nearest index to the left
       - if not found, nearest index to the right
-    '''
+    """
     def left(x, i):
         for v in reversed(x[:i + 1]):
             if np.isfinite(v):
@@ -483,16 +484,35 @@ def get_data_switzerland() -> Data:
     return data
 
 
-def get_data_switzerland_cantons(keys=None) -> Data:
+def get_all_canton_keys() -> list:
+    key_to_population = swiss_cantons.CANTON_POPULATION
+    keys = sorted(list(key_to_population))
+    return keys
+
+
+def get_commute_matrix(keys):
+    """
+    Returns:
+    Cij: `numpy.ndarray`, (len(keys), len(keys))
+    Cij[work][home] is the number of people registered in canton
+    `home` and working in `work`. Data from bfs.admin.ch (2014).
+    """
+    json = swiss_cantons.get_Cij_home_work_bfs()
+    out = np.zeros((len(keys), len(keys)))
+    for i1, c1 in enumerate(keys):
+        for i2, c2 in enumerate(keys):
+            out[i1][i2] = json[c1][c2]
+    return out
+
+
+def get_data_switzerland_cantons(keys) -> Data:
     """
     keys: `array_like` or None
-    List of canton keys to select (e.g ['ZH', 'TI']), select all if None.
+    List of canton keys to select (e.g ['ZH', 'TI'])
     """
     key_to_total_infected = swiss_cantons.fetch_openzh_covid_data()
     key_to_population = swiss_cantons.CANTON_POPULATION
 
-    if keys is None:
-        keys = sorted(list(key_to_population))
     n_regions = len(keys)
 
     data = Data()
@@ -513,6 +533,14 @@ def get_data_switzerland_cantons(keys=None) -> Data:
         data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
+    data.commute_matrix = get_commute_matrix(keys)
+
+    sel = -1
+    sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = 61  # XXX gives `free(): invalid next size (fast)`
+    data.time = data.time[:sel]
+    data.total_infected = data.total_infected[:,:sel]
+
     return data
 
 
@@ -532,23 +560,81 @@ def get_data_synthetic(ode=Seir()) -> Data:
     return data
 
 
+def get_foreign_infected_commuters(keys):
+    FR = 'france'
+    GE = 'germany'
+    AU = 'austria'
+    IT = 'italy'
+
+    cases = {
+        AU: 14710,
+        FR: 112606,
+        GE: 145184,
+        IT: 178972,
+    }
+
+    travel = [
+        ('ZH', GE, 10404.7),
+        ('BE', FR, 3514.7),
+        ('LU', GE, 613.8),
+        ('UR', IT, 46.0),
+        ('SZ', AU, 372.9),
+        ('OW', IT, 117.6),
+        ('NW', IT, 88.2),
+        ('GL', AU, 61.4),
+        ('ZG', GE, 996.2),
+        ('FR', FR, 1027.9),
+        ('SO', FR, 2151.6),
+        ('BS', GE, 33932.4),
+        ('BL', GE, 22318.4),
+        ('SH', GE, 4932.3),
+        ('AR', AU, 400.4),
+        ('AI', AU, 99.7),
+        ('SG', AU, 9199.6),
+        ('GR', IT, 6998.4),
+        ('AG', GE, 13915.3),
+        ('TG', GE, 5586.6),
+        ('TI', IT, 67878.4),
+        ('VD', FR, 32425.2),
+        ('VS', FR, 3079.1),
+        ('NE', FR, 12944.3),
+        ('GE', FR, 87103.8),
+        ('JU', FR, 8640.8),
+    ]
+
+    r = {}
+    for v in travel:
+        r[v[0]] = cases[v[1]] * v[2] * 1e-6
+    return r
+
+
 def main():
-    nSamples = 10000
+    nSamples = 1000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
     x.percentages = [0.5]
     x.nThreads = 8
+    x.nThreads = 1
 
     #data = get_data_switzerland()
-    #data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
+    #keys = ['ZH', 'AG', 'TI']
+    keys = get_all_canton_keys()
+    #keys = keys[:26]
+
+    #keys = [
+    #    'AG', 'AI', 'AR', 'BE', 'BL', 'BS', 'FR', 'GE', 'GL', 'GR', 'JU', 'LU',
+    #    'NE', 'NW', 'OW', 'SG', 'SH', 'SO', 'SZ', 'TG', 'TI', 'UR', 'VD', 'VS',
+    #    'ZG', 'ZH'
+    #]
+    data = get_data_switzerland_cantons(keys)
     #data = get_data_synthetic()
 
-    data.commute_matrix = np.array([
-        [0, 1e4, 1e4],  #
-        [0, 0, 3e4],  #
-        [0, 0, 0],  #
-    ])
+    #data.commute_matrix = np.array([
+    #    [0, 1e4, 1e4],  #
+    #    [0, 0, 3e4],  #
+    #    [0, 0, 0],  #
+    #])
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
