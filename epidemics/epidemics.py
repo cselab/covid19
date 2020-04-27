@@ -186,6 +186,7 @@ class EpidemicsBase:
 
     self.bestParameters = {}
     self.bestParameters['Reference Evaluations'] = self.e['Samples'][0]['Reference Evaluations']
+    self.bestParameters['Sample Index'] = ind
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
       self.bestParameters['Standard Deviation'] = self.e['Samples'][0]['Standard Deviation']
     elif( self.likelihoodModel=='Negative Binomial' ):
