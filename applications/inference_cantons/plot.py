@@ -152,19 +152,24 @@ def plot_intervals(model, region=0):
     fig.savefig(name)
     plt.close(fig)
 
+
 def plot_all_regions(model, names=None):
     print('[Epidemics] Plot data of all regions.')
 
     if names is None:
         names = model.region_names
 
+    names = sorted(names,
+                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
+                       model.region_names.index(name)::model.n_regions]).max())
+
     fig = plt.figure(figsize=(10, 10))
-    axes = fig.subplots(6,5)
+    axes = fig.subplots(6, 5)
     axes = axes.flatten()
 
     iax = 0
     imax = min(len(axes), len(names))
-    for ax,name in zip(axes[:imax], names[:imax]):
+    for ax, name in zip(axes[:imax], names[:imax]):
         region = model.region_names.index(name)
         ax.set_title(names[region], loc='left')
 
@@ -172,7 +177,7 @@ def plot_all_regions(model, names=None):
         x = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
-        ax.plot(x, ycum, 'o', lw=1, color='black')
+        ax.scatter(x, ycum, s=1, color='black')
         ax.set_ylim(0, 60)
         ax.set_xticks([0, 30, 60])
         ax.set_ylim(0, ycum.max() * 1.5)
@@ -182,7 +187,7 @@ def plot_all_regions(model, names=None):
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
-        ns = 1
+        ns = 5
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
             for k in range(Nt):
@@ -197,6 +202,7 @@ def plot_all_regions(model, names=None):
         for k in range(Nt):
             median[k] = np.quantile(samples[:, k], 0.5)
             mean[k] = np.mean(samples[:, k])
+
         # one sample
         y = model.propagatedVariables[var][0, :]
         ycum = np.cumsum(y)
@@ -211,6 +217,7 @@ def plot_all_regions(model, names=None):
     fig.tight_layout()
     fig.savefig(name)
     plt.close(fig)
+
 
 def main():
     dataFolder = Path("data")
