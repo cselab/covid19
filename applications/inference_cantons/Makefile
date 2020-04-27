@@ -10,7 +10,7 @@ samples.png: $D/state.pickle
 prediction.png: $D/state.pickle plot.py
 	./plot.py
 
-$D/state.pickle: main.py ode.py data.py
+$D/state.pickle: main.py ode.py data.py model.py
 	./main.py
 
 clean:
