@@ -163,8 +163,10 @@ def plot_all_regions(model, names=None):
                    key=lambda name: np.cumsum(model.data['Model']['y-data'][
                        model.region_names.index(name)::model.n_regions]).max())
 
-    fig = plt.figure(figsize=(10, 10))
-    axes = fig.subplots(6, 5)
+    #fig = plt.figure(figsize=(10, 10))
+    #axes = fig.subplots(6, 5)
+    fig = plt.figure(figsize=(20, 3.5))
+    axes = fig.subplots(2,13)
     axes = axes.flatten()
 
     iax = 0
@@ -180,7 +182,7 @@ def plot_all_regions(model, names=None):
         ax.scatter(x, ycum, s=1, color='black')
         ax.set_ylim(0, 60)
         ax.set_xticks([0, 30, 60])
-        ax.set_ylim(0, ycum.max() * 1.5)
+        ax.set_ylim(0, ycum.max() * 2)
         ax.set_yticks([0, int(ycum.max())])
 
         # inference
@@ -208,7 +210,7 @@ def plot_all_regions(model, names=None):
         ycum = np.cumsum(y)
         x = model.data['Propagation']['x-data'][::model.n_regions]
         ax.plot(x, mean, lw=1, color='red')
-        ax.plot(x, ycum, lw=1, color='blue')
+        #ax.plot(x, ycum, lw=1, color='blue')
 
     for ax in axes[imax:]:
         ax.set_axis_off()

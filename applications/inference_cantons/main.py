@@ -127,14 +127,14 @@ class Sir(Ode):
 
 class Seir(Ode):
     params_fixed = {
-        'R0': 1.75,
-        'Z': 2,
-        'D': 0.8,
-        'tact': 24.,
+        'R0': 1.35,
+        'Z': 1,
+        'D': 2.7,
+        'tact': 31.,
         'kbeta': 0.5,
         'nu': 0.6,
-        'theta_a': 0.001,
-        'theta_b': 0.01,
+        'theta_a': 0.005,
+        'theta_b': 0.07,
     }
     params_prior = {
         'R0': (0.5, 4),
@@ -267,7 +267,9 @@ class Model(EpidemicsBase):
         Idaily = np.diff(Itotal, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T  # shape (nt-1, n_regions)
 
-        Idaily = np.maximum(0.1, Idaily)  # XXX adhoc, requires positive values
+        # XXX adhoc, negative binomial requires positive values
+        Idaily = np.maximum(1e-10, Idaily)
+        #Idaily = np.maximum(0.1, Idaily)
 
         self.data['Model']['x-data'] = repeat(t[1:], self.n_regions)
         self.data['Model']['y-data'] = Idaily.flatten()
@@ -581,6 +583,7 @@ def get_data_switzerland_cantons(keys) -> Data:
 
     sel = -1
     sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = 40
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
     data.time = data.time[:sel]
     data.total_infected = data.total_infected[:, :sel]
@@ -694,50 +697,46 @@ def main():
     #x.nThreads = 1
 
     #data = get_data_switzerland()
+    #data = get_data_synthetic()
+
     keys = get_all_canton_keys()
     #keys = ['ZH', 'AG', 'TI']
 
     data = get_data_switzerland_cantons(keys)
+
     data.fit_importance = [1] * len(keys)
+    key_sel = []
     #key_sel = ['ZH', 'TI', 'VD']
-    key_sel = ['ZH', 'TI']
+    #key_sel = ['ZH', 'TI']
     #key_sel = ['VD', 'ZH']
     #key_sel = ['VD']
     for k in key_sel:
-        data.fit_importance[keys.index(k)] *= 1
-    #data = get_data_synthetic()
-
-    #data.commute_matrix = np.array([
-    #    [0, 1e4, 1e4],  #
-    #    [0, 0, 3e4],  #
-    #    [0, 0, 0],  #
-    #])
+        data.fit_importance[keys.index(k)] *= 100
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
 
     #ode = Seir()
     ode = SeirCpp()
-    #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
-    #params_to_infer = ['R0', 'Z', 'D', 'tact']
-    #params_to_infer = ['R0', 'Z', 'D']
-    #params_to_infer = ['R0', 'Z', 'D']
+    #params_to_infer = []
     #params_to_infer = ['R0']
-    ode.params_fixed['R0'] = 1.55
-    ode.params_fixed['Z'] = 2
-    ode.params_fixed['D'] = 2
-    ode.params_fixed['tact'] = 30
-
+    #params_to_infer = ['R0', 'Z', 'D', 'theta_b', 'nu']
+    #params_to_infer = ['R0', 'Z', 'D', 'theta_a', 'nu']
+    #params_to_infer = ['tact', 'kbeta']
+    #params_to_infer = ['R0', 'Z', 'D', 'tact']
+    #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
     #params_to_infer = ['nu', 'theta_a', 'theta_b']
-    params_to_infer = ['R0', 'nu', 'theta_a', 'theta_b']
-    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact', 'kbeta']
+    #params_to_infer = ['R0', 'nu', 'theta_a', 'theta_b']
     #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact', 'kbeta']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact', 'kbeta']
+    params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
 
-
-    #params_to_infer = ['R0', 'Z', 'D']
     #ode.params_fixed['nu'] = 0
-    #ode.params_fixed['theta_a'] = 0
-    #ode.params_fixed['theta_b'] = 0
+    #ode.params_fixed['theta_a'] = 0.
+    #ode.params_fixed['theta_b'] = 0.001
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
