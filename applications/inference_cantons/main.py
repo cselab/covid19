@@ -40,41 +40,41 @@ def smooth_trans(u0, u1, t, tc, teps):
 class Ode:
     params_fixed = dict()
     params_prior = dict()
-    """
-    Solves model equations.
-    params: dict()
-        Parameters.
-    t_span: `2-tuple of floats`
-        Interval of integration.
-    y0: `array_like`, (n_vars, n_regions)
-        Initial state.
-    t_eval: `array_like`, (nt)
-        Times at which to store the computed solution.
-    Returns:
-    y: `array_like`, (n_vars, n_regions, nt)
-        Solution.
-    """
+
     def solve(self, params, t_span, y0, t_eval):
+        """
+        Solves model equations.
+        params: dict()
+            Parameters.
+        t_span: `2-tuple of floats`
+            Interval of integration.
+        y0: `array_like`, (n_vars, n_regions)
+            Initial state.
+        t_eval: `array_like`, (nt)
+            Times at which to store the computed solution.
+        Returns:
+        y: `array_like`, (n_vars, n_regions, nt)
+            Solution.
+        """
         raise NotImplementedError()
 
-    """
-    Solves model equations converting initial state and solution from/to [S, I]
-    S (susceptible), I (infected)
-
-    params: dict()
-        Parameters.
-    t_span: `2-tuple of floats`
-        Interval of integration.
-    si0: `array_like`, (2, n_regions)
-        Initial state.
-    t_eval: `array_like`, (nt)
-        Times at which to store the computed solution.
-    Returns:
-    si: `array_like`, (2, n_regions, nt)
-        Solution.
-    """
-
     def solve_SI(self, params, t_span, y0, t_eval):
+        """
+        Solves model equations converting initial state and solution
+        from/to [S, I]: S (susceptible), I (infected)
+
+        params: dict()
+            Parameters.
+        t_span: `2-tuple of floats`
+            Interval of integration.
+        si0: `array_like`, (2, n_regions)
+            Initial state.
+        t_eval: `array_like`, (nt)
+            Times at which to store the computed solution.
+        Returns:
+        si: `array_like`, (2, n_regions, nt)
+            Solution.
+        """
         raise NotImplementedError()
 
 
@@ -83,7 +83,12 @@ class Data:
     time = None
     population = None
     names = None
-    commute_matrix = None
+    commute_matrix = None  # Cij
+    commute_airports = None  # Qa
+    commute_borders = None  # Qb
+    # `numpy.ndarray()`, (n_regions,)
+    # defaults to 1, larger values increase the importance of a region
+    fit_importance = None
 
 
 class Sir(Ode):
@@ -128,6 +133,8 @@ class Seir(Ode):
         'tact': 24.,
         'kbeta': 0.5,
         'nu': 1,
+        'theta_a': 1,
+        'theta_b': 1,
     }
     params_prior = {
         'R0': (0.5, 4),
@@ -136,9 +143,6 @@ class Seir(Ode):
         'tact': (0, 60),
         'kbeta': (0., 1.),
         'nu': (0.1, 10.),
-        'C01': (1e3, 1e5),
-        'C02': (1e3, 1e5),
-        'C12': (1e3, 1e5),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -190,10 +194,13 @@ class SeirCpp(Seir):
         n_vars = 3
         assert y0.shape[0] == n_vars
         n_regions = y0.shape[1]
+        n_days = int(max(t_span)) + 1
 
         data = ModelData(keys, N, Mij, Cij)
         src = np.zeros(n_regions)
-        data.ext_com_Iu = [src]
+        src += params['theta_a'] * np.array(params['Qa'])
+        src += params['theta_b'] * np.array(params['Qb'])
+        data.ext_com_Iu = [src] * n_days
 
         solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
 
@@ -203,13 +210,11 @@ class SeirCpp(Seir):
                                                D=params['D'],
                                                tact=params['tact'],
                                                kbeta=params['kbeta'])
-        n_days = int(max(t_span)) + 1
         sol = solver.solve(p, list(y0.flatten()), n_days)
-
 
         y = np.zeros((n_vars, n_regions, len(t_eval)))
 
-        for i,t in enumerate(t_eval):
+        for i, t in enumerate(t_eval):
             q = min(len(sol) - 1, int(len(sol) * t / n_days))
             y[0, :, i] = sol[q].S()
             y[1, :, i] = sol[q].E()
@@ -249,7 +254,7 @@ class Model(EpidemicsBase):
         Itotal = np.array(data.total_infected)  # shape (n_regions, nt)
         t = np.array(data.time)
         N = np.array(data.population)
-        I0 = Itotal[:, 0]
+        I0 = Itotal[:, 0] * 0 + 1 # XXX
         S0 = N - I0
         y0 = S0, I0
 
@@ -259,18 +264,37 @@ class Model(EpidemicsBase):
         Idaily = np.diff(Itotal, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T  # shape (nt-1, n_regions)
 
+        Idaily = np.maximum(0.1, Idaily)  # XXX adhoc, requires positive values
+
         self.data['Model']['x-data'] = repeat(t[1:], self.n_regions)
         self.data['Model']['y-data'] = Idaily.flatten()
 
         self.data['Model']['Initial Condition'] = y0
         self.data['Model']['Population Size'] = N
 
-        if data.commute_matrix is None:
-            C = np.zeros([self.n_regions] * 2)
+        if data.fit_importance is not None:
+            F = np.array(data.fit_importance)
         else:
+            F = np.ones([self.n_regions])
+        self.data['Model']['Fit Importance'] = F
+
+        if data.commute_matrix is not None:
             C = np.array(data.commute_matrix)
-            assert list(C.shape) == [self.n_regions] * 2
+        else:
+            C = np.zeros([self.n_regions] * 2)
         self.data['Model']['Commute Matrix'] = C
+
+        if data.commute_airports is not None:
+            Qa = np.array(data.commute_airports)
+        else:
+            Qa = np.zeros([self.n_regions])
+        self.data['Model']['Infected Commuters Airports'] = Qa
+
+        if data.commute_borders is not None:
+            Qb = np.array(data.commute_borders)
+        else:
+            Qb = np.zeros([self.n_regions])
+        self.data['Model']['Infected Commuters Borders'] = Qb
 
         T = np.ceil(t[-1])
         self.data['Propagation']['x-data'] = repeat(
@@ -279,48 +303,51 @@ class Model(EpidemicsBase):
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
 
-    def set_variables_and_distributions(self):
+    def get_variables_and_distributions(self):
         p = self.params_to_infer + ['[r]']
+        js = {}
+        js['Variables'] = []
+        js['Distributions'] = []
         for k, name in enumerate(p):
-            self.e['Variables'][k]['Name'] = name
-            self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + name
+            js['Variables'].append({})
+            js['Variables'][k]['Name'] = name
+            js['Variables'][k]['Prior Distribution'] = 'Prior for ' + name
 
         self.nParameters = len(p)
 
         k = 0
 
         for name in self.params_to_infer:
-            self.e['Distributions'][k]['Name'] = 'Prior for ' + name
-            self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+            js['Distributions'].append({})
+            js['Distributions'][k]['Name'] = 'Prior for ' + name
+            js['Distributions'][k]['Type'] = 'Univariate/Uniform'
             minmax = self.ode.params_prior[name]
-            self.e['Distributions'][k]['Minimum'] = minmax[0]
-            self.e['Distributions'][k]['Maximum'] = minmax[1]
+            js['Distributions'][k]['Minimum'] = minmax[0]
+            js['Distributions'][k]['Maximum'] = minmax[1]
             k += 1
 
-        self.e['Distributions'][k]['Name'] = 'Prior for [r]'
-        self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-        self.e['Distributions'][k]['Minimum'] = 0.01
-        self.e['Distributions'][k]['Maximum'] = 10.
+        js['Distributions'].append({})
+        js['Distributions'][k]['Name'] = 'Prior for [r]'
+        js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+        js['Distributions'][k]['Minimum'] = 0.01
+        js['Distributions'][k]['Maximum'] = 10.
         k += 1
+        return js
 
-    def get_params(self, korali_p, N, C):
+    def get_params(self, korali_p, N, C, Qa, Qb):
         """
         N: `array_like`, (n_regions)
         Population of regions.
         C: `array_like`, (n_regions,n_regions)
         Commute matrix.
         """
-        params = dict()
-        for name, value in self.ode.params_fixed.items():
-            params[name] = value
+        params = dict(self.ode.params_fixed.items())
         for i, name in enumerate(self.params_to_infer):
             params[name] = korali_p[i]
         params['N'] = np.array(N)
-        C = np.array(C)
-        C[0, 1] = params.get('C01', C[0, 1])
-        C[0, 2] = params.get('C02', C[0, 2])
-        C[1, 2] = params.get('C12', C[1, 2])
-        params['C'] = C
+        params['C'] = np.array(C)
+        params['Qa'] = np.array(Qa)
+        params['Qb'] = np.array(Qb)
         return params
 
     def computational_model(self, s):
@@ -329,11 +356,14 @@ class Model(EpidemicsBase):
         y0 = self.data['Model']['Initial Condition']
         N = self.data['Model']['Population Size']
         C = self.data['Model']['Commute Matrix']
+        Qa = self.data['Model']['Infected Commuters Airports']
+        Qb = self.data['Model']['Infected Commuters Borders']
+        F = self.data['Model']['Fit Importance']
 
         tt1 = [min(t) - 1] + list(t[0::self.n_regions])
         assert min(tt1) >= 0
 
-        params = self.get_params(p, N, C)
+        params = self.get_params(p, N, C, Qa, Qb)
         S, _ = self.ode.solve_SI(params, [0, max(t)], y0, tt1)
         # S: shape (n_regions, nt)
         Idaily = -np.diff(S, axis=1)  # shape (n_regions, nt-1)
@@ -341,7 +371,10 @@ class Model(EpidemicsBase):
         Idaily = list(Idaily.flatten())
 
         s['Reference Evaluations'] = Idaily
-        s['Dispersion'] = len(Idaily) * [p[-1]]
+        dispersion = np.ones(len(Idaily)) * p[-1]
+        for i in range(self.n_regions):
+            dispersion[i::self.n_regions] *= F[i]
+        s['Dispersion'] = list(dispersion)
 
     def computational_model_propagate(self, s):
         p = s['Parameters']
@@ -349,11 +382,14 @@ class Model(EpidemicsBase):
         y0 = self.data['Model']['Initial Condition']
         N = self.data['Model']['Population Size']
         C = self.data['Model']['Commute Matrix']
+        Qa = self.data['Model']['Infected Commuters Airports']
+        Qb = self.data['Model']['Infected Commuters Borders']
+        F = self.data['Model']['Fit Importance']
 
         t1 = list(t[0::self.n_regions])
         assert min(t1) >= 0
 
-        params = self.get_params(p, N, C)
+        params = self.get_params(p, N, C, Qa, Qb)
         S, _ = self.ode.solve_SI(params, [0, max(t)], y0, t1)
         # S: shape (n_regions, nt)
         # shape (n_regions, nt-1)
@@ -374,7 +410,11 @@ class Model(EpidemicsBase):
         js['Number of Variables'] = len(js['Variables'])
         js['Length of Variables'] = len(t1)
 
-        js['Dispersion'] = len(t1) * [p[-1]]
+        dispersion = np.ones(len(t1)) * p[-1]
+        for i in range(self.n_regions):
+            dispersion[i::self.n_regions] *= F[i]
+        js['Dispersion'] = list(dispersion)
+
         s['Saved Results'] = js
 
     def evaluate(self, korali_p):
@@ -407,14 +447,14 @@ class Model(EpidemicsBase):
 
 
 def moving_average(x, w):
-    '''
+    """
     x: `numpy.ndarray`, (N)
     w: int
       Window half-width.
     Returns:
     xa: `numpy.ndarray`, (N)
       Array `x` averaged over window [-w,w].
-    '''
+    """
     s = np.zeros_like(x)
     q = np.zeros_like(x)
     for i in range(len(x)):
@@ -427,14 +467,14 @@ def moving_average(x, w):
 
 
 def fill_nans_nearest(x):
-    '''
+    """
     x: `numpy.ndarray`, (N)
     Returns:
     `numpy.ndarray`, (N)
       Array `x` where each NaN value is replaced by a finite value from:
       - nearest index to the left
       - if not found, nearest index to the right
-    '''
+    """
     def left(x, i):
         for v in reversed(x[:i + 1]):
             if np.isfinite(v):
@@ -483,16 +523,35 @@ def get_data_switzerland() -> Data:
     return data
 
 
-def get_data_switzerland_cantons(keys=None) -> Data:
+def get_all_canton_keys() -> list:
+    key_to_population = swiss_cantons.CANTON_POPULATION
+    keys = sorted(list(key_to_population))
+    return keys
+
+
+def get_commute_matrix(keys):
+    """
+    Returns:
+    Cij: `numpy.ndarray`, (len(keys), len(keys))
+    Cij[work][home] is the number of people registered in canton
+    `home` and working in `work`. Data from bfs.admin.ch (2014).
+    """
+    json = swiss_cantons.get_Cij_home_work_bfs()
+    out = np.zeros((len(keys), len(keys)))
+    for i1, c1 in enumerate(keys):
+        for i2, c2 in enumerate(keys):
+            out[i1][i2] = json[c1][c2]
+    return out
+
+
+def get_data_switzerland_cantons(keys) -> Data:
     """
     keys: `array_like` or None
-    List of canton keys to select (e.g ['ZH', 'TI']), select all if None.
+    List of canton keys to select (e.g ['ZH', 'TI'])
     """
     key_to_total_infected = swiss_cantons.fetch_openzh_covid_data()
     key_to_population = swiss_cantons.CANTON_POPULATION
 
-    if keys is None:
-        keys = sorted(list(key_to_population))
     n_regions = len(keys)
 
     data = Data()
@@ -513,6 +572,16 @@ def get_data_switzerland_cantons(keys=None) -> Data:
         data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
+    data.commute_matrix = get_commute_matrix(keys)
+    data.commute_airports = get_infected_commuters_airports(keys)
+    data.commute_borders = get_infected_commuters_borders(keys)
+
+    sel = -1
+    sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = 61  # XXX gives `free(): invalid next size (fast)`
+    data.time = data.time[:sel]
+    data.total_infected = data.total_infected[:, :sel]
+
     return data
 
 
@@ -532,36 +601,130 @@ def get_data_synthetic(ode=Seir()) -> Data:
     return data
 
 
+def get_infected_commuters_borders(keys):
+    FR = 'france'
+    GE = 'germany'
+    AU = 'austria'
+    IT = 'italy'
+
+    cases = {
+        AU: 14710,
+        FR: 112606,
+        GE: 145184,
+        IT: 178972,
+    }
+
+    population = {
+        AU: 8902600,
+        FR: 67076000,
+        GE: 83149300,
+        IT: 60238522,
+    }
+
+    travel = [
+        ('ZH', GE, 10404.7),
+        ('BE', FR, 3514.7),
+        ('LU', GE, 613.8),
+        ('UR', IT, 46.0),
+        ('SZ', AU, 372.9),
+        ('OW', IT, 117.6),
+        ('NW', IT, 88.2),
+        ('GL', AU, 61.4),
+        ('ZG', GE, 996.2),
+        ('FR', FR, 1027.9),
+        ('SO', FR, 2151.6),
+        ('BS', GE, 33932.4),
+        ('BL', GE, 22318.4),
+        ('SH', GE, 4932.3),
+        ('AR', AU, 400.4),
+        ('AI', AU, 99.7),
+        ('SG', AU, 9199.6),
+        ('GR', IT, 6998.4),
+        ('AG', GE, 13915.3),
+        ('TG', GE, 5586.6),
+        ('TI', IT, 67878.4),
+        ('VD', FR, 32425.2),
+        ('VS', FR, 3079.1),
+        ('NE', FR, 12944.3),
+        ('GE', FR, 87103.8),
+        ('JU', FR, 8640.8),
+    ]
+
+    travel = {v[0]: (v[1], v[2]) for v in travel}
+
+    r = np.zeros(len(keys))
+    for i, key in enumerate(keys):
+        country, commuters = travel[key]
+        r[i] = cases[country] * commuters / population[country]
+    return r
+
+
+def get_infected_commuters_airports(keys):
+    mlnpass_per_year = {
+        "ZH": 31.,
+        "GE": 17.5,
+        "BS": 8.5,
+        "BE": 0.13,
+        "TI": 0.09,
+        "SG": 0.11,
+    }
+    pass_per_day = {k: v * 1e6 / 365. for k, v in mlnpass_per_year.items()}
+
+    italy_cases = 197675.
+    italy_pop = 60238522.
+    prob_infected = italy_cases / italy_pop
+
+    r = np.zeros(len(keys))
+    for i, key in enumerate(keys):
+        if key in pass_per_day:
+            r[i] = pass_per_day[key] * prob_infected
+    return r
+
+
 def main():
-    nSamples = 10000
+    nSamples = 1000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
     x.percentages = [0.5]
     x.nThreads = 8
+    #x.nThreads = 1
 
     #data = get_data_switzerland()
-    #data = get_data_switzerland_cantons(['ZH', 'TI', 'VD'])
+    keys = get_all_canton_keys()
+    #keys = ['ZH', 'AG', 'TI']
+
+    data = get_data_switzerland_cantons(keys)
+    data.fit_importance = [1] * len(keys)
+    data.fit_importance[keys.index('ZH')] *= 1000
     #data = get_data_synthetic()
 
-    data.commute_matrix = np.array([
-        [0, 1e4, 1e4],  #
-        [0, 0, 3e4],  #
-        [0, 0, 0],  #
-    ])
+    #data.commute_matrix = np.array([
+    #    [0, 1e4, 1e4],  #
+    #    [0, 0, 3e4],  #
+    #    [0, 0, 0],  #
+    #])
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
 
     #ode = Seir()
     ode = SeirCpp()
-    #params_to_infer = ['R0', 'Z', 'D', 'C01', 'C02', 'C12']
-    #params_to_infer = ['R0', 'Z', 'D', 'C12']
     #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
     #params_to_infer = ['R0', 'Z', 'D', 'tact']
     #params_to_infer = ['R0', 'Z', 'D']
-    params_to_infer = ['R0', 'Z', 'D']
+    params_to_infer = ['R0']
     #params_to_infer = ['R0']
+    #ode.params_fixed['tact'] = 25
+    ode.params_fixed['nu'] = 3
+    ode.params_fixed['theta_a'] = 0.001
+    ode.params_fixed['theta_b'] = 0.01
+    ode.params_fixed['R0'] = 0.9
+
+    params_to_infer = ['R0', 'Z', 'D']
+    ode.params_fixed['nu'] = 0
+    ode.params_fixed['theta_a'] = 0
+    ode.params_fixed['theta_b'] = 0
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
@@ -569,7 +732,8 @@ def main():
         a.sample(nSamples)
         a.propagate()
     else:
-        a.evaluate([1.74, 1., 2., 2.5])
+        #a.evaluate([1.34, 1., 2., 2.5])
+        a.evaluate([2.5])
 
     a.save()
 

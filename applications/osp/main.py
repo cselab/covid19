@@ -10,11 +10,12 @@ c = 1
 
 
 #####################
-def plot_all_2d(Ny, Ntheta):
+def plot_all_2d(Ny=1000, Ntheta=1000):
 #####################  
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
   
-  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
+  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
+  v_list = np.load("result.npy")
   
   sensors = len(v_list)
   cantons = 26
@@ -53,10 +54,11 @@ def plot_all_2d(Ny, Ntheta):
 
 
 ########################
-def plot_all_3d(Ny, Ntheta):
+def plot_all_3d(Ny=1000, Ntheta=1000):
 ########################
   
-  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
+  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
+  v_list = np.load("result.npy")
  
   sensors = len(v_list)
   cantons = 26
@@ -92,11 +94,12 @@ def plot_all_3d(Ny, Ntheta):
 
 
 #####################
-def plot_all_cantons(Ny, Ntheta):
+def plot_all_cantons(Ny=1000, Ntheta=1000):
 #####################  
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
 
-  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta)) 
+  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta)) 
+  v_list = np.load("result.npy")
   
   sensors = len(v_list)
   cantons = 26
@@ -111,11 +114,64 @@ def plot_all_cantons(Ny, Ntheta):
   name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
           'JU','LU','NE','NW','OW','SG','SH','SO','SZ','TG',\
           'TI','UR','VD','VS','ZG','ZH']
+
+  max_v = np.max(v_list)
+  locations = c*np.arange(0,days)
   
+  fig, axs = plt.subplots(2,2)
+  s = 0
+  axs[0,0].plot(locations,v_list[s][0 ][:],label=name[0 ])
+  axs[0,0].plot(locations,v_list[s][1 ][:],label=name[1 ])
+  axs[0,0].plot(locations,v_list[s][2 ][:],label=name[2 ])
+  axs[0,0].plot(locations,v_list[s][3 ][:],label=name[3 ])
+  axs[0,0].plot(locations,v_list[s][4 ][:],label=name[4 ])
+  axs[0,0].plot(locations,v_list[s][5 ][:],label=name[5 ])
+
+  axs[0,1].plot(locations,v_list[s][6 ][:],label=name[6 ])
+  axs[0,1].plot(locations,v_list[s][7 ][:],label=name[7 ])
+  axs[0,1].plot(locations,v_list[s][8 ][:],label=name[8 ])
+  axs[0,1].plot(locations,v_list[s][9 ][:],label=name[9 ])
+  axs[0,1].plot(locations,v_list[s][10][:],label=name[10])
+  axs[0,1].plot(locations,v_list[s][11][:],label=name[11])
+
+  axs[1,0].plot(locations,v_list[s][12][:],label=name[12])
+  axs[1,0].plot(locations,v_list[s][13][:],label=name[13])
+  axs[1,0].plot(locations,v_list[s][14][:],label=name[14])
+  axs[1,0].plot(locations,v_list[s][15][:],label=name[15])
+  axs[1,0].plot(locations,v_list[s][16][:],label=name[16])
+  axs[1,0].plot(locations,v_list[s][17][:],label=name[17])
+  axs[1,0].plot(locations,v_list[s][18][:],label=name[18])
+
+  axs[1,1].plot(locations,v_list[s][19][:],label=name[19])
+  axs[1,1].plot(locations,v_list[s][20][:],label=name[20])
+  axs[1,1].plot(locations,v_list[s][21][:],label=name[21])
+  axs[1,1].plot(locations,v_list[s][22][:],label=name[22])
+  axs[1,1].plot(locations,v_list[s][23][:],label=name[23])
+  axs[1,1].plot(locations,v_list[s][24][:],label=name[24])
+  axs[1,1].plot(locations,v_list[s][25][:],label=name[25])
+
+     
+  for i0 in range(2):
+    for i1 in range(2):
+      axs[i0,i1].grid()
+      axs[i0,i1].legend(fontsize='xx-small')
+      axs[i0,i1].set_ylim([0.0,max_v])
+      axs[i0,i1].set_xlim([0.0,70.0 ])
+
+  for ax in axs.flat:
+      ax.set(xlabel='Day', ylabel='Information')
+  for ax in axs.flat:
+      ax.label_outer()
+
+  plt.savefig("slice.eps", format='eps')
+  return
+
+
+
 
   fig, axs = plt.subplots(3,5)
+
   
-  locations = c*np.arange(0,days)
   for i0 in range (3):
     for i1 in range (5):
       index = i0 * 5 + i1
@@ -123,6 +179,8 @@ def plot_all_cantons(Ny, Ntheta):
         axs[i0,i1].plot(locations,v_list[s][index][:],label=str(s+1) + " sensors ")
       axs[i0,i1].set_title(name[index],fontsize='8')
       axs[i0,i1].grid()
+      axs[i0,i1].set_ylim([0.0,max_v])
+
   for ax in axs.flat:
       ax.set(xlabel='Day', ylabel='Utility')
   for ax in axs.flat:
@@ -141,6 +199,7 @@ def plot_all_cantons(Ny, Ntheta):
         axs[i0,i1].plot(locations,v_list[s][index][:],label=str(s+1) + " sensors ")
       axs[i0,i1].set_title(name[index],fontsize='8')
       axs[i0,i1].grid()
+      axs[i0,i1].set_ylim([0.0,max_v])
 
   for ax in axs.flat:
       ax.set(xlabel='Day', ylabel='Utility')  
@@ -154,7 +213,7 @@ def plot_all_cantons(Ny, Ntheta):
 ######################
 def post_processing(osp):
 ######################  
-  plot_all_2d()
+  #plot_all_2d()
   plot_all_cantons()
   #plot_all_3d()
   
@@ -179,11 +238,13 @@ if __name__ == '__main__':
 
   parser.add_argument('--nSensors'    , help='number of sensors to place'                                      , required=True, type=int)
   parser.add_argument('--nMeasure'    , help='how many numbers describe a measurement taken by a single sensor', required=True, type=int)
+  parser.add_argument('--Ntheta'      , help='number of samples', required=True, type=int)
   parser.add_argument('--path'        , help='path to files to perform OSP'                                    , required=True, type=str)
   args = vars(parser.parse_args())
 
   osp = OSP(path        =args['path']        ,\
             nSensors    =args['nSensors']    ,\
+            Ntheta      =args['Ntheta']      ,\
             nMeasure    =args['nMeasure']     )
   
   timer = 0
@@ -192,4 +253,4 @@ if __name__ == '__main__':
   timer += time.time()
   print ("time=",timer)
 
-  #post_processing(osp)
+  post_processing(osp)
