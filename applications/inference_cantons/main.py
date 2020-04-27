@@ -86,6 +86,9 @@ class Data:
     commute_matrix = None  # Cij
     commute_airports = None  # Qa
     commute_borders = None  # Qb
+    # `numpy.ndarray()`, (n_regions,)
+    # defaults to 1, larger values increase the importance of a region
+    fit_importance = None
 
 
 class Sir(Ode):
@@ -251,7 +254,7 @@ class Model(EpidemicsBase):
         Itotal = np.array(data.total_infected)  # shape (n_regions, nt)
         t = np.array(data.time)
         N = np.array(data.population)
-        I0 = Itotal[:, 0] * 0
+        I0 = Itotal[:, 0] * 0 + 1 # XXX
         S0 = N - I0
         y0 = S0, I0
 
@@ -268,6 +271,12 @@ class Model(EpidemicsBase):
 
         self.data['Model']['Initial Condition'] = y0
         self.data['Model']['Population Size'] = N
+
+        if data.fit_importance is not None:
+            F = np.array(data.fit_importance)
+        else:
+            F = np.ones([self.n_regions])
+        self.data['Model']['Fit Importance'] = F
 
         if data.commute_matrix is not None:
             C = np.array(data.commute_matrix)
@@ -349,6 +358,7 @@ class Model(EpidemicsBase):
         C = self.data['Model']['Commute Matrix']
         Qa = self.data['Model']['Infected Commuters Airports']
         Qb = self.data['Model']['Infected Commuters Borders']
+        F = self.data['Model']['Fit Importance']
 
         tt1 = [min(t) - 1] + list(t[0::self.n_regions])
         assert min(tt1) >= 0
@@ -361,7 +371,10 @@ class Model(EpidemicsBase):
         Idaily = list(Idaily.flatten())
 
         s['Reference Evaluations'] = Idaily
-        s['Dispersion'] = len(Idaily) * [p[-1]]
+        dispersion = np.ones(len(Idaily)) * p[-1]
+        for i in range(self.n_regions):
+            dispersion[i::self.n_regions] *= F[i]
+        s['Dispersion'] = list(dispersion)
 
     def computational_model_propagate(self, s):
         p = s['Parameters']
@@ -371,6 +384,7 @@ class Model(EpidemicsBase):
         C = self.data['Model']['Commute Matrix']
         Qa = self.data['Model']['Infected Commuters Airports']
         Qb = self.data['Model']['Infected Commuters Borders']
+        F = self.data['Model']['Fit Importance']
 
         t1 = list(t[0::self.n_regions])
         assert min(t1) >= 0
@@ -396,7 +410,11 @@ class Model(EpidemicsBase):
         js['Number of Variables'] = len(js['Variables'])
         js['Length of Variables'] = len(t1)
 
-        js['Dispersion'] = len(t1) * [p[-1]]
+        dispersion = np.ones(len(t1)) * p[-1]
+        for i in range(self.n_regions):
+            dispersion[i::self.n_regions] *= F[i]
+        js['Dispersion'] = list(dispersion)
+
         s['Saved Results'] = js
 
     def evaluate(self, korali_p):
@@ -673,16 +691,12 @@ def main():
     #x.nThreads = 1
 
     #data = get_data_switzerland()
-    #keys = ['ZH', 'AG', 'TI']
     keys = get_all_canton_keys()
-    #keys = keys[:26]
+    #keys = ['ZH', 'AG', 'TI']
 
-    #keys = [
-    #    'AG', 'AI', 'AR', 'BE', 'BL', 'BS', 'FR', 'GE', 'GL', 'GR', 'JU', 'LU',
-    #    'NE', 'NW', 'OW', 'SG', 'SH', 'SO', 'SZ', 'TG', 'TI', 'UR', 'VD', 'VS',
-    #    'ZG', 'ZH'
-    #]
     data = get_data_switzerland_cantons(keys)
+    data.fit_importance = [1] * len(keys)
+    data.fit_importance[keys.index('ZH')] *= 1000
     #data = get_data_synthetic()
 
     #data.commute_matrix = np.array([
@@ -701,11 +715,16 @@ def main():
     #params_to_infer = ['R0', 'Z', 'D']
     params_to_infer = ['R0']
     #params_to_infer = ['R0']
-    ode.params_fixed['tact'] = 25
+    #ode.params_fixed['tact'] = 25
     ode.params_fixed['nu'] = 3
     ode.params_fixed['theta_a'] = 0.001
     ode.params_fixed['theta_b'] = 0.01
     ode.params_fixed['R0'] = 0.9
+
+    params_to_infer = ['R0', 'Z', 'D']
+    ode.params_fixed['nu'] = 0
+    ode.params_fixed['theta_a'] = 0
+    ode.params_fixed['theta_b'] = 0
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
