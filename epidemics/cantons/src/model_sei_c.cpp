@@ -13,11 +13,13 @@ void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
     }
     const double * __restrict__ invNi = modelData_.invNi.data();
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
-        double sumIC_N = modelData_.getExternalCommutersIu(day, i);
+        double sumIC_N = 0;
         for (size_t j = 0; j < modelData_.numRegions; ++j) {
             sumIC_N += x.I(j) * this->C_plus_Ct(i, j) * invNi[j];
         }
-        const double A = beta * x.S(i) * invNi[i] * (x.I(i) + p.nu * sumIC_N);
+        const double ext = modelData_.getExternalCommutersIu(day, i);
+        const double A = beta * x.S(i) * invNi[i] * (
+                x.I(i) + p.nu * sumIC_N + ext);
         const double E_Z = x.E(i) / p.Z;
 
         const double dS = -A;

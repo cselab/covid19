@@ -83,9 +83,9 @@ class Data:
     time = None
     population = None
     names = None
-    commute_matrix = None # Cij
-    commute_airports = None # Qa
-    commute_borders = None # Qb
+    commute_matrix = None  # Cij
+    commute_airports = None  # Qa
+    commute_borders = None  # Qb
 
 
 class Sir(Ode):
@@ -130,8 +130,8 @@ class Seir(Ode):
         'tact': 24.,
         'kbeta': 0.5,
         'nu': 1,
-        'theta_a' : 1,
-        'theta_b' : 1,
+        'theta_a': 1,
+        'theta_b': 1,
     }
     params_prior = {
         'R0': (0.5, 4),
@@ -194,8 +194,9 @@ class SeirCpp(Seir):
         n_days = int(max(t_span)) + 1
 
         data = ModelData(keys, N, Mij, Cij)
-        src = params['theta_a'] * np.array(params['Qb'])
-        assert src.shape == (n_regions,)
+        src = np.zeros(n_regions)
+        src += params['theta_a'] * np.array(params['Qa'])
+        src += params['theta_b'] * np.array(params['Qb'])
         data.ext_com_Iu = [src] * n_days
 
         solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
@@ -250,7 +251,7 @@ class Model(EpidemicsBase):
         Itotal = np.array(data.total_infected)  # shape (n_regions, nt)
         t = np.array(data.time)
         N = np.array(data.population)
-        I0 = Itotal[:, 0]*0
+        I0 = Itotal[:, 0] * 0
         S0 = N - I0
         y0 = S0, I0
 
@@ -547,13 +548,14 @@ def get_data_switzerland_cantons(keys) -> Data:
         data.population[i] = key_to_population[k]
     data.name = keys
     data.commute_matrix = get_commute_matrix(keys)
+    data.commute_airports = get_infected_commuters_airports(keys)
     data.commute_borders = get_infected_commuters_borders(keys)
 
     sel = -1
     sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
     data.time = data.time[:sel]
-    data.total_infected = data.total_infected[:,:sel]
+    data.total_infected = data.total_infected[:, :sel]
 
     return data
 
@@ -623,12 +625,34 @@ def get_infected_commuters_borders(keys):
         ('JU', FR, 8640.8),
     ]
 
-    travel = {v[0] : (v[1], v[2]) for v in travel}
+    travel = {v[0]: (v[1], v[2]) for v in travel}
 
     r = np.zeros(len(keys))
-    for i,key in enumerate(keys):
+    for i, key in enumerate(keys):
         country, commuters = travel[key]
         r[i] = cases[country] * commuters / population[country]
+    return r
+
+
+def get_infected_commuters_airports(keys):
+    mlnpass_per_year = {
+        "ZH": 31.,
+        "GE": 17.5,
+        "BS": 8.5,
+        "BE": 0.13,
+        "TI": 0.09,
+        "SG": 0.11,
+    }
+    pass_per_day = {k: v * 1e6 / 365. for k, v in mlnpass_per_year.items()}
+
+    italy_cases = 197675.
+    italy_pop = 60238522.
+    prob_infected = italy_cases / italy_pop
+
+    r = np.zeros(len(keys))
+    for i, key in enumerate(keys):
+        if key in pass_per_day:
+            r[i] = pass_per_day[key] * prob_infected
     return r
 
 
@@ -670,9 +694,10 @@ def main():
     #params_to_infer = ['R0', 'Z', 'D']
     params_to_infer = []
     #params_to_infer = ['R0']
-    ode.params_fixed['nu'] = 0.1
-    ode.params_fixed['theta_a'] = 0.5
-    ode.params_fixed['R0'] = 1.2
+    ode.params_fixed['nu'] = 0.
+    ode.params_fixed['theta_a'] = 0.01
+    ode.params_fixed['theta_b'] = 0.
+    ode.params_fixed['R0'] = 2
 
     a = Model(data, ode, params_to_infer, **vars(x))
 

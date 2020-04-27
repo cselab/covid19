@@ -171,7 +171,7 @@ def plot_all_regions(model, names=None):
     imax = min(len(axes), len(names))
     for ax, name in zip(axes[:imax], names[:imax]):
         region = model.region_names.index(name)
-        ax.set_title(names[region], loc='left')
+        ax.set_title(name, loc='left')
 
         # data
         x = model.data['Model']['x-data'][region::model.n_regions]
