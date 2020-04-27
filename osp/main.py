@@ -10,11 +10,11 @@ c = 1
 
 
 #####################
-def plot_all_2d():
+def plot_all_2d(Ny, Ntheta):
 #####################  
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
   
-  v_list = np.load("result.npy")
+  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
   
   sensors = len(v_list)
   cantons = 26
@@ -53,10 +53,10 @@ def plot_all_2d():
 
 
 ########################
-def plot_all_3d():
+def plot_all_3d(Ny, Ntheta):
 ########################
   
-  v_list = np.load("result.npy")
+  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
  
   sensors = len(v_list)
   cantons = 26
@@ -92,11 +92,11 @@ def plot_all_3d():
 
 
 #####################
-def plot_all_cantons():
+def plot_all_cantons(Ny, Ntheta):
 #####################  
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
-  
-  v_list = np.load("result.npy")
+
+  v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta)) 
   
   sensors = len(v_list)
   cantons = 26

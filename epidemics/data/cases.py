@@ -113,7 +113,7 @@ def get_data_of_all_cantons():
     return out
 
 @cache
-def get_field_data_all_cantons(field,cache_duration=3600):
+def get_field_data_all_cantons(field,cache_duration=1e9):
 
     url = 'https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master/covid19_'+field+'_switzerland_openzh.csv'
     file_path = 'covid19_'+field+'_switzerland_openzh.csv'
