@@ -10,6 +10,7 @@ import os
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from epidemics.tools.tools import prepare_folder, save_file
 from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
 
@@ -33,6 +34,47 @@ class ModelBase( EpidemicsBase ):
 
     self.regionalData = RegionalData( self.country )
     self.propagationData = {}
+
+
+
+
+
+  def process_data( self ):
+
+    y = self.regionalData.infected
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
+
+    i0 = 24
+
+    if i0==0:
+      Ir0 = y[0]
+    else:
+      Ir0 = y[i0]-y[i0-1]
+
+    S0  = N - Ir0
+    E0  = 0
+    Iu0 = 0
+    y0  = S0, E0, Ir0, Iu0
+    
+    if self.nValidation == 0:
+      self.data['Model']['x-data'] = t[i0+1:]
+      self.data['Model']['y-data'] = np.diff(y[i0:])
+    else:
+      self.data['Model']['x-data'] = t[i0+1:-self.nValidation]
+      self.data['Model']['y-data'] = np.diff( y[i0:-self.nValidation] )
+      self.data['Validation']['x-data'] = t[-self.nValidation:]
+      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
+
+    self.data['Model']['Initial Condition'] = y0
+    self.data['Model']['Population Size'] = self.regionalData.populationSize
+    self.data['Model']['Standard Deviation Model'] = self.stdModel
+
+    T = np.ceil( t[-1] + self.futureDays )
+    self.data['Propagation']['x-data'] = np.linspace(i0,T,int(T+1))
+
+    save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
+
 
 
 

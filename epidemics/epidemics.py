@@ -201,13 +201,18 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "CMAES"
     self.e["Solver"]["Population Size"] = 24
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-5
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
 
     self.set_variables_and_distributions()
 
+    # for k in range(self.nParameters):
+    #   self.e["Variables"][k]["Initial Mean"] = ( self.e['Distributions'][k]['Maximum'] + self.e['Distributions'][k]['Minimum'] ) / 2
+    #   self.e["Variables"][k]["Initial Standard Deviation"] = ( self.e['Distributions'][k]['Maximum'] - self.e['Distributions'][k]['Minimum'] )/2
+
     for k in range(self.nParameters):
-      self.e["Variables"][k]["Initial Mean"] = ( self.e['Distributions'][k]['Maximum'] + self.e['Distributions'][k]['Minimum'] ) / 2
-      self.e["Variables"][k]["Initial Standard Deviation"] = ( self.e['Distributions'][k]['Maximum'] - self.e['Distributions'][k]['Minimum'] ) / 4
+      self.e["Variables"][k]["Lower Bound"] = self.e['Distributions'][k]['Minimum']
+      self.e["Variables"][k]["Upper Bound"] = self.e['Distributions'][k]['Maximum']
+
 
     self.set_korali_output_files( self.saveInfo['korali samples'] )
 
@@ -233,6 +238,72 @@ class EpidemicsBase:
     self.has_been_called['optimize'] = True
     self.has_been_called['propagate'] = False
     print('[Epidemics] Done copying variables.')
+
+
+
+
+  def least_squares( self, maxGenerations):
+
+    self.nSamples = 1
+    self.maxGenerations = maxGenerations
+
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Optimization/Stochastic'
+    y = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Objective Function'] = lambda p: self.computational_model(p,y)
+
+    self.e["Solver"]["Type"] = "CMAES"
+    self.e["Solver"]["Population Size"] = 24
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
+
+    self.set_variables_and_distributions()
+
+    for k in range(self.nParameters):
+      self.e["Variables"][k]["Lower Bound"] = self.e['Distributions'][k]['Minimum']
+      self.e["Variables"][k]["Upper Bound"] = self.e['Distributions'][k]['Maximum']
+
+    for k in range(self.nParameters):
+      del self.e['Distributions'][k]
+
+    self.set_korali_output_files( self.saveInfo['korali samples'] )
+
+    if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
+
+    self.e['File Output']['Frequency'] = 10
+    self.e["Store Sample Information"] = True
+
+    k = korali.Engine()
+    k['Conduit']['Type'] = 'Concurrent'
+    k['Conduit']['Concurrent Jobs'] = self.nThreads
+
+    k.run(self.e)
+
+    print('[Epidemics] Copy variables from Korali to Epidemics...')
+    self.parameters = []
+    myDatabase = self.e['Results']['Best Sample']['Parameters']
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[j]] )
+
+    self.has_been_called['optimize'] = True
+    self.has_been_called['propagate'] = False
+    print('[Epidemics] Done copying variables.')
+
+
+
+
+  def sum_of_squares_errors(p, y):
+    s={}
+    s['Parameters'] = p
+    computational_model( s )
+
+    dif = np.asarray(y) - np.asarray(p['Reference Evaluations'])
+
+    return np.sum(dif*dif)
+
 
 
 

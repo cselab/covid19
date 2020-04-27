@@ -41,4 +41,4 @@ a.propagate()
 
 a.save()
 
-a.plot_intervals()
+a.plot_intervals(ns=2000)
