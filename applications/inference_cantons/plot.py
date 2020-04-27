@@ -149,11 +149,68 @@ def plot_intervals(model, region=0):
     ax[-1].set_xlabel('time in days')
 
     name = "prediction{:}.png".format(str(region) if region else "")
-    f = os.path.join(model.saveInfo['figures'], name)
-    prepare_folder(os.path.dirname(f), clean=False)
-    fig.savefig(f)
+    fig.savefig(name)
     plt.close(fig)
 
+def plot_all_regions(model, names=None):
+    print('[Epidemics] Plot data of all regions.')
+
+    if names is None:
+        names = model.region_names
+
+    fig = plt.figure(figsize=(10, 10))
+    axes = fig.subplots(6,5)
+    axes = axes.flatten()
+
+    iax = 0
+    imax = min(len(axes), len(names))
+    for ax,name in zip(axes[:imax], names[:imax]):
+        region = model.region_names.index(name)
+        ax.set_title(names[region], loc='left')
+
+        # data
+        x = model.data['Model']['x-data'][region::model.n_regions]
+        y = model.data['Model']['y-data'][region::model.n_regions]
+        ycum = np.cumsum(y)
+        ax.plot(x, ycum, 'o', lw=1, color='black')
+        ax.set_ylim(0, 60)
+        ax.set_xticks([0, 30, 60])
+        ax.set_ylim(0, ycum.max() * 1.5)
+        ax.set_yticks([0, int(ycum.max())])
+
+        # inference
+        var = "Daily Incidence {:}".format(region)
+        Ns = model.propagatedVariables[var].shape[0]
+        Nt = model.propagatedVariables[var].shape[1]
+        ns = 1
+        samples = np.zeros((Ns * ns, Nt))
+        if model.likelihoodModel == 'Negative Binomial':
+            for k in range(Nt):
+                m = model.propagatedVariables[var][:, k]
+                r = model.propagatedVariables['Dispersion'][:, k]
+                p = p = m / (m + r)
+                y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
+                samples[:, k] = np.asarray(y).flatten()
+        samples = np.cumsum(samples, axis=1)
+        mean = np.zeros((Nt, 1))
+        median = np.zeros((Nt, 1))
+        for k in range(Nt):
+            median[k] = np.quantile(samples[:, k], 0.5)
+            mean[k] = np.mean(samples[:, k])
+        # one sample
+        y = model.propagatedVariables[var][0, :]
+        ycum = np.cumsum(y)
+        x = model.data['Propagation']['x-data'][::model.n_regions]
+        ax.plot(x, mean, lw=1, color='red')
+        ax.plot(x, ycum, lw=1, color='blue')
+
+    for ax in axes[imax:]:
+        ax.set_axis_off()
+
+    name = "all.png".format(str(region) if region else "")
+    fig.tight_layout()
+    fig.savefig(name)
+    plt.close(fig)
 
 def main():
     dataFolder = Path("data")
@@ -163,8 +220,11 @@ def main():
 
     model = load_model(f)
 
-    for region in range(model.n_regions):
-        plot_intervals(model, region=region)
+    #for region in range(model.n_regions):
+    #    plot_intervals(model, region=region)
+
+    # plot data
+    plot_all_regions(model)
 
 
 if __name__ == "__main__":
