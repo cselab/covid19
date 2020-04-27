@@ -299,21 +299,29 @@ def plot_map(model, plot_data=False):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--map_data', action='store_true', help="Map with data (movie and image)")
+    parser.add_argument('--map_fit', action='store_true', help="Map with fit (movie and image)")
+    parser.add_argument('--intervals', action='store_true', help="Credible intervals (images)")
+    args = parser.parse_args()
+
     dataFolder = Path("data")
     f = dataFolder / 'cantons' / 'state.pickle'
 
-    assert os.path.isfile(f)
-
     model = load_model(f)
 
-    #for region in range(model.n_regions):
-    #    plot_intervals(model, region=region)
+    if args.intervals:
+        for region in range(model.n_regions):
+            plot_intervals(model, region=region)
 
     # plot data
     plot_all_regions(model)
 
-    plot_map(model, plot_data=True)
-    plot_map(model, plot_data=False)
+    if args.map_data:
+        plot_map(model, plot_data=True)
+
+    if args.map_fit:
+        plot_map(model, plot_data=False)
 
 
 if __name__ == "__main__":
