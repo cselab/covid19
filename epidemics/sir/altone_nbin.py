@@ -66,32 +66,43 @@ class Model( ModelBase ):
 
 
 
-  def set_variables_and_distributions( self ):
+  def get_variables_and_distributions( self ):
 
     p = ['beta','gamma','[r]']
+
+    js = {}
+    js['Variables']=[]
+    js['Distributions']=[]
+
     for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
+      js['Variables'].append({})
+      js['Variables'][k]['Name'] = x
+      js['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
 
     self.nParameters = len(p)
 
     k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
-    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 1.
+    js['Distributions'][k]['Maximum'] = 100.
 
-    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for gamma'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 1.
+    js['Distributions'][k]['Maximum'] = 100.
 
-    self.e['Distributions'][k]['Name'] = 'Prior for [r]'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.01
-    self.e['Distributions'][k]['Maximum'] = 10.
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for [r]'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Maximum'] = 10.
+
+    return js
 
 
 
