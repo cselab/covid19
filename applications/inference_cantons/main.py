@@ -132,17 +132,19 @@ class Seir(Ode):
         'D': 0.8,
         'tact': 24.,
         'kbeta': 0.5,
-        'nu': 1,
-        'theta_a': 1,
-        'theta_b': 1,
+        'nu': 0.6,
+        'theta_a': 0.001,
+        'theta_b': 0.01,
     }
     params_prior = {
         'R0': (0.5, 4),
-        'Z': (0.5, 10),
-        'D': (0.5, 10),
+        'Z': (0.1, 10),
+        'D': (0.1, 10),
         'tact': (0, 60),
         'kbeta': (0., 1.),
         'nu': (0.1, 10.),
+        'theta_a': (0., 0.1),
+        'theta_b': (0., 0.1),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -254,7 +256,8 @@ class Model(EpidemicsBase):
         Itotal = np.array(data.total_infected)  # shape (n_regions, nt)
         t = np.array(data.time)
         N = np.array(data.population)
-        I0 = Itotal[:, 0] * 0 + 1 # XXX
+        I0 = Itotal[:, 0] * 0 # XXX
+        #I0 = Itotal[:, 0] * 0 + 1 # XXX
         S0 = N - I0
         y0 = S0, I0
 
@@ -696,7 +699,12 @@ def main():
 
     data = get_data_switzerland_cantons(keys)
     data.fit_importance = [1] * len(keys)
-    data.fit_importance[keys.index('ZH')] *= 1000
+    #key_sel = ['ZH', 'TI', 'VD']
+    key_sel = ['ZH', 'TI']
+    #key_sel = ['VD', 'ZH']
+    #key_sel = ['VD']
+    for k in key_sel:
+        data.fit_importance[keys.index(k)] *= 1
     #data = get_data_synthetic()
 
     #data.commute_matrix = np.array([
@@ -713,18 +721,23 @@ def main():
     #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
     #params_to_infer = ['R0', 'Z', 'D', 'tact']
     #params_to_infer = ['R0', 'Z', 'D']
-    params_to_infer = ['R0']
+    #params_to_infer = ['R0', 'Z', 'D']
     #params_to_infer = ['R0']
-    #ode.params_fixed['tact'] = 25
-    ode.params_fixed['nu'] = 3
-    ode.params_fixed['theta_a'] = 0.001
-    ode.params_fixed['theta_b'] = 0.01
-    ode.params_fixed['R0'] = 0.9
+    ode.params_fixed['R0'] = 1.55
+    ode.params_fixed['Z'] = 2
+    ode.params_fixed['D'] = 2
+    ode.params_fixed['tact'] = 30
 
-    params_to_infer = ['R0', 'Z', 'D']
-    ode.params_fixed['nu'] = 0
-    ode.params_fixed['theta_a'] = 0
-    ode.params_fixed['theta_b'] = 0
+    #params_to_infer = ['nu', 'theta_a', 'theta_b']
+    params_to_infer = ['R0', 'nu', 'theta_a', 'theta_b']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b', 'tact', 'kbeta']
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_a', 'theta_b']
+
+
+    #params_to_infer = ['R0', 'Z', 'D']
+    #ode.params_fixed['nu'] = 0
+    #ode.params_fixed['theta_a'] = 0
+    #ode.params_fixed['theta_b'] = 0
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
