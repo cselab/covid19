@@ -35,10 +35,4 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.optimize( args.nGenerations )
-
-a.propagate()
-
-a.save()
-
-a.plot_intervals(ns=2000)
+a.least_squares( args.nGenerations )

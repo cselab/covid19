@@ -38,39 +38,6 @@ class Model( ModelBase ):
 
 
 
-  def process_data( self ):
-
-    y = self.regionalData.infected
-    t = self.regionalData.time
-    N = self.regionalData.populationSize
-
-    Ir0 = y[0]
-    S0  = N - Ir0
-    E0  = 0
-    Iu0 = 0
-    y0  = S0, E0, Ir0, Iu0
-
-    if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:])
-    else:
-      self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
-      self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
-
-    self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
-    self.data['Model']['Standard Deviation Model'] = self.stdModel
-
-    T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
-
-    save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
-
-
-
   def set_variables_and_distributions( self ):
 
     p = [ 'beta', 'mu', 'alpha', 'Z', 'D', '[r]' ]
@@ -85,7 +52,7 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for beta'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 0
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Maximum'] = 200
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for mu'
@@ -109,7 +76,7 @@ class Model( ModelBase ):
     self.e['Distributions'][k]['Name'] = 'Prior for D'
     self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
     self.e['Distributions'][k]['Minimum'] = 2
-    self.e['Distributions'][k]['Maximum'] = 5
+    self.e['Distributions'][k]['Maximum'] = 200
     k+=1
 
     self.e['Distributions'][k]['Name'] = 'Prior for [r]'
@@ -147,7 +114,10 @@ class Model( ModelBase ):
     sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
 
     y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
-    y = [0] + y.tolist()
+    y = [float(y0[2])] + y.tolist()
+
+    disp = len(y)*[p[-1]];
+    disp[0] = 0
 
     js = {}
     js['Variables'] = [{}]
@@ -164,7 +134,7 @@ class Model( ModelBase ):
 
 
 
-  def plot_intervals( self ):
+  def plot_intervals( self, ns=10):
 
     fig = self.new_figure()
 
@@ -175,13 +145,13 @@ class Model( ModelBase ):
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[0], 'Daily Reported Incidence' )
+    self.compute_plot_intervals( 'Daily Reported Incidence', ns, ax[0], 'Daily Reported Incidence' )
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Reported Incidence', 20, ax[1], 'Cummulative number of reported infected', cummulate=1)
+    self.compute_plot_intervals( 'Daily Reported Incidence', ns, ax[1], 'Cummulative number of reported infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
 
