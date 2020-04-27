@@ -735,7 +735,7 @@ def main():
     params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
 
     #ode.params_fixed['nu'] = 0
-    #ode.params_fixed['theta_a'] = 0.
+    ode.params_fixed['theta_a'] = 0.
     #ode.params_fixed['theta_b'] = 0.001
 
     a = Model(data, ode, params_to_infer, **vars(x))
