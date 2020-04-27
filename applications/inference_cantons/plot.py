@@ -166,7 +166,7 @@ def plot_all_regions(model, names=None):
     #fig = plt.figure(figsize=(10, 10))
     #axes = fig.subplots(6, 5)
     fig = plt.figure(figsize=(20, 3.5))
-    axes = fig.subplots(2,13)
+    axes = fig.subplots(2, 13)
     axes = axes.flatten()
 
     iax = 0
@@ -221,6 +221,83 @@ def plot_all_regions(model, names=None):
     plt.close(fig)
 
 
+def plot_map(model, plot_data=False):
+    names = None
+    if names is None:
+        names = model.region_names
+
+    names = sorted(names,
+                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
+                       model.region_names.index(name)::model.n_regions]).max())
+
+    ydata = dict()
+    xdata = None
+    yfit = dict()
+    xfit = None
+    for name in names:
+        region = model.region_names.index(name)
+
+        # data
+        x = model.data['Model']['x-data'][region::model.n_regions]
+        y = model.data['Model']['y-data'][region::model.n_regions]
+        ycum = np.cumsum(y)
+
+        xdata = np.array(x).flatten()
+        ydata[name] = np.array(ycum).flatten()
+
+        # inference
+        var = "Daily Incidence {:}".format(region)
+        Ns = model.propagatedVariables[var].shape[0]
+        Nt = model.propagatedVariables[var].shape[1]
+        ns = 5
+        samples = np.zeros((Ns * ns, Nt))
+        if model.likelihoodModel == 'Negative Binomial':
+            for k in range(Nt):
+                m = model.propagatedVariables[var][:, k]
+                r = model.propagatedVariables['Dispersion'][:, k]
+                p = p = m / (m + r)
+                y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
+                samples[:, k] = np.asarray(y).flatten()
+        samples = np.cumsum(samples, axis=1)
+        mean = np.zeros((Nt, 1))
+        median = np.zeros((Nt, 1))
+        for k in range(Nt):
+            median[k] = np.quantile(samples[:, k], 0.5)
+            mean[k] = np.mean(samples[:, k])
+
+        xfit = np.array(x).flatten()
+        yfit[name] = np.array(mean).flatten()
+
+    from epidemics.cantons.py.plot import Renderer
+
+    def frame_callback(rend):
+        colors = dict()
+        texts = dict()
+        for i, c in enumerate(rend.get_codes()):
+            if plot_data:
+                i = (len(xdata) - 1) * rend.get_frame() // rend.get_max_frame()
+                v = ydata[c][i]
+            else:
+                i = (len(xfit) - 1) * rend.get_frame() // rend.get_max_frame()
+                v = yfit[c][i]
+            colors[c] = v * 1e-3
+            texts[c] = "{:}".format(int(v))
+        rend.set_values(colors)
+        rend.set_texts(texts)
+
+    from epidemics.cantons.py.model import get_canton_model_data
+    rend = Renderer(frame_callback,
+                    data=get_canton_model_data(),
+                    resolution=(1920, 1080),
+                    draw_Mij=False,
+                    draw_Cij=True)
+
+    fn = "data" if plot_data else "fit"
+    print(fn)
+    rend.save_image(60, filename=fn + ".png")
+    rend.save_movie(frames=60, filename=fn + ".mp4")
+
+
 def main():
     dataFolder = Path("data")
     f = dataFolder / 'cantons' / 'state.pickle'
@@ -234,6 +311,9 @@ def main():
 
     # plot data
     plot_all_regions(model)
+
+    plot_map(model, plot_data=True)
+    plot_map(model, plot_data=False)
 
 
 if __name__ == "__main__":
