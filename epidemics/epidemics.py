@@ -305,8 +305,29 @@ class EpidemicsBase:
     return np.sum(dif*dif)
 
 
+  def load_parameters(self,samples_path):
 
+      files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
+      files.sort()
+      filename = files[-1]
 
+      variable_names = []
+      with open(samples_path+'/'+files[-1]) as json_file:
+        data = json.load(json_file)
+        samples = data['Results']['Sample Database']
+        variables = data['Variables']
+
+      nParameters = len(variables)
+      nSamples = len(samples)
+      self.parameters = []
+      for j in range(nParameters):
+        self.parameters.append({})
+        self.parameters[j]['Name'] = variables[j]['Name']
+        self.parameters[j]['Values'] = np.asarray( [samples[k][j] for k in range(nSamples)] )
+
+      self.has_been_called['sample'] = True
+
+    
 
   def propagate( self ):
 
@@ -322,7 +343,6 @@ class EpidemicsBase:
     for k in range(self.nParameters):
       self.e['Variables'][k]['Name'] = self.parameters[k]['Name']
       self.e['Variables'][k]['Precomputed Values'] = self.parameters[k]['Values'].tolist()
-
 
     self.e['Solver']['Type'] = 'Executor'
 
