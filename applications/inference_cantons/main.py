@@ -294,29 +294,36 @@ class Model(EpidemicsBase):
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
 
-    def set_variables_and_distributions(self):
+    def get_variables_and_distributions(self):
         p = self.params_to_infer + ['[r]']
+        js = {}
+        js['Variables'] = []
+        js['Distributions'] = []
         for k, name in enumerate(p):
-            self.e['Variables'][k]['Name'] = name
-            self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + name
+            js['Variables'].append({})
+            js['Variables'][k]['Name'] = name
+            js['Variables'][k]['Prior Distribution'] = 'Prior for ' + name
 
         self.nParameters = len(p)
 
         k = 0
 
         for name in self.params_to_infer:
-            self.e['Distributions'][k]['Name'] = 'Prior for ' + name
-            self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
+            js['Distributions'].append({})
+            js['Distributions'][k]['Name'] = 'Prior for ' + name
+            js['Distributions'][k]['Type'] = 'Univariate/Uniform'
             minmax = self.ode.params_prior[name]
-            self.e['Distributions'][k]['Minimum'] = minmax[0]
-            self.e['Distributions'][k]['Maximum'] = minmax[1]
+            js['Distributions'][k]['Minimum'] = minmax[0]
+            js['Distributions'][k]['Maximum'] = minmax[1]
             k += 1
 
-        self.e['Distributions'][k]['Name'] = 'Prior for [r]'
-        self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-        self.e['Distributions'][k]['Minimum'] = 0.01
-        self.e['Distributions'][k]['Maximum'] = 10.
+        js['Distributions'].append({})
+        js['Distributions'][k]['Name'] = 'Prior for [r]'
+        js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+        js['Distributions'][k]['Minimum'] = 0.01
+        js['Distributions'][k]['Maximum'] = 10.
         k += 1
+        return js
 
     def get_params(self, korali_p, N, C, Qa, Qb):
         """
@@ -692,16 +699,17 @@ def main():
     #params_to_infer = ['R0', 'Z', 'D', 'tact', 'kbeta']
     #params_to_infer = ['R0', 'Z', 'D', 'tact']
     #params_to_infer = ['R0', 'Z', 'D']
-    params_to_infer = []
+    params_to_infer = ['R0']
     #params_to_infer = ['R0']
-    ode.params_fixed['nu'] = 0.
-    ode.params_fixed['theta_a'] = 0.01
-    ode.params_fixed['theta_b'] = 0.
-    ode.params_fixed['R0'] = 2
+    ode.params_fixed['tact'] = 25
+    ode.params_fixed['nu'] = 3
+    ode.params_fixed['theta_a'] = 0.001
+    ode.params_fixed['theta_b'] = 0.01
+    ode.params_fixed['R0'] = 0.9
 
     a = Model(data, ode, params_to_infer, **vars(x))
 
-    if 0:
+    if 1:
         a.sample(nSamples)
         a.propagate()
     else:
