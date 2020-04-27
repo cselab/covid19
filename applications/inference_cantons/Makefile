@@ -19,6 +19,6 @@ $D/state.pickle: main.py
 
 clean:
 	rm -rf data
-	rm -f samples.png prediction.png
+	rm -f samples.png prediction*.png
 
 .PHONY: default clean run

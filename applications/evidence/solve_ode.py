@@ -35,7 +35,7 @@ x = Model()
 N = x.regionalData.populationSize
 T = x.regionalData.time[-1]
 p = [ 2, 0.9, 0.05, 3, 5 ]
-
+# p = [1.1212548294518252, 0.6015399858521959, 0.14885319980997336, 0.0013946131333795058, 9.114955353642676]
 sol = x.solve_ode( [N-1,0,1,0], T, N, p )
 t = np.linspace(0,T,1000)
 S = sol.sol(t)[0]
