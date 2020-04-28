@@ -5,18 +5,27 @@ from matplotlib import cm
 from osp import *
 import time
 from mpl_toolkits.mplot3d import axes3d
+import os
+import sys
+from plot import Renderer
 
-c = 1
+
+name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
+        'JU','LU','NE','NW','OW','SG','SH','SO','SZ','TG',\
+        'TI','UR','VD','VS','ZG','ZH']
+
+CANTON_TO_INDEX = {'AG': 0 , 'AI': 1 , 'AR': 2 , 'BE': 3 , 'BL': 4 , 'BS': 5 ,\
+                   'FR': 6 , 'GE': 7 , 'GL': 8 , 'GR': 9 , 'JU': 10, 'LU': 11,\
+                   'NE': 12, 'NW': 13, 'OW': 14, 'SG': 15, 'SH': 16, 'SO': 17,\
+                   'SZ': 18, 'TG': 19, 'TI': 20, 'UR': 21, 'VD': 22, 'VS': 23,\
+                   'ZG': 24, 'ZH': 25}
+NUM_CANTONS = len(CANTON_TO_INDEX)
 
 
-#####################
-def plot_all_2d(Ny=1000, Ntheta=1000):
-#####################  
+########################
+def plot_all_2d(v_list):
+########################  
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
-  
-  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
-  v_list = np.load("result.npy")
-  
   sensors = len(v_list)
   cantons = 26
   days    = len(v_list[0][0])
@@ -27,20 +36,15 @@ def plot_all_2d(Ny=1000, Ntheta=1000):
       for k in range(days  ):
         v[i][ j*days + k ] = v_list[i][j][k]
 
-  name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
-          'JU','LU','NE','NW','OW','SG','SH','SO','SZ','TG',\
-          'TI','UR','VD','VS','ZG','ZH']
-  
   fig = plt.figure()
   ax1 = fig.add_subplot(111)
 
-  locations = c * np.arange(0,cantons*days)
+  locations = np.arange(0,cantons*days)
   for s in range(sensors):
     ax1.plot(locations,v[s,:], label= str(s+1) + " sensors ")
 
-
-  locations1 = np.linspace(c*days/2, c*cantons*days + c*days/2 ,cantons+1)
-  locations2 = np.linspace(0, c*cantons*days, cantons+1)
+  locations1 = np.linspace(days/2, cantons*days + days/2 ,cantons+1)
+  locations2 = np.linspace(0, cantons*days, cantons+1)
 
   ax1.set_xticks(locations1)
   ax1.set_xticklabels(name)
@@ -54,24 +58,15 @@ def plot_all_2d(Ny=1000, Ntheta=1000):
 
 
 ########################
-def plot_all_3d(Ny=1000, Ntheta=1000):
+def plot_all_3d(v_list):
 ########################
-  
-  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta))
-  v_list = np.load("result.npy")
- 
   sensors = len(v_list)
   cantons = 26
   days    = len(v_list[0][0])
 
   ca = np.arange(0,cantons)
   da = np.arange(0,days)
-  x,y = np.meshgrid( ca ,c*da )
-
-  name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
-          'JU','LU','NE','NW','OW','SG','SH','SO','SZ','TG',\
-          'TI','UR','VD','VS','ZG','ZH']
-
+  x,y = np.meshgrid( ca ,da )
 
   fig = plt.figure()
   ax = fig.add_subplot(111, projection='3d')
@@ -93,14 +88,10 @@ def plot_all_3d(Ny=1000, Ntheta=1000):
   plt.savefig("cantons3d.eps", format='eps')
 
 
-#####################
-def plot_all_cantons(Ny=1000, Ntheta=1000):
-#####################  
+#############################
+def plot_all_cantons(v_list):
+#############################
   # v_list = utility[ number of sensors ] [ canton ] [ day ]
-
-  #v_list = np.load("result_Ny{:05d}_Nt{:05d}.npy".format(Ny,Ntheta)) 
-  v_list = np.load("result.npy")
-  
   sensors = len(v_list)
   cantons = 26
   days    = len(v_list[0][0])
@@ -111,12 +102,9 @@ def plot_all_cantons(Ny=1000, Ntheta=1000):
       for k in range(days  ):
         v[i][ j*days + k ] = v_list[i][j][k]
 
-  name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
-          'JU','LU','NE','NW','OW','SG','SH','SO','SZ','TG',\
-          'TI','UR','VD','VS','ZG','ZH']
 
   max_v = np.max(v_list)
-  locations = c*np.arange(0,days)
+  locations = np.arange(0,days)
   
   fig, axs = plt.subplots(2,2)
   s = 0
@@ -150,7 +138,6 @@ def plot_all_cantons(Ny=1000, Ntheta=1000):
   axs[1,1].plot(locations,v_list[s][24][:],label=name[24])
   axs[1,1].plot(locations,v_list[s][25][:],label=name[25])
 
-     
   for i0 in range(2):
     for i1 in range(2):
       axs[i0,i1].grid()
@@ -164,20 +151,18 @@ def plot_all_cantons(Ny=1000, Ntheta=1000):
       ax.label_outer()
 
   plt.savefig("slice.eps", format='eps')
-  return
 
 
-
-
-  fig, axs = plt.subplots(3,5)
-
-  
-  for i0 in range (3):
-    for i1 in range (5):
-      index = i0 * 5 + i1
+  fig, axs = plt.subplots(5,6)
+  axs.titlesize      : xx-small
+  for i0 in range (5):
+    for i1 in range (6):
+      index = i0 * 6 + i1
+      if index > 25:
+        break
       for s in range(sensors):
         axs[i0,i1].plot(locations,v_list[s][index][:],label=str(s+1) + " sensors ")
-      axs[i0,i1].set_title(name[index],fontsize='8')
+      axs[i0,i1].set_title(name[index],fontsize='4')
       axs[i0,i1].grid()
       axs[i0,i1].set_ylim([0.0,max_v])
 
@@ -186,49 +171,43 @@ def plot_all_cantons(Ny=1000, Ntheta=1000):
   for ax in axs.flat:
       ax.label_outer()
 
-  plt.savefig("slice1.eps", format='eps')
-
-  fig, axs = plt.subplots(3,4)  
-  locations = c*np.arange(0,days)
-  for i0 in range (3):
-    for i1 in range (4):
-      index = 15 + i0 * 4 + i1
-      if index > 25:
-        break
-      for s in range(sensors):
-        axs[i0,i1].plot(locations,v_list[s][index][:],label=str(s+1) + " sensors ")
-      axs[i0,i1].set_title(name[index],fontsize='8')
-      axs[i0,i1].grid()
-      axs[i0,i1].set_ylim([0.0,max_v])
-
-  for ax in axs.flat:
-      ax.set(xlabel='Day', ylabel='Utility')  
-  for ax in axs.flat:
-      ax.label_outer()
-
-  plt.savefig("slice2.eps", format='eps')
+  plt.savefig("slice1.eps",format='eps')
 
 
 
-######################
-def post_processing(osp):
-######################  
-  #plot_all_2d()
-  plot_all_cantons()
-  #plot_all_3d()
-  
-  #max_posterior = osp.computePosterior()
-  #nSensors = args['nSensors']
-  #R0 = np.arange(osp.Ntheta)
-  #X, Y = np.meshgrid(R0, R0)
-  #plt.contourf(X,Y, max_posterior/max_posterior.max(), cmap="hot")
-  #plt.colorbar()
-  #plt.xlabel("Possible values")
-  #plt.ylabel("True value")
-  #plt.title(str(nSensors) + "  sensors" )
-  #plt.savefig("objective.png")
-  #plt.close()
 
+
+#################################
+def make_movie(result,utility,n):
+#################################
+    """
+    v = utility[number of sensors][canton][day]
+    """
+    days = utility.shape[2]
+
+    def frame_callback(rend):
+        t = rend.get_frame() * (days - 1) // rend.get_max_frame()
+        util = utility[n,:,t]
+        res  = result[t,:]
+        max_res = np.max(result)
+        
+        v_u = {}
+        v_r1 = {}
+        v_r2 = {}
+        texts = {}
+        for i, c in enumerate(rend.get_codes()):
+            i_state = CANTON_TO_INDEX[c]
+            v_u[c] = util[i_state]
+            v_r1[c] = res [i_state]/max_res
+            v_r2[c] = res [i_state]
+            texts[c] = str("{:.0f}".format(v_r2[c]))
+
+        rend.set_values(v_r1)
+        rend.set_texts(texts)
+        rend.set_bars(v_u)
+        plt.suptitle("Day :" + str(t), fontsize=12)
+    rend = Renderer(frame_callback)
+    rend.save_movie(frames=days,filename=str(n) + ".mp4")
 
 
 ##########################
@@ -236,21 +215,35 @@ if __name__ == '__main__':
 ##########################  
   parser = argparse.ArgumentParser()
 
-  parser.add_argument('--nSensors'    , help='number of sensors to place'                                      , required=True, type=int)
-  parser.add_argument('--nMeasure'    , help='how many numbers describe a measurement taken by a single sensor', required=True, type=int)
-  parser.add_argument('--Ntheta'      , help='number of samples', required=True, type=int)
-  parser.add_argument('--path'        , help='path to files to perform OSP'                                    , required=True, type=str)
+  parser.add_argument('--result',help='utility result.npy file',type=str)
+  parser.add_argument('--output',help='model evaluations output.npy file',type=str)
+  parser.add_argument('--movie' ,help='make movie or not (1 or 0)',type=int)
+
   args = vars(parser.parse_args())
 
-  osp = OSP(path        =args['path']        ,\
-            nSensors    =args['nSensors']    ,\
-            Ntheta      =args['Ntheta']      ,\
-            nMeasure    =args['nMeasure']     )
-  
-  timer = 0
-  timer -= time.time()
-  t,s = osp.Sequential_Placement()
-  timer += time.time()
-  print ("time=",timer)
+  utility = np.load(args["result"])
+  results = np.load(args["output"])
 
-  post_processing(osp)
+  plot_all_2d(utility)
+  plot_all_3d(utility)
+  plot_all_cantons(utility)
+  
+  #this fails on Euler!
+  if args["movie"] == 1:
+     res = results[0,:,:]
+     for n in range(0,utility.shape[0]):
+         make_movie(res,utility,n)
+
+  '''
+  max_posterior = osp.computePosterior()
+  nSensors = args['nSensors']
+  R0 = np.arange(osp.Ntheta)
+  X, Y = np.meshgrid(R0, R0)
+  plt.contourf(X,Y, max_posterior/max_posterior.max(), cmap="hot")
+  plt.colorbar()
+  plt.xlabel("Possible values")
+  plt.ylabel("True value")
+  plt.title(str(nSensors) + "  sensors" )
+  plt.savefig("objective.png")
+  plt.close()
+  '''
