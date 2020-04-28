@@ -7,6 +7,11 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+def printlog(msg):
+    out = sys.stderr
+    out.write(str(msg) + "\n")
+    out.flush()
+
 from epidemics.tools.tools import load_model
 
 from pathlib import Path
@@ -32,7 +37,7 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
     samples = np.zeros((Ns * ns, Nt))
 
-    print(
+    printlog(
         f"[Epidemics] Sampling from {model.likelihoodModel} for '{varName}' variable... ",
         end='',
         flush=True)
@@ -70,9 +75,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
         samples = np.cumsum(samples, axis=cummulate)
 
     elapsed = time.process_time() - start
-    print(f" elapsed {elapsed:.2f} sec")
+    printlog(f" elapsed {elapsed:.2f} sec")
 
-    print(f"[Epidemics] Computing quantiles... ")
+    printlog(f"[Epidemics] Computing quantiles... ")
 
     mean = np.zeros((Nt, 1))
     median = np.zeros((Nt, 1))
@@ -108,9 +113,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
 def plot_intervals(model, region=0):
     if region >= model.n_regions:
-        print("skpping region={:}".format(region))
+        printlog("skpping region={:}".format(region))
         return
-    print('[Epidemics] Compute and Plot credible intervals.')
+    printlog('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     if model.region_names:
         fig.suptitle(model.region_names[region])
@@ -153,8 +158,8 @@ def plot_intervals(model, region=0):
     plt.close(fig)
 
 
-def plot_all_regions(model, names=None):
-    print('[Epidemics] Plot data of all regions.')
+def plot_tiles(model, names=None):
+    printlog('[Epidemics] Plot tiles with all regions.')
 
     if names is None:
         names = model.region_names
@@ -215,58 +220,94 @@ def plot_all_regions(model, names=None):
     for ax in axes[imax:]:
         ax.set_axis_off()
 
-    name = "all.png".format(str(region) if region else "")
     fig.tight_layout()
-    fig.savefig(name)
+    fn = "tiles.png"
+    printlog(fn)
+    fig.savefig(fn)
     plt.close(fig)
 
 
-def plot_map(model, plot_data=False):
-    names = None
-    if names is None:
-        names = model.region_names
-
-    names = sorted(names,
-                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
-                       model.region_names.index(name)::model.n_regions]).max())
-
-    ydata = dict()
-    xdata = None
-    yfit = dict()
-    xfit = None
+def get_data(model, names):
+    """
+    model: `json`
+        Korali model.
+    names: `array_likt`
+        List of region names to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(name : numpy.ndarray)`, (nt)
+        Daily infections.
+    Itotal: `dict(name : numpy.ndarray)`, (nt)
+        Total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
     for name in names:
         region = model.region_names.index(name)
-
-        # data
-        x = model.data['Model']['x-data'][region::model.n_regions]
+        t = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
-        ycum = np.cumsum(y)
+        y = np.array(y).flatten()
+        I[name] = y
+        Itotal[name] = np.cumsum(y)
+    return t, I, Itotal
 
-        xdata = np.array(x).flatten()
-        ydata[name] = np.array(ycum).flatten()
+def get_fit(model, names, n_samples=5):
+    """
+    model: `json`
+        Korali model.
+    names: `array_likt`
+        List of region names to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(name : numpy.ndarray)`, (nt)
+        Mean fit for daily infections.
+    Itotal: `dict(name : numpy.ndarray)`, (nt)
+        Mean fit for total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
+    for name in names:
+        region = model.region_names.index(name)
+        t = model.data['Model']['x-data'][region::model.n_regions]
+        t = np.array(t).flatten()
 
-        # inference
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
-        ns = 5
+        ns = n_samples
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
-            for k in range(Nt):
-                m = model.propagatedVariables[var][:, k]
-                r = model.propagatedVariables['Dispersion'][:, k]
+            for it in range(Nt):
+                m = model.propagatedVariables[var][:, it]
+                r = model.propagatedVariables['Dispersion'][:, it]
                 p = p = m / (m + r)
                 y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
-                samples[:, k] = np.asarray(y).flatten()
-        samples = np.cumsum(samples, axis=1)
-        mean = np.zeros((Nt, 1))
-        median = np.zeros((Nt, 1))
-        for k in range(Nt):
-            median[k] = np.quantile(samples[:, k], 0.5)
-            mean[k] = np.mean(samples[:, k])
+                samples[:, it] = np.asarray(y).flatten()
+        else:
+            raise NotImplementedError()
 
-        xfit = np.array(x).flatten()
-        yfit[name] = np.array(mean).flatten()
+        samples_cum = np.cumsum(samples, axis=1)
+        mean = np.zeros(Nt)
+        mean_cum = np.zeros(Nt)
+        for it in range(Nt):
+            mean[it] = np.mean(samples[:, it])
+            mean_cum[it] = np.mean(samples_cum[:, it])
+
+        I[name] = mean
+        Itotal[name] = mean_cum
+    return t, I, Itotal
+
+def plot_map(model, plot_data=False, image=True, movie=True, image_day=-1):
+    names = model.region_names
+
+    if plot_data:
+        t, _, Itotal = get_data(model, names)
+    else:
+        t, _, Itotal = get_fit(model, names)
 
     from epidemics.cantons.py.plot import Renderer
 
@@ -274,12 +315,8 @@ def plot_map(model, plot_data=False):
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            if plot_data:
-                i = (len(xdata) - 1) * rend.get_frame() // rend.get_max_frame()
-                v = ydata[c][i]
-            else:
-                i = (len(xfit) - 1) * rend.get_frame() // rend.get_max_frame()
-                v = yfit[c][i]
+            i = (len(t) - 1) * rend.get_frame() // rend.get_max_frame()
+            v = Itotal[c][i]
             colors[c] = v * 1e-3
             texts[c] = "{:}".format(int(v))
         rend.set_values(colors)
@@ -292,17 +329,27 @@ def plot_map(model, plot_data=False):
                     draw_Mij=False,
                     draw_Cij=True)
 
-    fn = "data" if plot_data else "fit"
-    print(fn)
-    rend.save_image(60, filename=fn + ".png")
-    rend.save_movie(frames=60, filename=fn + ".mp4")
+    fnbase = "data" if plot_data else "fit"
+    if image:
+        frame = min(image_day, len(t) - 1) if image_day != -1 else len(t) - 1
+        fn = "{:}_day{:}.png".format(fnbase, frame)
+        rend.save_image(frame=image_day, frames=len(t), filename=fn)
+        printlog(fn)
+    if movie:
+        fn = fnbase + ".mp4"
+        rend.save_movie(frames=len(t), filename=fn)
+        printlog(fn)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--map_data', action='store_true', help="Map with data (movie and image)")
-    parser.add_argument('--map_fit', action='store_true', help="Map with fit (movie and image)")
-    parser.add_argument('--intervals', action='store_true', help="Credible intervals (images)")
+    parser.add_argument('--tiles', action='store_true', help="Plot tiles with all regions")
+    parser.add_argument('--map_data', action='store_true', help="Map with data")
+    parser.add_argument('--map_fit', action='store_true', help="Map with fit")
+    parser.add_argument('--image', action='store_true', help="Create image")
+    parser.add_argument('--image_day', type=int, default=-1, help="Select day for image")
+    parser.add_argument('--movie', action='store_true', help="Create movie")
+    parser.add_argument('--intervals', action='store_true', help="Plot credible intervals for all regions")
     args = parser.parse_args()
 
     dataFolder = Path("data")
@@ -314,14 +361,16 @@ def main():
         for region in range(model.n_regions):
             plot_intervals(model, region=region)
 
-    # plot data
-    plot_all_regions(model)
+    if args.tiles:
+        plot_tiles(model)
 
     if args.map_data:
-        plot_map(model, plot_data=True)
+        plot_map(model, plot_data=True, image=args.image, movie=args.movie,
+                image_day=args.image_day)
 
     if args.map_fit:
-        plot_map(model, plot_data=False)
+        plot_map(model, plot_data=False, image=args.image, movie=args.movie,
+                image_day=args.image_day)
 
 
 if __name__ == "__main__":

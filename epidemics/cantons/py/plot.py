@@ -26,6 +26,10 @@ from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
 from epidemics.tools.cache import cache, cache_to_file
 import epidemics.data.swiss_municipalities as munic
 
+def Log(msg):
+    sys.stderr.write(str(msg) + "\n")
+
+
 @cache
 @cache_to_file(DATA_CACHE_DIR / 'zenodo_2017_centers.pickle')
 def get_zone_centers():
@@ -302,7 +306,7 @@ class Renderer:
         if not silent:
             time1 = time.time()
             dtime = time1 - self.last_frame_time
-            print("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
+            Log("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
             self.last_frame_time = time1
         for code,value in self.code_to_value.items():
             alpha = np.clip(value, 0, 1) * 0.75
@@ -334,8 +338,8 @@ class Renderer:
                 init_func=self.init_plot, blit=False, interval=1000. / fps)
         plt.show()
 
-    def save_image(self, frame=-1, filename="a.png"):
-        self.max_frame = 1
+    def save_image(self, frame=-1, frames=1, filename="a.png"):
+        self.max_frame = frames - 1
         self.init_plot()
         self.update_plot(self.max_frame, silent=True)
         self.fig.savefig(filename)
