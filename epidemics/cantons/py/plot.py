@@ -26,6 +26,10 @@ from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
 from epidemics.tools.cache import cache, cache_to_file
 import epidemics.data.swiss_municipalities as munic
 
+def Log(msg):
+    sys.stderr.write(str(msg) + "\n")
+
+
 @cache
 @cache_to_file(DATA_CACHE_DIR / 'zenodo_2017_centers.pickle')
 def get_zone_centers():
@@ -103,6 +107,7 @@ class Renderer:
         # FIXME: "code" vs "key" terminology, pick one.
         self.code_to_value = {}
         self.code_to_text = {}
+        self.code_to_color = {}
         self.draw_zones = draw_zones
         self.draw_Mij = draw_Mij
         self.draw_Cij = draw_Cij
@@ -143,6 +148,13 @@ class Renderer:
           Mapping from canton code to float between 0 and 1.
         '''
         self.code_to_value = code_to_value
+
+    def set_colors(self, code_to_color):
+        '''
+        code_to_color: `dict`
+          Mapping from canton code to RGBA color accepted by matplotlib.
+        '''
+        self.code_to_color = code_to_color
 
     def set_zone_values(self, zone_values):
         '''
@@ -302,12 +314,15 @@ class Renderer:
         if not silent:
             time1 = time.time()
             dtime = time1 - self.last_frame_time
-            print("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
+            Log("{:}/{:} {:.0f} ms".format(frame, self.max_frame, dtime * 1e3))
             self.last_frame_time = time1
         for code,value in self.code_to_value.items():
             alpha = np.clip(value, 0, 1) * 0.75
             for fill in self.fills[code]:
                 fill.set_alpha(alpha)
+        for code,color in self.code_to_color.items():
+            for fill in self.fills[code]:
+                fill.set_color(color)
         for code in self.texts:
             if code in self.code_to_text:
                 self.texts[code].set_text(str(self.code_to_text[code]))
@@ -334,8 +349,8 @@ class Renderer:
                 init_func=self.init_plot, blit=False, interval=1000. / fps)
         plt.show()
 
-    def save_image(self, frame=-1, filename="a.png"):
-        self.max_frame = 1
+    def save_image(self, frame=-1, frames=1, filename="a.png"):
+        self.max_frame = frames - 1
         self.init_plot()
         self.update_plot(self.max_frame, silent=True)
         self.fig.savefig(filename)

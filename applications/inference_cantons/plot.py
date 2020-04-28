@@ -7,6 +7,13 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+
+def printlog(msg):
+    out = sys.stderr
+    out.write(str(msg) + "\n")
+    out.flush()
+
+
 from epidemics.tools.tools import load_model
 
 from pathlib import Path
@@ -32,7 +39,7 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
     samples = np.zeros((Ns * ns, Nt))
 
-    print(
+    printlog(
         f"[Epidemics] Sampling from {model.likelihoodModel} for '{varName}' variable... ",
         end='',
         flush=True)
@@ -70,9 +77,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
         samples = np.cumsum(samples, axis=cummulate)
 
     elapsed = time.process_time() - start
-    print(f" elapsed {elapsed:.2f} sec")
+    printlog(f" elapsed {elapsed:.2f} sec")
 
-    print(f"[Epidemics] Computing quantiles... ")
+    printlog(f"[Epidemics] Computing quantiles... ")
 
     mean = np.zeros((Nt, 1))
     median = np.zeros((Nt, 1))
@@ -108,9 +115,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
 def plot_intervals(model, region=0):
     if region >= model.n_regions:
-        print("skpping region={:}".format(region))
+        printlog("skpping region={:}".format(region))
         return
-    print('[Epidemics] Compute and Plot credible intervals.')
+    printlog('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     if model.region_names:
         fig.suptitle(model.region_names[region])
@@ -153,15 +160,15 @@ def plot_intervals(model, region=0):
     plt.close(fig)
 
 
-def plot_all_regions(model, names=None):
-    print('[Epidemics] Plot data of all regions.')
+def plot_tiles(model, keys=None):
+    printlog('[Epidemics] Plot tiles with all regions.')
 
-    if names is None:
-        names = model.region_names
+    if keys is None:
+        keys = model.region_names
 
-    names = sorted(names,
-                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
-                       model.region_names.index(name)::model.n_regions]).max())
+    keys = sorted(keys,
+                  key=lambda key: np.cumsum(model.data['Model']['y-data'][
+                      model.region_names.index(key)::model.n_regions]).max())
 
     #fig = plt.figure(figsize=(10, 10))
     #axes = fig.subplots(6, 5)
@@ -170,10 +177,10 @@ def plot_all_regions(model, names=None):
     axes = axes.flatten()
 
     iax = 0
-    imax = min(len(axes), len(names))
-    for ax, name in zip(axes[:imax], names[:imax]):
-        region = model.region_names.index(name)
-        ax.set_title(name, loc='left')
+    imax = min(len(axes), len(keys))
+    for ax, key in zip(axes[:imax], keys[:imax]):
+        region = model.region_names.index(key)
+        ax.set_title(key, loc='left')
 
         # data
         x = model.data['Model']['x-data'][region::model.n_regions]
@@ -215,75 +222,143 @@ def plot_all_regions(model, names=None):
     for ax in axes[imax:]:
         ax.set_axis_off()
 
-    name = "all.png".format(str(region) if region else "")
     fig.tight_layout()
-    fig.savefig(name)
+    fn = "tiles.png"
+    printlog(fn)
+    fig.savefig(fn)
     plt.close(fig)
 
 
-def plot_map(model, plot_data=False):
-    names = None
-    if names is None:
-        names = model.region_names
-
-    names = sorted(names,
-                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
-                       model.region_names.index(name)::model.n_regions]).max())
-
-    ydata = dict()
-    xdata = None
-    yfit = dict()
-    xfit = None
-    for name in names:
-        region = model.region_names.index(name)
-
-        # data
-        x = model.data['Model']['x-data'][region::model.n_regions]
+def get_data(model, keys):
+    """
+    model: `json`
+        Korali model.
+    keys: `array_likt`
+        List of region keys to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(key : numpy.ndarray)`, (nt)
+        Daily infections.
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
+        Total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
+    for key in keys:
+        region = model.region_names.index(key)
+        t = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
-        ycum = np.cumsum(y)
+        y = np.array(y).flatten()
+        I[key] = y
+        Itotal[key] = np.cumsum(y)
+    return t, I, Itotal
 
-        xdata = np.array(x).flatten()
-        ydata[name] = np.array(ycum).flatten()
 
-        # inference
+def get_fit(model, keys, n_samples=5):
+    """
+    model: `json`
+        Korali model.
+    keys: `array_likt`
+        List of region keys to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(key : numpy.ndarray)`, (nt)
+        Mean fit for daily infections.
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
+        Mean fit for total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
+    for key in keys:
+        region = model.region_names.index(key)
+        t = model.data['Model']['x-data'][region::model.n_regions]
+        t = np.array(t).flatten()
+
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
-        ns = 5
+        ns = n_samples
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
-            for k in range(Nt):
-                m = model.propagatedVariables[var][:, k]
-                r = model.propagatedVariables['Dispersion'][:, k]
+            for it in range(Nt):
+                m = model.propagatedVariables[var][:, it]
+                r = model.propagatedVariables['Dispersion'][:, it]
                 p = p = m / (m + r)
                 y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
-                samples[:, k] = np.asarray(y).flatten()
-        samples = np.cumsum(samples, axis=1)
-        mean = np.zeros((Nt, 1))
-        median = np.zeros((Nt, 1))
-        for k in range(Nt):
-            median[k] = np.quantile(samples[:, k], 0.5)
-            mean[k] = np.mean(samples[:, k])
+                samples[:, it] = np.asarray(y).flatten()
+        else:
+            raise NotImplementedError()
 
-        xfit = np.array(x).flatten()
-        yfit[name] = np.array(mean).flatten()
+        samples_cum = np.cumsum(samples, axis=1)
+        mean = np.zeros(Nt)
+        mean_cum = np.zeros(Nt)
+        for it in range(Nt):
+            mean[it] = np.mean(samples[:, it])
+            mean_cum[it] = np.mean(samples_cum[:, it])
+
+        I[key] = mean
+        Itotal[key] = mean_cum
+    return t, I, Itotal
+
+
+class MapType:
+    data = "data"
+    fit = "fit"
+    error = "error"
+
+
+def plot_map(model,
+             map_type=MapType.fit,
+             image=True,
+             movie=True,
+             image_day=-1):
+    keys = model.region_names
+    nt = None
+
+    if map_type == MapType.data:
+        t, _, Itotal = get_data(model, keys)
+        nt = len(t)
+    elif map_type == MapType.fit:
+        t, _, Itotal = get_fit(model, keys)
+        nt = len(t)
+    elif map_type == MapType.error:
+        tdata, _, Itotal_data = get_data(model, keys)
+        tfit, _, Itotal_fit = get_fit(model, keys)
+        nt = min(len(tdata), len(tfit))
+        assert len(tdata) == len(tfit)
+        Itotal_error = dict()
+        for key in keys:
+            Id = Itotal_data[key][:nt]
+            If = Itotal_fit[key][:nt]
+            Itotal_error[key] = (If - Id) / np.maximum(1, Id)
+    else:
+        raise NotImplementedError()
 
     from epidemics.cantons.py.plot import Renderer
 
     def frame_callback(rend):
-        colors = dict()
+        values = dict()
         texts = dict()
-        for i, c in enumerate(rend.get_codes()):
-            if plot_data:
-                i = (len(xdata) - 1) * rend.get_frame() // rend.get_max_frame()
-                v = ydata[c][i]
-            else:
-                i = (len(xfit) - 1) * rend.get_frame() // rend.get_max_frame()
-                v = yfit[c][i]
-            colors[c] = v * 1e-3
-            texts[c] = "{:}".format(int(v))
-        rend.set_values(colors)
+        colors = dict()
+        for c in rend.get_codes():
+            i = (nt - 1) * rend.get_frame() // rend.get_max_frame()
+            if map_type in [MapType.data, MapType.fit]:
+                v = Itotal[c][i]
+                values[c] = v * 1e-3
+                texts[c] = "{:}".format(int(v))
+            if map_type in [MapType.error]:
+                cmap = plt.get_cmap("coolwarm")
+                v = Itotal_error[c][i]
+                values[c] = abs(v) * 0.25
+                texts[c] = "{:+d}%".format(int(v * 100))
+                colors[c] = cmap(np.clip(v, -1, 1) * 0.5 + 0.5)
+        rend.set_values(values)
         rend.set_texts(texts)
+        rend.set_colors(colors)
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback,
@@ -292,17 +367,39 @@ def plot_map(model, plot_data=False):
                     draw_Mij=False,
                     draw_Cij=True)
 
-    fn = "data" if plot_data else "fit"
-    print(fn)
-    rend.save_image(60, filename=fn + ".png")
-    rend.save_movie(frames=60, filename=fn + ".mp4")
+    fnbase = map_type
+    if image:
+        frame = min(image_day, nt - 1) if image_day != -1 else nt - 1
+        fn = "{:}_day{:}.png".format(fnbase, frame)
+        rend.save_image(frame=image_day, frames=nt, filename=fn)
+        printlog(fn)
+    if movie:
+        fn = fnbase + ".mp4"
+        rend.save_movie(frames=nt, filename=fn)
+        printlog(fn)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--map_data', action='store_true', help="Map with data (movie and image)")
-    parser.add_argument('--map_fit', action='store_true', help="Map with fit (movie and image)")
-    parser.add_argument('--intervals', action='store_true', help="Credible intervals (images)")
+    parser.add_argument('--tiles',
+                        action='store_true',
+                        help="Plot tiles with all regions")
+    parser.add_argument('--map_data',
+                        action='store_true',
+                        help="Map with data")
+    parser.add_argument('--map_fit', action='store_true', help="Map with fit")
+    parser.add_argument('--map_error',
+                        action='store_true',
+                        help="Map with error")
+    parser.add_argument('--image', action='store_true', help="Create image")
+    parser.add_argument('--image_day',
+                        type=int,
+                        default=-1,
+                        help="Select day for image")
+    parser.add_argument('--movie', action='store_true', help="Create movie")
+    parser.add_argument('--intervals',
+                        action='store_true',
+                        help="Plot credible intervals for all regions")
     args = parser.parse_args()
 
     dataFolder = Path("data")
@@ -314,14 +411,29 @@ def main():
         for region in range(model.n_regions):
             plot_intervals(model, region=region)
 
-    # plot data
-    plot_all_regions(model)
+    if args.tiles:
+        plot_tiles(model)
 
     if args.map_data:
-        plot_map(model, plot_data=True)
+        plot_map(model,
+                 map_type=MapType.data,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
 
     if args.map_fit:
-        plot_map(model, plot_data=False)
+        plot_map(model,
+                 map_type=MapType.fit,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
+
+    if args.map_error:
+        plot_map(model,
+                 map_type=MapType.error,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
 
 
 if __name__ == "__main__":
