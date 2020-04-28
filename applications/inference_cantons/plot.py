@@ -7,10 +7,12 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+
 def printlog(msg):
     out = sys.stderr
     out.write(str(msg) + "\n")
     out.flush()
+
 
 from epidemics.tools.tools import load_model
 
@@ -165,8 +167,8 @@ def plot_tiles(model, keys=None):
         keys = model.region_names
 
     keys = sorted(keys,
-                   key=lambda key: np.cumsum(model.data['Model']['y-data'][
-                       model.region_names.index(key)::model.n_regions]).max())
+                  key=lambda key: np.cumsum(model.data['Model']['y-data'][
+                      model.region_names.index(key)::model.n_regions]).max())
 
     #fig = plt.figure(figsize=(10, 10))
     #axes = fig.subplots(6, 5)
@@ -253,6 +255,7 @@ def get_data(model, keys):
         Itotal[key] = np.cumsum(y)
     return t, I, Itotal
 
+
 def get_fit(model, keys, n_samples=5):
     """
     model: `json`
@@ -301,26 +304,61 @@ def get_fit(model, keys, n_samples=5):
         Itotal[key] = mean_cum
     return t, I, Itotal
 
-def plot_map(model, plot_data=False, image=True, movie=True, image_day=-1):
-    keys = model.region_names
 
-    if plot_data:
+class MapType:
+    data = "data"
+    fit = "fit"
+    error = "error"
+
+
+def plot_map(model,
+             map_type=MapType.fit,
+             image=True,
+             movie=True,
+             image_day=-1):
+    keys = model.region_names
+    nt = None
+
+    if map_type == MapType.data:
         t, _, Itotal = get_data(model, keys)
-    else:
+        nt = len(t)
+    elif map_type == MapType.fit:
         t, _, Itotal = get_fit(model, keys)
+        nt = len(t)
+    elif map_type == MapType.error:
+        tdata, _, Itotal_data = get_data(model, keys)
+        tfit, _, Itotal_fit = get_fit(model, keys)
+        nt = min(len(tdata), len(tfit))
+        assert len(tdata) == len(tfit)
+        Itotal_error = dict()
+        for key in keys:
+            Id = Itotal_data[key][:nt]
+            If = Itotal_fit[key][:nt]
+            Itotal_error[key] = (If - Id) / np.maximum(1, Id)
+    else:
+        raise NotImplementedError()
 
     from epidemics.cantons.py.plot import Renderer
 
     def frame_callback(rend):
-        colors = dict()
+        values = dict()
         texts = dict()
-        for i, c in enumerate(rend.get_codes()):
-            i = (len(t) - 1) * rend.get_frame() // rend.get_max_frame()
-            v = Itotal[c][i]
-            colors[c] = v * 1e-3
-            texts[c] = "{:}".format(int(v))
-        rend.set_values(colors)
+        colors = dict()
+        for c in rend.get_codes():
+            i = (nt - 1) * rend.get_frame() // rend.get_max_frame()
+            if map_type in [MapType.data, MapType.fit]:
+                v = Itotal[c][i]
+                values[c] = v * 1e-3
+                texts[c] = "{:}".format(int(v))
+            if map_type in [MapType.error]:
+                cmap = plt.get_cmap("coolwarm")
+                v = Itotal_error[c][i]
+                values[c] = abs(v) * 0.25
+                texts[c] = "{:+d}%".format(int(v * 100))
+                colors[c] = cmap(np.clip(v, -1, 1) * 0.5 + 0.5)
+        rend.set_values(values)
         rend.set_texts(texts)
+        rend.set_colors(colors)
 
     from epidemics.cantons.py.model import get_canton_model_data
     rend = Renderer(frame_callback,
@@ -329,27 +367,39 @@ def plot_map(model, plot_data=False, image=True, movie=True, image_day=-1):
                     draw_Mij=False,
                     draw_Cij=True)
 
-    fnbase = "data" if plot_data else "fit"
+    fnbase = map_type
     if image:
-        frame = min(image_day, len(t) - 1) if image_day != -1 else len(t) - 1
+        frame = min(image_day, nt - 1) if image_day != -1 else nt - 1
         fn = "{:}_day{:}.png".format(fnbase, frame)
-        rend.save_image(frame=image_day, frames=len(t), filename=fn)
+        rend.save_image(frame=image_day, frames=nt, filename=fn)
         printlog(fn)
     if movie:
         fn = fnbase + ".mp4"
-        rend.save_movie(frames=len(t), filename=fn)
+        rend.save_movie(frames=nt, filename=fn)
         printlog(fn)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--tiles', action='store_true', help="Plot tiles with all regions")
-    parser.add_argument('--map_data', action='store_true', help="Map with data")
+    parser.add_argument('--tiles',
+                        action='store_true',
+                        help="Plot tiles with all regions")
+    parser.add_argument('--map_data',
+                        action='store_true',
+                        help="Map with data")
     parser.add_argument('--map_fit', action='store_true', help="Map with fit")
+    parser.add_argument('--map_error',
+                        action='store_true',
+                        help="Map with error")
     parser.add_argument('--image', action='store_true', help="Create image")
-    parser.add_argument('--image_day', type=int, default=-1, help="Select day for image")
+    parser.add_argument('--image_day',
+                        type=int,
+                        default=-1,
+                        help="Select day for image")
     parser.add_argument('--movie', action='store_true', help="Create movie")
-    parser.add_argument('--intervals', action='store_true', help="Plot credible intervals for all regions")
+    parser.add_argument('--intervals',
+                        action='store_true',
+                        help="Plot credible intervals for all regions")
     args = parser.parse_args()
 
     dataFolder = Path("data")
@@ -365,12 +415,25 @@ def main():
         plot_tiles(model)
 
     if args.map_data:
-        plot_map(model, plot_data=True, image=args.image, movie=args.movie,
-                image_day=args.image_day)
+        plot_map(model,
+                 map_type=MapType.data,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
 
     if args.map_fit:
-        plot_map(model, plot_data=False, image=args.image, movie=args.movie,
-                image_day=args.image_day)
+        plot_map(model,
+                 map_type=MapType.fit,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
+
+    if args.map_error:
+        plot_map(model,
+                 map_type=MapType.error,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
 
 
 if __name__ == "__main__":

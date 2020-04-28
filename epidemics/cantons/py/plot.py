@@ -107,6 +107,7 @@ class Renderer:
         # FIXME: "code" vs "key" terminology, pick one.
         self.code_to_value = {}
         self.code_to_text = {}
+        self.code_to_color = {}
         self.draw_zones = draw_zones
         self.draw_Mij = draw_Mij
         self.draw_Cij = draw_Cij
@@ -147,6 +148,13 @@ class Renderer:
           Mapping from canton code to float between 0 and 1.
         '''
         self.code_to_value = code_to_value
+
+    def set_colors(self, code_to_color):
+        '''
+        code_to_color: `dict`
+          Mapping from canton code to RGBA color accepted by matplotlib.
+        '''
+        self.code_to_color = code_to_color
 
     def set_zone_values(self, zone_values):
         '''
@@ -312,6 +320,9 @@ class Renderer:
             alpha = np.clip(value, 0, 1) * 0.75
             for fill in self.fills[code]:
                 fill.set_alpha(alpha)
+        for code,color in self.code_to_color.items():
+            for fill in self.fills[code]:
+                fill.set_color(color)
         for code in self.texts:
             if code in self.code_to_text:
                 self.texts[code].set_text(str(self.code_to_text[code]))
