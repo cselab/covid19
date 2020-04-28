@@ -158,15 +158,15 @@ def plot_intervals(model, region=0):
     plt.close(fig)
 
 
-def plot_tiles(model, names=None):
+def plot_tiles(model, keys=None):
     printlog('[Epidemics] Plot tiles with all regions.')
 
-    if names is None:
-        names = model.region_names
+    if keys is None:
+        keys = model.region_names
 
-    names = sorted(names,
-                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
-                       model.region_names.index(name)::model.n_regions]).max())
+    keys = sorted(keys,
+                   key=lambda key: np.cumsum(model.data['Model']['y-data'][
+                       model.region_names.index(key)::model.n_regions]).max())
 
     #fig = plt.figure(figsize=(10, 10))
     #axes = fig.subplots(6, 5)
@@ -175,10 +175,10 @@ def plot_tiles(model, names=None):
     axes = axes.flatten()
 
     iax = 0
-    imax = min(len(axes), len(names))
-    for ax, name in zip(axes[:imax], names[:imax]):
-        region = model.region_names.index(name)
-        ax.set_title(name, loc='left')
+    imax = min(len(axes), len(keys))
+    for ax, key in zip(axes[:imax], keys[:imax]):
+        region = model.region_names.index(key)
+        ax.set_title(key, loc='left')
 
         # data
         x = model.data['Model']['x-data'][region::model.n_regions]
@@ -227,51 +227,51 @@ def plot_tiles(model, names=None):
     plt.close(fig)
 
 
-def get_data(model, names):
+def get_data(model, keys):
     """
     model: `json`
         Korali model.
-    names: `array_likt`
-        List of region names to extract.
+    keys: `array_likt`
+        List of region keys to extract.
     Returns reference data for infections saved in `model`.
     t: `numpy.ndarray`, (nt)
         Days.
-    I: `dict(name : numpy.ndarray)`, (nt)
+    I: `dict(key : numpy.ndarray)`, (nt)
         Daily infections.
-    Itotal: `dict(name : numpy.ndarray)`, (nt)
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
         Total number of infections.
     """
     t = None
     I = dict()
     Itotal = dict()
-    for name in names:
-        region = model.region_names.index(name)
+    for key in keys:
+        region = model.region_names.index(key)
         t = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         y = np.array(y).flatten()
-        I[name] = y
-        Itotal[name] = np.cumsum(y)
+        I[key] = y
+        Itotal[key] = np.cumsum(y)
     return t, I, Itotal
 
-def get_fit(model, names, n_samples=5):
+def get_fit(model, keys, n_samples=5):
     """
     model: `json`
         Korali model.
-    names: `array_likt`
-        List of region names to extract.
+    keys: `array_likt`
+        List of region keys to extract.
     Returns reference data for infections saved in `model`.
     t: `numpy.ndarray`, (nt)
         Days.
-    I: `dict(name : numpy.ndarray)`, (nt)
+    I: `dict(key : numpy.ndarray)`, (nt)
         Mean fit for daily infections.
-    Itotal: `dict(name : numpy.ndarray)`, (nt)
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
         Mean fit for total number of infections.
     """
     t = None
     I = dict()
     Itotal = dict()
-    for name in names:
-        region = model.region_names.index(name)
+    for key in keys:
+        region = model.region_names.index(key)
         t = model.data['Model']['x-data'][region::model.n_regions]
         t = np.array(t).flatten()
 
@@ -297,17 +297,17 @@ def get_fit(model, names, n_samples=5):
             mean[it] = np.mean(samples[:, it])
             mean_cum[it] = np.mean(samples_cum[:, it])
 
-        I[name] = mean
-        Itotal[name] = mean_cum
+        I[key] = mean
+        Itotal[key] = mean_cum
     return t, I, Itotal
 
 def plot_map(model, plot_data=False, image=True, movie=True, image_day=-1):
-    names = model.region_names
+    keys = model.region_names
 
     if plot_data:
-        t, _, Itotal = get_data(model, names)
+        t, _, Itotal = get_data(model, keys)
     else:
-        t, _, Itotal = get_fit(model, names)
+        t, _, Itotal = get_fit(model, keys)
 
     from epidemics.cantons.py.plot import Renderer
 
