@@ -38,51 +38,63 @@ class Model( ModelBase ):
 
 
 
-  def set_variables_and_distributions( self ):
-
+  def get_variables_and_distributions( self ):
     p = [ 'beta', 'mu', 'alpha', 'Z', 'D', '[Sigma]' ]
 
+    js = {}
+    js['Variables']=[]
+    js['Distributions']=[]
+
     for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
+      js['Variables'].append({})
+      js['Variables'][k]['Name'] = x
+      js['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
 
     self.nParameters = len(p)
 
     k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.1
-    self.e['Distributions'][k]['Maximum'] = 3
-    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 100
 
-    self.e['Distributions'][k]['Name'] = 'Prior for mu'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.6
-    self.e['Distributions'][k]['Maximum'] = 1
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for mu'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 1
 
-    self.e['Distributions'][k]['Name'] = 'Prior for alpha'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.05
-    self.e['Distributions'][k]['Maximum'] = 0.15
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for alpha'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.1
+    js['Distributions'][k]['Maximum'] = 1.0
 
-    self.e['Distributions'][k]['Name'] = 'Prior for Z'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.001
-    self.e['Distributions'][k]['Maximum'] = 0.5
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for Z'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 10
 
-    self.e['Distributions'][k]['Name'] = 'Prior for D'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 5
-    self.e['Distributions'][k]['Maximum'] = 10
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for D'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 100
 
-    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.01
-    self.e['Distributions'][k]['Maximum'] = 10
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Maximum'] = 10
+
+    return js
 
 
 

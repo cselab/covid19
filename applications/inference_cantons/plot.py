@@ -152,37 +152,44 @@ def plot_intervals(model, region=0):
     fig.savefig(name)
     plt.close(fig)
 
+
 def plot_all_regions(model, names=None):
     print('[Epidemics] Plot data of all regions.')
 
     if names is None:
         names = model.region_names
 
-    fig = plt.figure(figsize=(10, 10))
-    axes = fig.subplots(6,5)
+    names = sorted(names,
+                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
+                       model.region_names.index(name)::model.n_regions]).max())
+
+    #fig = plt.figure(figsize=(10, 10))
+    #axes = fig.subplots(6, 5)
+    fig = plt.figure(figsize=(20, 3.5))
+    axes = fig.subplots(2, 13)
     axes = axes.flatten()
 
     iax = 0
     imax = min(len(axes), len(names))
-    for ax,name in zip(axes[:imax], names[:imax]):
+    for ax, name in zip(axes[:imax], names[:imax]):
         region = model.region_names.index(name)
-        ax.set_title(names[region], loc='left')
+        ax.set_title(name, loc='left')
 
         # data
         x = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
-        ax.plot(x, ycum, 'o', lw=1, color='black')
+        ax.scatter(x, ycum, s=1, color='black')
         ax.set_ylim(0, 60)
         ax.set_xticks([0, 30, 60])
-        ax.set_ylim(0, ycum.max() * 1.5)
+        ax.set_ylim(0, ycum.max() * 2)
         ax.set_yticks([0, int(ycum.max())])
 
         # inference
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
-        ns = 1
+        ns = 5
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
             for k in range(Nt):
@@ -197,12 +204,13 @@ def plot_all_regions(model, names=None):
         for k in range(Nt):
             median[k] = np.quantile(samples[:, k], 0.5)
             mean[k] = np.mean(samples[:, k])
+
         # one sample
         y = model.propagatedVariables[var][0, :]
         ycum = np.cumsum(y)
         x = model.data['Propagation']['x-data'][::model.n_regions]
         ax.plot(x, mean, lw=1, color='red')
-        ax.plot(x, ycum, lw=1, color='blue')
+        #ax.plot(x, ycum, lw=1, color='blue')
 
     for ax in axes[imax:]:
         ax.set_axis_off()
@@ -212,19 +220,108 @@ def plot_all_regions(model, names=None):
     fig.savefig(name)
     plt.close(fig)
 
+
+def plot_map(model, plot_data=False):
+    names = None
+    if names is None:
+        names = model.region_names
+
+    names = sorted(names,
+                   key=lambda name: np.cumsum(model.data['Model']['y-data'][
+                       model.region_names.index(name)::model.n_regions]).max())
+
+    ydata = dict()
+    xdata = None
+    yfit = dict()
+    xfit = None
+    for name in names:
+        region = model.region_names.index(name)
+
+        # data
+        x = model.data['Model']['x-data'][region::model.n_regions]
+        y = model.data['Model']['y-data'][region::model.n_regions]
+        ycum = np.cumsum(y)
+
+        xdata = np.array(x).flatten()
+        ydata[name] = np.array(ycum).flatten()
+
+        # inference
+        var = "Daily Incidence {:}".format(region)
+        Ns = model.propagatedVariables[var].shape[0]
+        Nt = model.propagatedVariables[var].shape[1]
+        ns = 5
+        samples = np.zeros((Ns * ns, Nt))
+        if model.likelihoodModel == 'Negative Binomial':
+            for k in range(Nt):
+                m = model.propagatedVariables[var][:, k]
+                r = model.propagatedVariables['Dispersion'][:, k]
+                p = p = m / (m + r)
+                y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
+                samples[:, k] = np.asarray(y).flatten()
+        samples = np.cumsum(samples, axis=1)
+        mean = np.zeros((Nt, 1))
+        median = np.zeros((Nt, 1))
+        for k in range(Nt):
+            median[k] = np.quantile(samples[:, k], 0.5)
+            mean[k] = np.mean(samples[:, k])
+
+        xfit = np.array(x).flatten()
+        yfit[name] = np.array(mean).flatten()
+
+    from epidemics.cantons.py.plot import Renderer
+
+    def frame_callback(rend):
+        colors = dict()
+        texts = dict()
+        for i, c in enumerate(rend.get_codes()):
+            if plot_data:
+                i = (len(xdata) - 1) * rend.get_frame() // rend.get_max_frame()
+                v = ydata[c][i]
+            else:
+                i = (len(xfit) - 1) * rend.get_frame() // rend.get_max_frame()
+                v = yfit[c][i]
+            colors[c] = v * 1e-3
+            texts[c] = "{:}".format(int(v))
+        rend.set_values(colors)
+        rend.set_texts(texts)
+
+    from epidemics.cantons.py.model import get_canton_model_data
+    rend = Renderer(frame_callback,
+                    data=get_canton_model_data(),
+                    resolution=(1920, 1080),
+                    draw_Mij=False,
+                    draw_Cij=True)
+
+    fn = "data" if plot_data else "fit"
+    print(fn)
+    rend.save_image(60, filename=fn + ".png")
+    rend.save_movie(frames=60, filename=fn + ".mp4")
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--map_data', action='store_true', help="Map with data (movie and image)")
+    parser.add_argument('--map_fit', action='store_true', help="Map with fit (movie and image)")
+    parser.add_argument('--intervals', action='store_true', help="Credible intervals (images)")
+    args = parser.parse_args()
+
     dataFolder = Path("data")
     f = dataFolder / 'cantons' / 'state.pickle'
 
-    assert os.path.isfile(f)
-
     model = load_model(f)
 
-    #for region in range(model.n_regions):
-    #    plot_intervals(model, region=region)
+    if args.intervals:
+        for region in range(model.n_regions):
+            plot_intervals(model, region=region)
 
     # plot data
     plot_all_regions(model)
+
+    if args.map_data:
+        plot_map(model, plot_data=True)
+
+    if args.map_fit:
+        plot_map(model, plot_data=False)
 
 
 if __name__ == "__main__":

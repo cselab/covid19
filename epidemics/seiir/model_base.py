@@ -45,7 +45,7 @@ class ModelBase( EpidemicsBase ):
     t = self.regionalData.time
     N = self.regionalData.populationSize
 
-    i0 = 24
+    i0 = 0
 
     if i0==0:
       Ir0 = y[0]
@@ -56,7 +56,7 @@ class ModelBase( EpidemicsBase ):
     E0  = 0
     Iu0 = 0
     y0  = S0, E0, Ir0, Iu0
-    
+
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[i0+1:]
       self.data['Model']['y-data'] = np.diff(y[i0:])
