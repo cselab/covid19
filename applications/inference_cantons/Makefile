@@ -17,4 +17,8 @@ clean:
 	rm -rf data
 	rm -f samples.png prediction*.png data.{png,mp4} fit.{png,mp4} all.png
 
-.PHONY: default clean run
+plot_map:
+	./plot.py --map_data --map_fit --map_error --image --movie
+
+
+.PHONY: default clean run plot_map

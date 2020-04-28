@@ -353,9 +353,10 @@ def plot_map(model,
             if map_type in [MapType.error]:
                 cmap = plt.get_cmap("coolwarm")
                 v = Itotal_error[c][i]
-                values[c] = abs(v) * 0.25
+                vclip = np.clip(v, -1, 1)
+                values[c] = abs(vclip) * 0.5
                 texts[c] = "{:+d}%".format(int(v * 100))
-                colors[c] = cmap(np.clip(v, -1, 1) * 0.5 + 0.5)
+                colors[c] = cmap(vclip * 0.5 + 0.5)
         rend.set_values(values)
         rend.set_texts(texts)
         rend.set_colors(colors)
