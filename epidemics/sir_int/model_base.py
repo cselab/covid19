@@ -16,6 +16,7 @@ from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
 from epidemics.tools.tools import prepare_folder, save_file
 
+
 class ModelBase( EpidemicsBase ):
 
 
@@ -42,10 +43,17 @@ class ModelBase( EpidemicsBase ):
 
 
 
-  # beta, gamma
+  # beta, gamma, delta, td
   def sir_rhs( self, t, y, N, p ):
     S, I = y
-    c1 = p[0] * p[1] * S * I / N
+
+    if( t<p[3] ):
+    # if( t<25 ):
+      beta = p[0]
+    else:
+      beta = p[0]*p[2]
+
+    c1 = beta * p[1] * S * I / N
     c2 = p[1] * I
     dSdt = -c1
     dIdt =  c1 - c2
@@ -76,12 +84,11 @@ class ModelBase( EpidemicsBase ):
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
+    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected (data)', color='black')
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
-
     ax[-1].set_xlabel('time in days')
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
@@ -97,12 +104,15 @@ class ModelBase( EpidemicsBase ):
 
     fig = self.new_figure()
 
-    ax  = fig.subplots( 1 )
+    ax  = fig.subplots( 2 )
 
     if self.parameters[0]['Name'] == 'R0':
-      ax.hist( self.parameters[0]['Values'], bins=40, density=1)
+      R0 = self.parameters[0]['Values']
     else:
-      ax.hist( self.parameters[0]['Values']/self.parameters[1]['Values'], bins=40, density=1)
+      R0 = self.parameters[0]['Values']/self.parameters[1]['Values']
+
+    ax[0].hist( R0, 40, density=1)
+    ax[1].hist( R0*self.parameters[2]['Values'], 40, density=1)
 
     file = os.path.join(self.saveInfo['figures'],'R0.png');
     fig.savefig(file)

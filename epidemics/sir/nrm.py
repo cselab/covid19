@@ -5,9 +5,6 @@
 
 import os
 
-import matplotlib.pyplot as plt
-plt.ioff()
-
 from scipy.integrate import solve_ivp
 import numpy as np
 
@@ -20,7 +17,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_altone_nrm'
+    self.modelName        = 'sir.nrm'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Normal Likelihood'
     self.likelihoodModel  = 'Normal'
 
@@ -72,6 +69,7 @@ class Model( ModelBase ):
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
+
     for k,x in enumerate(p):
       js['Variables'].append({})
       js['Variables'][k]['Name'] = x
@@ -83,7 +81,7 @@ class Model( ModelBase ):
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for beta'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
+    js['Distributions'][k]['Minimum'] = 1
     js['Distributions'][k]['Maximum'] = 100.
 
     k+=1
@@ -103,8 +101,11 @@ class Model( ModelBase ):
     return js
 
 
+
+
   def computational_model( self, s ):
     p = s['Parameters']
+    p[0] = p[0]/p[1]
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
@@ -123,6 +124,7 @@ class Model( ModelBase ):
 
   def computational_model_propagate( self, s ):
     p = s['Parameters']
+    p[0] = p[0]/p[1]
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
@@ -145,37 +147,3 @@ class Model( ModelBase ):
     js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
-
-
-
-
-  def plot_intervals( self, ns=10):
-
-    fig = self.new_figure()
-
-    ax  = fig.subplots( 2 )
-
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-    z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-
-    ax[-1].set_xlabel('time in days')
-
-    file = os.path.join(self.saveInfo['figures'],'prediction.png');
-    prepare_folder( os.path.dirname(file) )
-    fig.savefig(file)
-
-    plt.show()
-
-    plt.close(fig)

@@ -9,27 +9,55 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import numpy as np
 import matplotlib.pyplot as plt
 
-from epidemics.sir.altone_nbin import Model
+# from epidemics.sir.altone_nbin import Model
+# x = Model()
+# N = x.regionalData.populationSize
+# T = x.regionalData.time[-1]
+# # p = [ +4.151e+01, +4.170e+01 ]
+# # p = [ +7.440e+01, +7.429e+01 ]
+# p = [ +7.154e+01, +7.142e+01 ]
+# sol = x.solve_ode( [N-1,1], T, N, p )
+# t = np.linspace(0,T,1000)
+# S = sol.sol(t)[0]
+# fig = plt.figure(figsize=(12, 8))
+# ax  = fig.subplots(1)
+#
+# ax.plot( t[1:], -np.diff(S), '-', lw=2, label='Daily Reported' )
+#
+# ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
+# ax.grid()
+# ax.legend(loc='upper left')
+# # ax[k].set_yscale('log')
+#
+# plt.show()
+
+
+
+
+
+
+from epidemics.sir_int.nbin import Model
 x = Model()
 N = x.regionalData.populationSize
 T = x.regionalData.time[-1]
-# p = [ +4.151e+01, +4.170e+01 ]
-p = [ +7.440e+01, +7.429e+01 ]
-p=[+7.154e+01, +7.142e+01]
+p = [ 2.390152804204263, 0.5, 15.528833362506703, 4.209474337603897 ]
 sol = x.solve_ode( [N-1,1], T, N, p )
 t = np.linspace(0,T,1000)
 S = sol.sol(t)[0]
 fig = plt.figure(figsize=(12, 8))
 ax  = fig.subplots(1)
 
-ax.plot( t[1:], -np.diff(S), '-', lw=2, label='Daily Reported' )
+# ax.plot( t[1:], -np.diff(S), '-', lw=2, label='Daily Reported' )
 
-ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
+ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Reported Infected', color='black')
 ax.grid()
 ax.legend(loc='upper left')
+ax.set_xlabel('time (days)')
 # ax[k].set_yscale('log')
 
 plt.show()
+
+
 
 
 

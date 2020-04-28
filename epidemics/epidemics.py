@@ -391,7 +391,7 @@ class EpidemicsBase:
 
 
   def new_figure(self):
-    print('[Epidemics] Compute and Plot credible intervals.')
+    print('[Epidemics] New figure...')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
@@ -466,7 +466,8 @@ class EpidemicsBase:
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
-    ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
+    ax.set_xticks( x[0:-1:3] )
     ax.grid()
     if( self.logPlot ): ax.set_yscale('log')
 

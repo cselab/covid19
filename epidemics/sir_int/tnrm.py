@@ -5,13 +5,10 @@
 
 import os
 
-import matplotlib.pyplot as plt
-plt.ioff()
-
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.tools.tools import save_file
 from .model_base import ModelBase
 
 
@@ -20,9 +17,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_altone_nbin'
-    self.modelDescription = 'Fit SIR on Daily Infected Data with Negative Binomial likelihood'
-    self.likelihoodModel  = 'Negative Binomial'
+    self.modelName        = 'sir_int.tnrm'
+    self.modelDescription = 'Fit SIR+Intervention on Daily Infected Data with Positive Normal Likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
@@ -68,12 +65,10 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
 
-    p = ['beta','gamma','[r]']
-
+    p = ['R0','gamma','delta','td','[Sigma]']
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
-
     for k,x in enumerate(p):
       js['Variables'].append({})
       js['Variables'][k]['Name'] = x
@@ -83,10 +78,10 @@ class Model( ModelBase ):
 
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Minimum'] = 0.5
+    js['Distributions'][k]['Maximum'] = 4.
 
     k+=1
     js['Distributions'].append({})
@@ -97,10 +92,24 @@ class Model( ModelBase ):
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for [r]'
+    js['Distributions'][k]['Name'] = 'Prior for delta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.
+    js['Distributions'][k]['Maximum'] = 1.
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for td'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 20
+    js['Distributions'][k]['Maximum'] = 50.
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Maximum'] = 100.
 
     return js
 
@@ -119,8 +128,11 @@ class Model( ModelBase ):
     y = -np.diff(sol.y[0])
     y = y.tolist()
 
+    if(len(y)<t.shape[0]):
+      y = np.full((t.shape[0],),1e-16).tolist()
+
     s['Reference Evaluations'] = y
-    s['Dispersion'] = len(y)*[p[-1]]
+    s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
 
 
@@ -146,39 +158,6 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    js['Dispersion'] = len(y)*[p[-1]]
+    js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
     s['Saved Results'] = js
-
-
-
-
-  def plot_intervals( self, ns=10):
-
-    fig = self.new_figure()
-
-    ax  = fig.subplots( 2 )
-
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-    z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected (data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-    ax[-1].set_xlabel('time in days')
-
-    file = os.path.join(self.saveInfo['figures'],'prediction.png');
-    prepare_folder( os.path.dirname(file) )
-    fig.savefig(file)
-
-    plt.show()
-
-    plt.close(fig)
