@@ -51,7 +51,6 @@ def propagation(model,canton,phase_3_path):
     a = model_class(**params)
 
     a.load_parameters(phase_3_path+'/_korali_samples_phase_3/')
-    a.sample()
     a.propagate()
     a.save()
     a.plot_intervals()

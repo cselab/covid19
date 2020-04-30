@@ -325,6 +325,8 @@ class EpidemicsBase:
 
   def load_parameters(self,samples_path):
 
+      print('[Epidemics] Loading posterior samples')
+
       files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
       files.sort()
       filename = files[-1]
@@ -335,17 +337,18 @@ class EpidemicsBase:
         samples = data['Results']['Sample Database']
         variables = data['Variables']
 
-      nParameters = len(variables)
-      nSamples = len(samples)
+      self.nParameters = len(variables)
+      self.nSamples = len(samples)
       self.parameters = []
-      for j in range(nParameters):
+      for j in range(self.nParameters):
         self.parameters.append({})
         self.parameters[j]['Name'] = variables[j]['Name']
-        self.parameters[j]['Values'] = np.asarray( [samples[k][j] for k in range(nSamples)] )
+        self.parameters[j]['Values'] = np.asarray( [samples[k][j] for k in range(self.nSamples)] )
 
       self.has_been_called['sample'] = True
 
-    
+      print('[Epidemics] Loaded')
+
 
   def propagate( self ):
 
@@ -452,7 +455,8 @@ class EpidemicsBase:
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
         r = self.propagatedVariables['Dispersion'][:,k]
-        p = p =  m/(m+r)
+        p =  m/(m+r)
+        print(1-p)
         x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 
