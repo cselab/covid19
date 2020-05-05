@@ -1,3 +1,4 @@
+
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,6 +9,7 @@ from mpl_toolkits.mplot3d import axes3d
 import os
 import sys
 from plot import Renderer
+from matplotlib.pyplot import figure
 
 
 name = ['AG','AI','AR','BE','BL','BS','FR','GE','GL','GR',\
@@ -103,75 +105,78 @@ def plot_all_cantons(v_list):
         v[i][ j*days + k ] = v_list[i][j][k]
 
 
+  print (days)
   max_v = np.max(v_list)
-  locations = np.arange(0,days)
+  locations = np.arange(1,days+1)
+  locations_x = [0,20,40,60,80,100]
   
-  fig, axs = plt.subplots(2,2)
-  s = 0
-  axs[0,0].plot(locations,v_list[s][0 ][:],label=name[0 ])
-  axs[0,0].plot(locations,v_list[s][1 ][:],label=name[1 ])
-  axs[0,0].plot(locations,v_list[s][2 ][:],label=name[2 ])
-  axs[0,0].plot(locations,v_list[s][3 ][:],label=name[3 ])
-  axs[0,0].plot(locations,v_list[s][4 ][:],label=name[4 ])
-  axs[0,0].plot(locations,v_list[s][5 ][:],label=name[5 ])
+  locations_y = np.arange(0, int(max_v+1),2)
 
-  axs[0,1].plot(locations,v_list[s][6 ][:],label=name[6 ])
-  axs[0,1].plot(locations,v_list[s][7 ][:],label=name[7 ])
-  axs[0,1].plot(locations,v_list[s][8 ][:],label=name[8 ])
-  axs[0,1].plot(locations,v_list[s][9 ][:],label=name[9 ])
-  axs[0,1].plot(locations,v_list[s][10][:],label=name[10])
-  axs[0,1].plot(locations,v_list[s][11][:],label=name[11])
-
-  axs[1,0].plot(locations,v_list[s][12][:],label=name[12])
-  axs[1,0].plot(locations,v_list[s][13][:],label=name[13])
-  axs[1,0].plot(locations,v_list[s][14][:],label=name[14])
-  axs[1,0].plot(locations,v_list[s][15][:],label=name[15])
-  axs[1,0].plot(locations,v_list[s][16][:],label=name[16])
-  axs[1,0].plot(locations,v_list[s][17][:],label=name[17])
-  axs[1,0].plot(locations,v_list[s][18][:],label=name[18])
-
-  axs[1,1].plot(locations,v_list[s][19][:],label=name[19])
-  axs[1,1].plot(locations,v_list[s][20][:],label=name[20])
-  axs[1,1].plot(locations,v_list[s][21][:],label=name[21])
-  axs[1,1].plot(locations,v_list[s][22][:],label=name[22])
-  axs[1,1].plot(locations,v_list[s][23][:],label=name[23])
-  axs[1,1].plot(locations,v_list[s][24][:],label=name[24])
-  axs[1,1].plot(locations,v_list[s][25][:],label=name[25])
-
-  for i0 in range(2):
-    for i1 in range(2):
-      axs[i0,i1].grid()
-      axs[i0,i1].legend(fontsize='xx-small')
-      axs[i0,i1].set_ylim([0.0,max_v])
-      axs[i0,i1].set_xlim([0.0,70.0 ])
-
-  for ax in axs.flat:
-      ax.set(xlabel='Day', ylabel='Information')
-  for ax in axs.flat:
-      ax.label_outer()
-
-  plt.savefig("slice.eps", format='eps')
-
-
-  fig, axs = plt.subplots(5,6)
+  fig, axs = plt.subplots(6,5)
   axs.titlesize      : xx-small
-  for i0 in range (5):
-    for i1 in range (6):
-      index = i0 * 6 + i1
+  for i0 in range (6):
+    for i1 in range (5):
+      index = i0 * 5 + i1
+      print(i0,i1)
       if index > 25:
+      	#fig.delaxes(axs[i0][i1])
         break
-      for s in range(sensors):
-        axs[i0,i1].plot(locations,v_list[s][index][:],label=str(s+1) + " sensors ")
-      axs[i0,i1].set_title(name[index],fontsize='4')
-      axs[i0,i1].grid()
-      axs[i0,i1].set_ylim([0.0,max_v])
+      else:
+        for s in range(sensors):
+          lab = str(s+1) + " sensors "
+          if s == 0:
+          	lab = str(s+1) + " sensor "
+          axs[i0,i1].plot(locations,v_list[s][index][:],label=lab)
+        axs[i0,i1].grid()
+        axs[i0,i1].set_ylim([0.0,max_v])
+        axs[i0,i1].text(.5,1.05,name[index],
+            horizontalalignment='center',
+            transform=axs[i0,i1].transAxes)
+        axs[i0,i1].set_xticks(locations_x)
+        axs[i0,i1].set_yticks(locations_y)
 
-  for ax in axs.flat:
-      ax.set(xlabel='Day', ylabel='Utility')
-  for ax in axs.flat:
-      ax.label_outer()
+        axs[i0,i1].set(xlabel='Day', ylabel='Utility')
+        if i0 != 4:
+        	axs[i0,i1].label_outer()
+  
 
-  plt.savefig("slice1.eps",format='eps')
+  handles, labels = axs[4,1].get_legend_handles_labels()
+  fig.legend(handles, labels, loc='lower center',ncol=sensors,bbox_to_anchor=(0.6, 0.1))
+  
+  #for ax in axs.flat:
+
+  #for ax in axs.flat:
+  #    ax.label_outer()
+
+  i0 = 4
+  axs[i0,0].set_xticks(locations_x)
+  axs[i0,0].set_xlabel("")
+  axs[i0,0].set_xticklabels("")
+
+  for i1 in range(1,5):
+        axs[i0,i1].set_xticks(locations_x)
+        axs[i0,i1].set_ylabel("")
+        axs[i0,i1].set_yticklabels("")
+
+
+
+
+  for i0 in range (6):
+      for i1 in range (5):
+        index = i0 * 5 + i1
+        print(i0,i1)
+        if index > 25:
+        	fig.delaxes(axs[i0][i1])
+          #break
+    
+
+  #plt.show()
+  
+
+  #fig = plt.gcf()
+  fig.set_size_inches(14.5, 10.5)
+  fig.savefig('slice.pdf', dpi=100 ,format='pdf')
+  #plt.savefig("slice1.eps",format='eps')
 
 
 
@@ -200,7 +205,8 @@ def make_movie(result,utility,n):
             v_u[c] = util[i_state]
             v_r1[c] = res [i_state]/max_res
             v_r2[c] = res [i_state]
-            texts[c] = str("{:.0f}".format(v_r2[c]))
+            tt = (np.asarray(v_r2[c])).astype(int)
+            texts[c] = tt.astype(str)
 
         rend.set_values(v_r1)
         rend.set_texts(texts)
@@ -221,16 +227,20 @@ if __name__ == '__main__':
 
   args = vars(parser.parse_args())
 
+  print(args["result"])
+  print(args["output"])
+
   utility = np.load(args["result"])
-  results = np.load(args["output"])
 
   plot_all_2d(utility)
-  plot_all_3d(utility)
+  #plot_all_3d(utility)
   plot_all_cantons(utility)
   
   #this fails on Euler!
   if args["movie"] == 1:
-     res = results[0,:,:]
+     results = np.load(args["output"])
+     #res = results[0,:,:]
+     res = results
      for n in range(0,utility.shape[0]):
          make_movie(res,utility,n)
 
