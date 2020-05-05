@@ -19,7 +19,7 @@ class OSP:
 
     #output.npy should contain a 3D numpy array [Simulations][Time][Space]
     self.data        = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
-    self.parameters  = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
+    #self.parameters  = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
 
     #arbitrary choices for time correlation length and error model
     self.l     = 3
@@ -51,6 +51,34 @@ class OSP:
         space.append(space_time[i])
         time.append(space_time[i+n])
 
+    for i in range(n):
+        if time[i] < 63:
+           space_time["F(x)"] = 0.0
+           return
+
+    for i in range(n-1):
+        if time[n-1] == time[i] and space[n-1] == space[i]:
+           st = []
+           for j in range(n-1):
+               st.append(space[j])
+           for j in range(n-1):
+               st.append(time[j])
+           
+
+           self.korali = False
+           retval = self.EvaluateUtility(st)
+           self.korali = True
+           if self.korali:
+              space_time["F(x)"] = retval
+              return 
+           else:
+              return retval
+
+        
+           
+
+
+
     M = self.nMeasure
     N = len(time)
     F = np.zeros((self.Ntheta,  M*N ))
@@ -62,6 +90,8 @@ class OSP:
     X1,X2 = np.meshgrid(space,space)
     block = np.exp( -self.distance(T1,X1,T2,X2) ) 
     cov   = np.kron(np.eye(self.nMeasure), block)
+
+
 
     sigma_mean = np.zeros(N)
     for i in range(N):

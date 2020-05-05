@@ -35,4 +35,7 @@ all_data = np.zeros((cantons,days))
 for c in range(cantons):
     c_i = name[c]
     all_data[c,:] = data[c_i].recovered
+    print(all_data[c,:])
+    print(IR[c_i][:])
+    print("====================")
 np.save("canton_daily_removed.npy",all_data)
