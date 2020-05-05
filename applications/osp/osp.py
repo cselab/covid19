@@ -51,10 +51,10 @@ class OSP:
         space.append(space_time[i])
         time.append(space_time[i+n])
 
-    for i in range(n):
-        if time[i] < 63:
-           space_time["F(x)"] = 0.0
-           return
+    #for i in range(n):
+    #    if time[i] < 63:
+    #       space_time["F(x)"] = 0.0
+    #       return
 
     for i in range(n-1):
         if time[n-1] == time[i] and space[n-1] == space[i]:
