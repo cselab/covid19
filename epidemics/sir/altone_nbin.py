@@ -13,7 +13,7 @@ import numpy as np
 
 from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
-
+import epidemics.ode_solver as solver
 
 class Model( ModelBase ):
 
@@ -114,12 +114,10 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend='numpy')
+    y = solver.get_daily_incidences(sol,0)
 
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
-
-    s['Reference Evaluations'] = y
+    s['Reference Evaluations'] = solver.to_list(y)
     s['Dispersion'] = len(y)*[p[-1]]
 
 
@@ -131,17 +129,15 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t,backend='numpy')
+    y = solver.get_daily_incidences(sol,0)
 
     js = {}
     js['Variables'] = []
 
     js['Variables'].append({})
     js['Variables'][0]['Name']   = 'Daily Incidence'
-    js['Variables'][0]['Values'] = y
+    js['Variables'][0]['Values'] = solver.to_list(y)
 
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)

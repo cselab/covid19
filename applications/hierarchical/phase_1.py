@@ -24,7 +24,7 @@ if __name__ == "__main__":
     model = 'sir.altone_nbin'
     regions = CANTON_LIST
     n_samples = 2000
-    params = {'dataFolder': './data/'+model.replace('.','_')+'/phase_1_results/',
+    params = {'dataFolder': './data/'+model.replace('.','_')+'/phase_1_results_test/',
               'preprocess':True,
               'nThreads': 12,
               'nPropagation': 100,

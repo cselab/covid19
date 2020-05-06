@@ -32,6 +32,7 @@ class EpidemicsBase:
     self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
+    self.backend     = kwargs.pop('backend','numpy')
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")

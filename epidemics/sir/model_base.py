@@ -11,6 +11,7 @@ from scipy.integrate import solve_ivp
 
 from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
+import epidemics.ode_solver as solver
 
 
 class ModelBase( EpidemicsBase ):

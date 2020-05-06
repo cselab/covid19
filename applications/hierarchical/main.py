@@ -6,12 +6,12 @@
 
 import argparse, sys
 import copy
-sys.path.append('../')
+sys.path.append('../../')
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='sir.altone_nbin', help='The computational mode.')
-parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
+parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
