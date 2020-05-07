@@ -8,7 +8,7 @@ sys.path.append('../../')
 from epidemics.tools.tools import import_from
 from epidemics.data.files.canton_population import CANTON_LIST
 
-def run_bayesian(model,region,n_samples,params):
+def run_phase_1(model,region,n_samples,params):
 
     model_class = import_from( 'epidemics.' + model, 'Model')
     params['country'] = region
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     model = 'sir.altone_nbin'
     regions = CANTON_LIST
     n_samples = 2000
-    params = {'dataFolder': './data',
+    params = {'dataFolder': './data/'+model.replace('.','_')+'/phase_1_results_test/',
               'preprocess':True,
               'nThreads': 12,
               'nPropagation': 100,
@@ -34,5 +34,5 @@ if __name__ == "__main__":
               'silent': False}
 
     for region in regions:
-        run_bayesian(model,region,n_samples,params)
+        run_phase_1(model,region,n_samples,params)
 

@@ -7,6 +7,13 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+
+def printlog(msg):
+    out = sys.stderr
+    out.write(str(msg) + "\n")
+    out.flush()
+
+
 from epidemics.tools.tools import load_model
 
 from pathlib import Path
@@ -32,7 +39,7 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
     samples = np.zeros((Ns * ns, Nt))
 
-    print(
+    printlog(
         f"[Epidemics] Sampling from {model.likelihoodModel} for '{varName}' variable... ",
         end='',
         flush=True)
@@ -70,9 +77,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
         samples = np.cumsum(samples, axis=cummulate)
 
     elapsed = time.process_time() - start
-    print(f" elapsed {elapsed:.2f} sec")
+    printlog(f" elapsed {elapsed:.2f} sec")
 
-    print(f"[Epidemics] Computing quantiles... ")
+    printlog(f"[Epidemics] Computing quantiles... ")
 
     mean = np.zeros((Nt, 1))
     median = np.zeros((Nt, 1))
@@ -108,9 +115,9 @@ def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
 
 def plot_intervals(model, region=0):
     if region >= model.n_regions:
-        print("skpping region={:}".format(region))
+        printlog("skpping region={:}".format(region))
         return
-    print('[Epidemics] Compute and Plot credible intervals.')
+    printlog('[Epidemics] Compute and Plot credible intervals.')
     fig = plt.figure(figsize=(12, 8))
     if model.region_names:
         fig.suptitle(model.region_names[region])
@@ -152,37 +159,44 @@ def plot_intervals(model, region=0):
     fig.savefig(name)
     plt.close(fig)
 
-def plot_all_regions(model, names=None):
-    print('[Epidemics] Plot data of all regions.')
 
-    if names is None:
-        names = model.region_names
+def plot_tiles(model, keys=None):
+    printlog('[Epidemics] Plot tiles with all regions.')
 
-    fig = plt.figure(figsize=(10, 10))
-    axes = fig.subplots(6,5)
+    if keys is None:
+        keys = model.region_names
+
+    keys = sorted(keys,
+                  key=lambda key: np.cumsum(model.data['Model']['y-data'][
+                      model.region_names.index(key)::model.n_regions]).max())
+
+    #fig = plt.figure(figsize=(10, 10))
+    #axes = fig.subplots(6, 5)
+    fig = plt.figure(figsize=(20, 3.5))
+    axes = fig.subplots(2, 13)
     axes = axes.flatten()
 
     iax = 0
-    imax = min(len(axes), len(names))
-    for ax,name in zip(axes[:imax], names[:imax]):
-        region = model.region_names.index(name)
-        ax.set_title(names[region], loc='left')
+    imax = min(len(axes), len(keys))
+    for ax, key in zip(axes[:imax], keys[:imax]):
+        region = model.region_names.index(key)
+        ax.set_title(key, loc='left')
 
         # data
         x = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
-        ax.plot(x, ycum, 'o', lw=1, color='black')
+        ax.scatter(x, ycum, s=1, color='black')
         ax.set_ylim(0, 60)
         ax.set_xticks([0, 30, 60])
-        ax.set_ylim(0, ycum.max() * 1.5)
+        ax.set_ylim(0, ycum.max() * 2)
         ax.set_yticks([0, int(ycum.max())])
 
         # inference
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
-        ns = 1
+        ns = 5
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
             for k in range(Nt):
@@ -197,34 +211,230 @@ def plot_all_regions(model, names=None):
         for k in range(Nt):
             median[k] = np.quantile(samples[:, k], 0.5)
             mean[k] = np.mean(samples[:, k])
+
         # one sample
         y = model.propagatedVariables[var][0, :]
         ycum = np.cumsum(y)
         x = model.data['Propagation']['x-data'][::model.n_regions]
         ax.plot(x, mean, lw=1, color='red')
-        ax.plot(x, ycum, lw=1, color='blue')
+        #ax.plot(x, ycum, lw=1, color='blue')
 
     for ax in axes[imax:]:
         ax.set_axis_off()
 
-    name = "all.png".format(str(region) if region else "")
     fig.tight_layout()
-    fig.savefig(name)
+    fn = "tiles.png"
+    printlog(fn)
+    fig.savefig(fn)
     plt.close(fig)
 
+
+def get_data(model, keys):
+    """
+    model: `json`
+        Korali model.
+    keys: `array_likt`
+        List of region keys to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(key : numpy.ndarray)`, (nt)
+        Daily infections.
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
+        Total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
+    for key in keys:
+        region = model.region_names.index(key)
+        t = model.data['Model']['x-data'][region::model.n_regions]
+        y = model.data['Model']['y-data'][region::model.n_regions]
+        y = np.array(y).flatten()
+        I[key] = y
+        Itotal[key] = np.cumsum(y)
+    return t, I, Itotal
+
+
+def get_fit(model, keys, n_samples=5):
+    """
+    model: `json`
+        Korali model.
+    keys: `array_likt`
+        List of region keys to extract.
+    Returns reference data for infections saved in `model`.
+    t: `numpy.ndarray`, (nt)
+        Days.
+    I: `dict(key : numpy.ndarray)`, (nt)
+        Mean fit for daily infections.
+    Itotal: `dict(key : numpy.ndarray)`, (nt)
+        Mean fit for total number of infections.
+    """
+    t = None
+    I = dict()
+    Itotal = dict()
+    for key in keys:
+        region = model.region_names.index(key)
+        t = model.data['Model']['x-data'][region::model.n_regions]
+        t = np.array(t).flatten()
+
+        var = "Daily Incidence {:}".format(region)
+        Ns = model.propagatedVariables[var].shape[0]
+        Nt = model.propagatedVariables[var].shape[1]
+        ns = n_samples
+        samples = np.zeros((Ns * ns, Nt))
+        if model.likelihoodModel == 'Negative Binomial':
+            for it in range(Nt):
+                m = model.propagatedVariables[var][:, it]
+                r = model.propagatedVariables['Dispersion'][:, it]
+                p = p = m / (m + r)
+                y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
+                samples[:, it] = np.asarray(y).flatten()
+        else:
+            raise NotImplementedError()
+
+        samples_cum = np.cumsum(samples, axis=1)
+        mean = np.zeros(Nt)
+        mean_cum = np.zeros(Nt)
+        for it in range(Nt):
+            mean[it] = np.mean(samples[:, it])
+            mean_cum[it] = np.mean(samples_cum[:, it])
+
+        I[key] = mean
+        Itotal[key] = mean_cum
+    return t, I, Itotal
+
+
+class MapType:
+    data = "data"
+    fit = "fit"
+    error = "error"
+
+
+def plot_map(model,
+             map_type=MapType.fit,
+             image=True,
+             movie=True,
+             image_day=-1):
+    keys = model.region_names
+    nt = None
+
+    if map_type == MapType.data:
+        t, _, Itotal = get_data(model, keys)
+        nt = len(t)
+    elif map_type == MapType.fit:
+        t, _, Itotal = get_fit(model, keys)
+        nt = len(t)
+    elif map_type == MapType.error:
+        tdata, _, Itotal_data = get_data(model, keys)
+        tfit, _, Itotal_fit = get_fit(model, keys)
+        nt = min(len(tdata), len(tfit))
+        assert len(tdata) == len(tfit)
+        Itotal_error = dict()
+        for key in keys:
+            Id = Itotal_data[key][:nt]
+            If = Itotal_fit[key][:nt]
+            Itotal_error[key] = (If - Id) / np.maximum(1, Id)
+    else:
+        raise NotImplementedError()
+
+    from epidemics.cantons.py.plot import Renderer
+
+    def frame_callback(rend):
+        values = dict()
+        texts = dict()
+        colors = dict()
+        for c in rend.get_codes():
+            i = (nt - 1) * rend.get_frame() // rend.get_max_frame()
+            if map_type in [MapType.data, MapType.fit]:
+                v = Itotal[c][i]
+                values[c] = v * 1e-3
+                texts[c] = "{:}".format(int(v))
+            if map_type in [MapType.error]:
+                cmap = plt.get_cmap("coolwarm")
+                v = Itotal_error[c][i]
+                vclip = np.clip(v, -1, 1)
+                values[c] = abs(vclip) * 0.5
+                texts[c] = "{:+d}%".format(int(v * 100))
+                colors[c] = cmap(vclip * 0.5 + 0.5)
+        rend.set_values(values)
+        rend.set_texts(texts)
+        rend.set_colors(colors)
+
+    from epidemics.cantons.py.model import get_canton_model_data
+    rend = Renderer(frame_callback,
+                    data=get_canton_model_data(),
+                    resolution=(1920, 1080),
+                    draw_Mij=False,
+                    draw_Cij=True)
+
+    fnbase = map_type
+    if image:
+        frame = min(image_day, nt - 1) if image_day != -1 else nt - 1
+        fn = "{:}_day{:}.png".format(fnbase, frame)
+        rend.save_image(frame=image_day, frames=nt, filename=fn)
+        printlog(fn)
+    if movie:
+        fn = fnbase + ".mp4"
+        rend.save_movie(frames=nt, filename=fn)
+        printlog(fn)
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tiles',
+                        action='store_true',
+                        help="Plot tiles with all regions")
+    parser.add_argument('--map_data',
+                        action='store_true',
+                        help="Map with data")
+    parser.add_argument('--map_fit', action='store_true', help="Map with fit")
+    parser.add_argument('--map_error',
+                        action='store_true',
+                        help="Map with error")
+    parser.add_argument('--image', action='store_true', help="Create image")
+    parser.add_argument('--image_day',
+                        type=int,
+                        default=-1,
+                        help="Select day for image")
+    parser.add_argument('--movie', action='store_true', help="Create movie")
+    parser.add_argument('--intervals',
+                        action='store_true',
+                        help="Plot credible intervals for all regions")
+    args = parser.parse_args()
+
     dataFolder = Path("data")
     f = dataFolder / 'cantons' / 'state.pickle'
 
-    assert os.path.isfile(f)
-
     model = load_model(f)
 
-    #for region in range(model.n_regions):
-    #    plot_intervals(model, region=region)
+    if args.intervals:
+        for region in range(model.n_regions):
+            plot_intervals(model, region=region)
 
-    # plot data
-    plot_all_regions(model)
+    if args.tiles:
+        plot_tiles(model)
+
+    if args.map_data:
+        plot_map(model,
+                 map_type=MapType.data,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
+
+    if args.map_fit:
+        plot_map(model,
+                 map_type=MapType.fit,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
+
+    if args.map_error:
+        plot_map(model,
+                 map_type=MapType.error,
+                 image=args.image,
+                 movie=args.movie,
+                 image_day=args.image_day)
 
 
 if __name__ == "__main__":

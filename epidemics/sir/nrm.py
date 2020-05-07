@@ -115,6 +115,7 @@ class Model( ModelBase ):
 
     y = -np.diff(sol.y[0])
     y = y.tolist()
+    
 
     s['Reference Evaluations'] = y
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
@@ -130,9 +131,9 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
     y = -np.diff(sol.y[0])
     y = [0] + y.tolist()
+
 
     js = {}
     js['Variables'] = []
