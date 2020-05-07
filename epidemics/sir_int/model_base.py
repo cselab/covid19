@@ -43,12 +43,11 @@ class ModelBase( EpidemicsBase ):
 
 
 
-  # beta, gamma, delta, td
+  # beta, gamma, delta, t_a
   def sir_rhs( self, t, y, N, p ):
     S, I = y
 
     if( t<p[3] ):
-    # if( t<25 ):
       beta = p[0]
     else:
       beta = p[0]*p[2]

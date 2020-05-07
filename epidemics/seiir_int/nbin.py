@@ -17,8 +17,8 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'seiir.nbin'
-    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Negative Binomial likelihood'
+    self.modelName        = 'seiir_int.nbin'
+    self.modelDescription = 'Fit SEIIR with Interventations on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
@@ -35,7 +35,7 @@ class Model( ModelBase ):
 
 
   def get_variables_and_distributions( self ):
-    p = [ 'R0', 'mu', 'alpha', 'Z', 'D', '[r]' ]
+    p = [ 'R0', 'mu', 'alpha', 'Z', 'D', 'delta', 'ta', '[r]' ]
 
     js = {}
     js['Variables']=[]
@@ -53,35 +53,49 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 3
+    js['Distributions'][k]['Maximum'] = 1.5
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for mu'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0
-    js['Distributions'][k]['Maximum'] = 0.25
+    js['Distributions'][k]['Maximum'] = 0.9
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for alpha'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0
-    js['Distributions'][k]['Maximum'] = 0.1
+    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Maximum'] = 1
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for Z'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 20
-    js['Distributions'][k]['Maximum'] = 40
+    js['Distributions'][k]['Minimum'] = 10
+    js['Distributions'][k]['Maximum'] = 50
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for D'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 2500
-    js['Distributions'][k]['Maximum'] = 3000
+    js['Distributions'][k]['Minimum'] = 100
+    js['Distributions'][k]['Maximum'] = 5000
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for delta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 1.
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for ta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 20
+    js['Distributions'][k]['Maximum'] = 40.
 
     k+=1
     js['Distributions'].append({})
