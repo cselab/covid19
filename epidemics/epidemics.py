@@ -33,6 +33,7 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.backend     = kwargs.pop('backend','numpy')
+    self.iterations_per_day = kwargs.pop('it_per_day',10)
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
@@ -148,7 +149,8 @@ class EpidemicsBase:
 
     self.e['Solver']['Type'] = 'TMCMC'
     self.e['Solver']['Population Size'] = self.nSamples
-
+    # self.e['Solver']['Termination Criteria']['Max Generations'] = 1
+    
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
@@ -381,7 +383,7 @@ class EpidemicsBase:
     Ns = self.nSamples
     Nv = self.e['Samples'][0]['Saved Results']['Number of Variables']
     Nt = self.e['Samples'][0]['Saved Results']['Length of Variables']
-
+    print('Nt ',Nt)
     varNames = []
     for k in range(Nv):
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
@@ -457,7 +459,6 @@ class EpidemicsBase:
         m = self.propagatedVariables[varName][:,k]
         r = self.propagatedVariables['Dispersion'][:,k]
         p =  m/(m+r)
-        print(1-p)
         x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 

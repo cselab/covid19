@@ -1,16 +1,17 @@
-
 from scipy.integrate import solve_ivp
+import numpy as np
+from decimal import Decimal
+import torch
 
 # ---------------------------------------------------------------------------- #
 # ----------------------------------- Setup ---------------------------------- #
 # ---------------------------------------------------------------------------- #
 
-def solve_ode(f,T,y0,args,t_eval,backend='numpy'):
+def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10):
     if backend == 'numpy':
         sol = solve_ivp(f,t_span=[0, T],y0=y0, args=args,t_eval=t_eval)
-    else:
-        import torch
-        sol = solve_ivp_torch(f,T,y0,args,t_eval=T)
+    elif backend == 'torch':
+        sol = solve_ivp_torch(f,T,y0,args,t_eval=t_eval,iterations_per_day=iterations_per_day)
     return sol
 
 # ---------------------------------------------------------------------------- #
@@ -22,9 +23,10 @@ class Solution():
         self.y = y[0]
         self.t = t
         
-def solve_ivp_torch(f,T,y0,args, t_eval):
+def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
+    T = int(T)
+    t_eval = [int(i) for i in t_eval]
     # Here somehow fix dt automatically in a smart way using values of p
-    iterations_per_day = 10
     dt = 1/iterations_per_day
     assert((Decimal(str(T)) % Decimal(str(dt)))==0.0) # weird fix?
 
@@ -32,7 +34,6 @@ def solve_ivp_torch(f,T,y0,args, t_eval):
     p = torch.autograd.Variable(torch.Tensor(args[1]),requires_grad=True)
     N = torch.autograd.Variable(torch.Tensor([args[0]]),requires_grad=True)
     out = torch.autograd.Variable(torch.empty(len(y0),T+1),requires_grad=False)
-
     out[:,0] = y.clone()
     t_out = np.arange(0,T+1,1)
     t = 0
@@ -81,19 +82,22 @@ def get_gradients(y,p):
 
     return J
 
-def get_daily_incidences(sol,i):
-    # TODO: concat fields if data is multiple fields
-    incidences = -(sol.y[i][1:]-sol.y[i][:-1])
-
-    if isinstance(incidences, 'numpy.ndarray'): 
-        incidences = [0] + incidences.tolist()
-    elif isinstance(incidences, 'torch.Tensor'): 
-        incidences = torch.cat([torch.zeros(1),incidences])
-
-    return incidences
-
 def to_list(y):
-    if isinstance(incidences, 'list'): 
+    if isinstance(y,list): 
         return y
-    elif isinstance(incidences, 'torch.Tensor'): 
-        return list(y.detach().numpy())
+    elif isinstance(y,torch.Tensor): 
+        return y.detach().numpy().tolist()
+    else:
+        return y.tolist()
+
+def append_zero(y):
+    if isinstance(y,list): 
+        return [0] + y
+    elif isinstance(y,torch.Tensor): 
+        return torch.cat([torch.zeros(1),y])
+    else:
+        return [0] + y.tolist()
+
+
+
+
