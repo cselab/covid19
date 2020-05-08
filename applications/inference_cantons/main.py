@@ -18,7 +18,7 @@ from model import Model
 
 
 def main():
-    nSamples = 5000
+    nSamples = 1000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -38,6 +38,9 @@ def main():
     #key_sel = ['ZH', 'TI']
     for k in key_sel:
         data.fit_importance[keys.index(k)] *= 100
+    #for k in keys:
+    #    i = keys.index(k)
+    #    data.fit_importance[i] *= data.total_infected[i][-1] / 1000.
 
     #ode = Sir()
     #params_to_infer = ['R0', 'gamma']
@@ -47,11 +50,13 @@ def main():
     #params_to_infer = []
     params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
     #params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2', 'beta_corr3']
-    params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2']
+    #params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2']
+    params_to_infer += ['beta_corr0']
     data.beta_corr_regions = {
-            "beta_corr0" : ['VS', 'UR'],
-            "beta_corr1" : ['AG', 'ZG', 'TG', 'JU', 'AR', 'AI', 'TI'],
-            "beta_corr2" : ['BS', 'BL', 'SH', 'SO'],
+            "beta_corr0" : ['TI', 'AR', 'BL', 'BS'],
+            #"beta_corr1" : ['AG', 'ZG', 'TG', 'JU', 'AR', 'AI', 'TI'],
+            #"beta_corr1" : ['AG', 'ZG', 'TG', 'JU', 'AR', 'AI', 'TI'],
+            #"beta_corr2" : ['BS', 'BL', 'SH', 'SO'],
             }
     data.beta_corr_regions = {k:list(map(keys.index, v)) for k,v in data.beta_corr_regions.items()}
 

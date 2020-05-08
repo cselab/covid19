@@ -166,8 +166,10 @@ def plot_intervals(model, region=0):
     plt.close(fig)
 
 
-def plot_tiles(model, keys=None):
+def plot_tiles(model, keys=None, daily=False):
     printlog('[Epidemics] Plot tiles with all regions.')
+
+    cumulative = not daily
 
     if keys is None:
         keys = model.region_names
@@ -192,12 +194,18 @@ def plot_tiles(model, keys=None):
         x = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
-        ax.scatter(x, ycum, s=1, color='black')
-        ax.set_xticks([0, max(x) // 2, max(x)])
-        ax.set_ylim(0, ycum.max() * 2)
-        ax.set_yticks([0, int(ycum.max())])
+        x_days = np.linspace(1, intround(max(x)), intround(max(x)))
+        ycum_days = np.interp(x_days, x, ycum)
+        y_days = np.diff(ycum_days, prepend=0)
+        xplot = x_days
+        yplot = np.cumsum(y_days) if cumulative else y_days
+        ax.scatter(xplot, yplot, s=1, color='black')
+        ax.set_xticks([0, max(xplot) // 2, max(xplot)])
+        ax.set_ylim(0, yplot.max() * 2)
+        ax.set_yticks([0, int(yplot.max())])
 
-        # inference
+        # mean and median prediction
+        x = model.data['Propagation']['x-data'][::model.n_regions]
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
@@ -210,25 +218,25 @@ def plot_tiles(model, keys=None):
                 p = p = m / (m + r)
                 y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
                 samples[:, k] = np.asarray(y).flatten()
-        samples = np.cumsum(samples, axis=1)
+        if cumulative:
+            samples = np.cumsum(samples, axis=1)
         mean = np.zeros((Nt, 1))
         median = np.zeros((Nt, 1))
         for k in range(Nt):
             median[k] = np.quantile(samples[:, k], 0.5)
             mean[k] = np.mean(samples[:, k])
+        ax.plot(x, mean, lw=1, color='red')
 
         # one sample
         y = model.propagatedVariables[var][0, :]
-        ycum = np.cumsum(y)
-        x = model.data['Propagation']['x-data'][::model.n_regions]
-        ax.plot(x, mean, lw=1, color='red')
+        yplot = np.cumsum(y) if cumulative else y
         #ax.plot(x, ycum, lw=1, color='blue')
 
     for ax in axes[imax:]:
         ax.set_axis_off()
 
     fig.tight_layout()
-    fn = "tiles.png"
+    fn = "tiles_daily.png" if daily else "tiles.png"
     printlog(fn)
     fig.savefig(fn)
     plt.close(fig)
@@ -392,7 +400,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tiles',
                         action='store_true',
-                        help="Plot tiles with all regions")
+                        help="Tiles with cumulative infections in all regions")
+    parser.add_argument('--tiles_daily',
+                        action='store_true',
+                        help="Tiles with daily new infections in all regions")
     parser.add_argument('--map_data',
                         action='store_true',
                         help="Map with data")
@@ -422,6 +433,9 @@ def main():
 
     if args.tiles:
         plot_tiles(model)
+
+    if args.tiles_daily:
+        plot_tiles(model, daily=True)
 
     if args.map_data:
         plot_map(model,
