@@ -173,6 +173,7 @@ class SeirCpp(Seir):
         src += params['theta_a'] * np.array(params['Qa'])
         src += params['theta_b'] * np.array(params['Qb'])
         data.ext_com_Iu = [src] * n_days
+        data.Ui = [0] * n_regions
 
         solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
 
