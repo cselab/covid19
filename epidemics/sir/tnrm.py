@@ -10,6 +10,7 @@ import numpy as np
 
 from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
+import epidemics.ode_solver as solver
 
 
 class Model( ModelBase ):
@@ -111,11 +112,15 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
 
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
-
+    if self.backend == 'torch':
+        J = solver.get_gradients(y,p)
+  
+  # Need to take pytorch gradients before here
+    y = solver.to_list(y)
+ 
     s['Reference Evaluations'] = y
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
@@ -129,10 +134,13 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t.tolist(),backend='numpy')
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
+    y = solver.append_zero(y)
+    
+    # Need to take pytorch gradients before here
+    y = solver.to_list(y)
 
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
 
     js = {}
     js['Variables'] = []
