@@ -33,10 +33,15 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.backend     = kwargs.pop('backend','numpy')
+    self.sampler     = kwargs.pop('sampler','TMCMC')
+
     self.iterations_per_day = kwargs.pop('it_per_day',10)
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
+
+    if ((self.sampler == 'mTMCMC') and (self.backend == 'torch')):
+        sys.exit(f"\n mTMCMC requires scipy backend\n")
 
     self.saveInfo ={
       'state': 'state.pickle',
@@ -146,19 +151,17 @@ class EpidemicsBase:
     self.e['Problem']['Likelihood Model'] = self.likelihoodModel
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
-
-    self.e['Solver']['Type'] = 'TMCMC'
+    self.e['Solver']['Type'] = "TMCMC"
+    self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Population Size'] = self.nSamples
-    # self.e['Solver']['Termination Criteria']['Max Generations'] = 1
     
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
     self.set_korali_output_files( self.saveInfo['korali samples'] )
-
+    self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
-    self.e['File Output']['Frequency'] = 50
     self.e["Store Sample Information"] = True
 
     k = korali.Engine()
@@ -167,11 +170,10 @@ class EpidemicsBase:
 
     k.run(self.e)
 
-    if self.e['Solver']['Type']=='TMCMC':
-      js = {}
-      js['Evidence'] = self.e['Solver']['LogEvidence']
-      print(f"[Epidemics] Log Evidence = {js['Evidence']}")
-      save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
+    js = {}
+    js['Evidence'] = self.e['Solver']['LogEvidence']
+    print(f"[Epidemics] Log Evidence = {js['Evidence']}")
+    save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.parameters = []

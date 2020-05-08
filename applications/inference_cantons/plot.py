@@ -166,8 +166,10 @@ def plot_intervals(model, region=0):
     plt.close(fig)
 
 
-def plot_tiles(model, keys=None):
+def plot_tiles(model, keys=None, daily=False):
     printlog('[Epidemics] Plot tiles with all regions.')
+
+    cumulative = not daily
 
     if keys is None:
         keys = model.region_names
@@ -192,12 +194,18 @@ def plot_tiles(model, keys=None):
         x = model.data['Model']['x-data'][region::model.n_regions]
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
-        ax.scatter(x, ycum, s=1, color='black')
-        ax.set_xticks([0, max(x) // 2, max(x)])
-        ax.set_ylim(0, ycum.max() * 2)
-        ax.set_yticks([0, int(ycum.max())])
+        x_days = np.linspace(1, intround(max(x)), intround(max(x)))
+        ycum_days = np.interp(x_days, x, ycum)
+        y_days = np.diff(ycum_days, prepend=0)
+        xplot = x_days
+        yplot = np.cumsum(y_days) if cumulative else y_days
+        ax.scatter(xplot, yplot, s=1, color='black')
+        ax.set_xticks([0, max(xplot) // 2, max(xplot)])
+        ax.set_ylim(0, yplot.max() * 2)
+        ax.set_yticks([0, int(yplot.max())])
 
-        # inference
+        # mean and median prediction
+        x = model.data['Propagation']['x-data'][::model.n_regions]
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
@@ -210,25 +218,25 @@ def plot_tiles(model, keys=None):
                 p = p = m / (m + r)
                 y = [np.random.negative_binomial(r, 1 - p) for _ in range(ns)]
                 samples[:, k] = np.asarray(y).flatten()
-        samples = np.cumsum(samples, axis=1)
+        if cumulative:
+            samples = np.cumsum(samples, axis=1)
         mean = np.zeros((Nt, 1))
         median = np.zeros((Nt, 1))
         for k in range(Nt):
             median[k] = np.quantile(samples[:, k], 0.5)
             mean[k] = np.mean(samples[:, k])
+        ax.plot(x, mean, lw=1, color='red')
 
         # one sample
         y = model.propagatedVariables[var][0, :]
-        ycum = np.cumsum(y)
-        x = model.data['Propagation']['x-data'][::model.n_regions]
-        ax.plot(x, mean, lw=1, color='red')
+        yplot = np.cumsum(y) if cumulative else y
         #ax.plot(x, ycum, lw=1, color='blue')
 
     for ax in axes[imax:]:
         ax.set_axis_off()
 
     fig.tight_layout()
-    fn = "tiles.png"
+    fn = "tiles_daily.png" if daily else "tiles.png"
     printlog(fn)
     fig.savefig(fn)
     plt.close(fig)
@@ -259,6 +267,31 @@ def get_data(model, keys):
         I[key] = y
         Itotal[key] = np.cumsum(y)
     return t, I, Itotal
+
+def get_mean_parameters(model):
+    from glob import glob
+    import json
+    gens = glob(os.path.join(model.dataFolder, "cantons", "_korali_samples", "gen*.json"))
+    lastgen = sorted(gens)[-1]
+    with open(lastgen) as f:
+        js = json.load(f)
+    r = model.ode.params_fixed
+    for var,mean in zip(model.params_to_infer, js['Solver']['Mean Theta']):
+        r[var] = mean
+
+    if isinstance(model.ode, SeirCpp):
+        n_regions = model.n_regions
+        beta_corr_regions = model.data['Model']['beta_corr_regions']
+        Ui = [0] * n_regions
+        for var,ii in beta_corr_regions.items():
+            for i in ii:
+                Ui[i] = r[var]
+        R0_corr = dict()
+        keys = model.region_names
+        for k in keys:
+            R0_corr[k] = r['R0'] * (1 + Ui[keys.index(k)])
+        r['R0_corr'] = R0_corr # corrected R0
+    return r
 
 
 def get_fit(model, keys, n_samples=5):
@@ -387,19 +420,82 @@ def plot_map(model,
         rend.save_movie(frames=intround(max(t)), filename=fn)
         printlog(fn)
 
+def plot_map_R0(model):
+    keys = model.region_names
+    t, _, Itotal = get_data(model, keys)
+    nt = len(t)
+
+    params = get_mean_parameters(model)
+    R0_corr = params['R0_corr']
+    R0 = params['R0']
+    R0_std = np.std(np.array(list(R0_corr.values())) - R0)
+
+    from epidemics.cantons.py.plot import Renderer
+
+    def frame_callback(rend):
+        values = dict()
+        texts = dict()
+        colors = dict()
+        for c in rend.get_codes():
+            cmap = plt.get_cmap("coolwarm")
+            v = (R0_corr[c] - R0) / R0_std
+            vclip = np.clip(v, -1, 1)
+            values[c] = 1
+            texts[c] = "{:.2f}".format(R0_corr[c])
+            colors[c] = cmap(vclip * 0.5 + 0.5)
+        rend.set_values(values)
+        rend.set_texts(texts)
+        rend.set_colors(colors)
+
+    from epidemics.cantons.py.model import get_canton_model_data
+    rend = Renderer(frame_callback,
+                    data=get_canton_model_data(),
+                    resolution=(1920, 1080),
+                    draw_Mij=False,
+                    draw_Cij=False)
+
+    fn = "map_R0.png"
+    rend.save_image(filename=fn)
+    printlog(fn)
+
+def save_parameters_json(model, filename="params.json"):
+    params = get_mean_parameters(model)
+
+    with open(filename, 'w') as f:
+        json.dump(params, f)
+    print(filename)
+
+def save_parameters(model, filename="params.dat"):
+    params = get_mean_parameters(model)
+
+    with open(filename, 'w') as f:
+        for k,v in params.items():
+            f.write('{:} = {:}\n'.format(k, str(v)))
+    print(filename)
+
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tiles',
                         action='store_true',
-                        help="Plot tiles with all regions")
+                        help="Tiles with cumulative infections in all regions")
+    parser.add_argument('--tiles_daily',
+                        action='store_true',
+                        help="Tiles with daily new infections in all regions")
     parser.add_argument('--map_data',
                         action='store_true',
                         help="Map with data")
+    parser.add_argument('--map_R0',
+                        action='store_true',
+                        help="Map with inferred R0")
     parser.add_argument('--map_fit', action='store_true', help="Map with fit")
     parser.add_argument('--map_error',
                         action='store_true',
                         help="Map with error")
+    parser.add_argument('--parameters',
+                        action='store_true',
+                        help="Save inferred parameters to file.")
     parser.add_argument('--image', action='store_true', help="Create image")
     parser.add_argument('--image_day',
                         type=int,
@@ -423,6 +519,9 @@ def main():
     if args.tiles:
         plot_tiles(model)
 
+    if args.tiles_daily:
+        plot_tiles(model, daily=True)
+
     if args.map_data:
         plot_map(model,
                  map_type=MapType.data,
@@ -443,6 +542,12 @@ def main():
                  image=args.image,
                  movie=args.movie,
                  image_day=args.image_day)
+
+    if args.map_R0:
+        plot_map_R0(model)
+
+    if args.parameters:
+        save_parameters(model)
 
 
 if __name__ == "__main__":

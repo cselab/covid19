@@ -1,4 +1,5 @@
 from scipy.integrate import solve_ivp
+import sys
 import numpy as np
 from decimal import Decimal
 import torch
@@ -17,6 +18,8 @@ def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10,max_step=
         sol = solve_ivp(f,t_span=[0, T],y0=y0, args=args,t_eval=t_eval,max_step=max_step)
     elif backend == 'torch':
         sol = solve_ivp_torch(f,T,y0,args,t_eval=t_eval,iterations_per_day=iterations_per_day)
+    else:
+        sys.exit(f"\n[ODE SOLVER] Unknown backend, choose (numpy or torch)\n")
     return sol
   
 def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):

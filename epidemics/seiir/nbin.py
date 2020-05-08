@@ -97,6 +97,11 @@ class Model( ModelBase ):
 
   def computational_model( self, s ):
     p  = s['Parameters']
+    p[0] = p[0]*5
+    p[2] = 0.1+p[2]*0.9
+    p[3] = 0.1+p[3]*9.9
+    p[4] = 2+p[4]*3
+    p[5] = 0.01+p[5]*9.99
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']

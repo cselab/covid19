@@ -96,33 +96,30 @@ class Sir(Ode):
 
 class Seir(Ode):
     params_fixed = {
-        'R0': 1.45,
-        'Z': 1.2,
+        'R0': 1.33,
+        'Z': 1.5,
         'D': 2,
-        'nu': 0.5,
+        'nu': 0.65,
         'theta_a': 0,
-        'theta_b': 0.027,
-        'tact': 28.,
+        'theta_b': 0.06,
+        'tact': 31.,
         'kbeta': 0.5,
-        'beta_corr0': 0,
-        'beta_corr1': 0,
-        'beta_corr2': 0,
-        'beta_corr3': 0,
     }
     params_prior = {
         'R0': (0.5, 4),
         'Z': (0.1, 10),
         'D': (0.1, 10),
-        'tact': (0, 60),
-        'kbeta': (0., 1.),
         'nu': (0.1, 10.),
         'theta_a': (0., 0.1),
         'theta_b': (0., 0.1),
-        'beta_corr0': (-0.5, 0.5),
-        'beta_corr1': (-0.5, 0.5),
-        'beta_corr2': (-0.5, 0.5),
-        'beta_corr3': (-0.5, 0.5),
+        'tact': (0, 60),
+        'kbeta': (0., 1.),
     }
+    def __init__(self):
+        for i in range(26):
+            var = "beta_corr{:}".format(i)
+            self.params_fixed[var] = 0
+            self.params_prior[var] = (-0.5, 0.5)
 
     def solve(self, params, t_span, y0, t_eval):
         def rhs(t, y_flat):
@@ -183,7 +180,7 @@ class SeirCpp(Seir):
         src += params['theta_b'] * np.array(params['Qb'])
         data.ext_com_Iu = [src] * n_days
         data.Ui = [0] * n_regions
-        for var in ["beta_corr0", "beta_corr1", "beta_corr2", "beta_corr3"]:
+        for var in ['beta_corr' + str(i) for i in range(26)]:
             for i in params["beta_corr_regions"].get(var, []):
                 data.Ui[i] = params[var]
 

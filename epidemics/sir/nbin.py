@@ -116,6 +116,10 @@ class Model( ModelBase ):
     # Get gradients here 
     y = solver.to_list(y)
 
+    print(y0)
+    print(p)
+    print(tt)
+    print(y)
     if self.backend == 'torch':
         y = solver.check_zeros(y,1e-9)
 

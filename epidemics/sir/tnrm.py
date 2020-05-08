@@ -138,7 +138,7 @@ class Model( ModelBase ):
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     y = solver.append_zero(y)
     y = solver.to_list(y)
-
+    
     js = {}
     js['Variables'] = []
 
