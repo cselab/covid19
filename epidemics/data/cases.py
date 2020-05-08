@@ -70,7 +70,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
         for day in range(len(days_cells)):
             cell = days_cells[day][c]
             if cell:
-                cell = tuple(int(x or 0) for x in cell.split('-'))
+                cell = tuple(int(0 if x == 'No data' else x or 0) for x in cell.split('-'))
             if not cell or len(cell) != 4:
                 cell = (0, 0, 0, 0)
             values.append(cell)
