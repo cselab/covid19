@@ -14,12 +14,14 @@ ModelData::ModelData(
         std::vector<double> Ni_,
         std::vector<double> Mij_,
         std::vector<double> Cij_,
-        std::vector<double> extComIu_) :
+        std::vector<double> extComIu_,
+        std::vector<double> Ui_) :
     regionKeys(std::move(regionKeys_)),
     Ni(std::move(Ni_)),
     Mij(std::move(Mij_)),
     Cij(std::move(Cij_)),
-    extComIu(std::move(extComIu_))
+    extComIu(std::move(extComIu_)),
+    Ui(std::move(Ui_))
 {
     init();
 }
@@ -93,11 +95,17 @@ ModelData readModelData(const char *filename) {
     int numDays;
     if (fscanf(f, "%d", &numDays) != 1)
         DIE("Reading numDays for external cases failed.\n");
+
     out.extComIu.resize(N * numDays);
     for (int i = 0; i < numDays; ++i)
         for (int j = 0; j < N; ++j)
             if (fscanf(f, "%lf", &out.extComIu[i * N + j]) != 1)
                 DIE("Reading extComIu[day=%d][canton=%d] failed.\n", i, j);
+
+    out.Ui.resize(N);
+    for (double &u : out.Ui)
+        if (fscanf(f, "%lg", &u) != 1)
+            DIE("Reading user-defined failed.\n");
 
     fclose(f);
 

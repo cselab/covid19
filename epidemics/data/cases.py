@@ -128,7 +128,7 @@ def get_field_data_all_cantons(field,cache_duration=1e9):
     for day in rows[1:]:  # Skip the header.
         cells = day.split(',')[1:-1]  # Skip "Date" and "CH".
         date.append(datetime.date.fromisoformat(day.split(',')[0]))
-        assert len(cells) == len(cantons), (len(cells), len(cantons))        
+        assert len(cells) == len(cantons), (len(cells), len(cantons))
         for canton, cell in zip(cantons, cells):
             data[canton].append(float(cell or 'nan'))
     data['date'] = date

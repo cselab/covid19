@@ -217,6 +217,7 @@ PYBIND11_MODULE(libsolver, m)
 
     py::class_<ModelData>(m, "ModelData")
         .def(py::init<std::vector<std::string>, std::vector<double>,
-                      std::vector<double>, std::vector<double>, std::vector<double>>());
+                      std::vector<double>, std::vector<double>,
+                      std::vector<double>, std::vector<double>>());
     m.def("readModelData", &readModelData, "filename");
 }

@@ -18,6 +18,7 @@ struct ModelData {
     std::vector<double> Mij;    // Row-major migration matrix [to][from].
     std::vector<double> Cij;    // Row-major commute matrix [to][from].
     std::vector<double> extComIu;  // Row-major undocumented infected foreign commuters [day][canton].
+    std::vector<double> Ui;     // User-defined
 
     // Computed.
     size_t numRegions;
@@ -32,7 +33,8 @@ struct ModelData {
               std::vector<double> Ni,
               std::vector<double> Mij,
               std::vector<double> Cij,
-              std::vector<double> extComIu);
+              std::vector<double> extComIu,
+              std::vector<double> Ui);
 
     double getExternalCommutersIu(int day, int canton) const noexcept {
         int idx = day * (int)numRegions + canton;
