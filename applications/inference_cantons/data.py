@@ -9,9 +9,20 @@ class Data:
     commute_matrix = None  # Cij
     commute_airports = None  # Qa
     commute_borders = None  # Qb
-    # `numpy.ndarray()`, (n_regions,)
-    # defaults to 1, larger values increase the importance of a region
+
+    """
+    Fit importance.
+    `numpy.ndarray()`, (n_regions,)
+    defaults to 1, larger values increase the importance of a region
+    """
     fit_importance = None
+
+    """
+    Indices of regions for beta correction.
+    `dict(varname -> list[region_index])`
+    `varname` is ("beta_corr0", ...)
+    """
+    beta_corr_regions = dict()
 
 def moving_average(x, w):
     """

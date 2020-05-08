@@ -5,6 +5,7 @@ import numpy as np
 from epidemics.cantons.py.model import ModelData
 import libsolver
 
+
 def smooth_trans(u0, u1, t, tc, teps):
     """
     Smooth transition from u0 to u1 in interval `tc - teps < t < tc + teps`.
@@ -89,7 +90,7 @@ class Sir(Ode):
     def solve_S_I_Icum(self, params, t_span, si0, t_eval):
         S, I = self.solve(params, t_span, si0, t_eval)
         N = params['N']
-        Icum = N[:,None] - S
+        Icum = N[:, None] - S
         return np.array((S, I, Icum))
 
 
@@ -101,8 +102,12 @@ class Seir(Ode):
         'tact': 31.,
         'kbeta': 0.5,
         'nu': 0.6,
-        'theta_a': 0.005,
+        'theta_a': 0,
         'theta_b': 0.07,
+        'beta_corr0': 0,
+        'beta_corr1': 0,
+        'beta_corr2': 0,
+        'beta_corr3': 0,
     }
     params_prior = {
         'R0': (0.5, 4),
@@ -113,6 +118,10 @@ class Seir(Ode):
         'nu': (0.1, 10.),
         'theta_a': (0., 0.1),
         'theta_b': (0., 0.1),
+        'beta_corr0': (-0.5, 0.5),
+        'beta_corr1': (-0.5, 0.5),
+        'beta_corr2': (-0.5, 0.5),
+        'beta_corr3': (-0.5, 0.5),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -150,7 +159,7 @@ class Seir(Ode):
         E0 = np.zeros_like(S0)
         S, E, I = self.solve(params, t_span, [S0, E0, I0], t_eval)
         N = params['N']
-        Icum = N[:,None] - S - E
+        Icum = N[:, None] - S - E
         return np.array((S, I, Icum))
 
 
@@ -174,6 +183,9 @@ class SeirCpp(Seir):
         src += params['theta_b'] * np.array(params['Qb'])
         data.ext_com_Iu = [src] * n_days
         data.Ui = [0] * n_regions
+        for var in ["beta_corr0", "beta_corr1", "beta_corr2", "beta_corr3"]:
+            for i in params["beta_corr_regions"].get(var, []):
+                data.Ui[i] = params[var]
 
         solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
 

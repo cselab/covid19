@@ -45,8 +45,11 @@ def main():
     #ode = Seir()
     ode = SeirCpp()
     #params_to_infer = []
-    params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
-    ode.params_fixed['theta_a'] = 0.
+    #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
+    params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact', 'beta_corr0']
+    data.beta_corr_regions = {
+            "beta_corr0" : [keys.index('TI')]
+            }
 
     #ode.params_fixed['tact'] = 1e10
     #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b']
