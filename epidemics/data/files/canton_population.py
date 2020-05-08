@@ -86,3 +86,18 @@ CANTON_LIST = [
                 'GE',
                 'JU',
                 ]
+
+CANTON_LIST_SHORT = [
+                'ZH',
+                'BE',
+                'LU',
+                'FR',
+                'BS',
+                'BL',
+                'TI',
+                'VD',
+                'VS',
+                'NE',
+                'GE',
+                'GR',
+                ]

@@ -2,6 +2,17 @@ import torch
 
 VARS_PER_REGION = 5
 
+def RK4_step(f, y, t, dt):
+    k1 = dt * f(y,t)
+    k2 = dt * f(y + 0.5 * k1, t + 0.5 * dt)
+    k3 = dt * f(y + 0.5 * k2, t + 0.5 * dt)
+    k4 = dt * f(y + k3, t+dt)
+    return y + k1/6 + k2/3 + k3/3 + k4/6, t + dt
+
+def FE_step(f, y, t, dt):
+    return y + dt * f(y,t), t + dt
+
+
 def integrate(rhs_func, y0, num_days, iterations_per_day):
     """Integrate dy/dt = rhs_func from t=0 to t=num_days with y(0) = y0.
 
@@ -17,6 +28,7 @@ def integrate(rhs_func, y0, num_days, iterations_per_day):
         for it in range(iterations_per_day):
             y += dt * rhs_func(y, t)
             t += dt
+            # y, t = RK4_step(rhs_func,y,t,dt)
         out.append(y.clone())
 
     return out

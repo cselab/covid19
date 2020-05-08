@@ -32,6 +32,7 @@ SET(COMMON_SRC_FILES
     ${SRC_DIR}/model_seiin.cpp
     ${SRC_DIR}/model_seii_c.cpp
     ${SRC_DIR}/model_sei_c.cpp
+    ${SRC_DIR}/model_seiin_interventions.cpp
     ${SRC_DIR}/utils.cpp)
 
 # Set up the Python .so code.

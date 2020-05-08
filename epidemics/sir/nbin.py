@@ -5,24 +5,21 @@
 
 import os
 
-import matplotlib.pyplot as plt
-plt.ioff()
-
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.tools.tools import save_file
 from .model_base import ModelBase
-
+import epidemics.ode_solver as solver
 
 class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir_altone_nrm'
-    self.modelDescription = 'Fit SIR on Daily Infected Data with Normal Likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'sir.nbin'
+    self.modelDescription = 'Fit SIR on Daily Infected Data with Negative Binomial likelihood'
+    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
@@ -49,6 +46,7 @@ class Model( ModelBase ):
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
       self.data['Model']['y-data'] = np.diff( y[0:])
+      print('Data t {} y {}'.format(len(t[1:]),len(y[0:])))
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
       self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
@@ -68,10 +66,12 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
 
-    p = ['beta','gamma','[Sigma]']
+    p = ['R0','gamma','[r]']
+
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
+
     for k,x in enumerate(p):
       js['Variables'].append({})
       js['Variables'][k]['Name'] = x
@@ -81,26 +81,28 @@ class Model( ModelBase ):
 
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Maximum'] = 30.
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Maximum'] = 30.
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    js['Distributions'][k]['Name'] = 'Prior for [r]'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
     js['Distributions'][k]['Maximum'] = 10.
 
     return js
+
+
 
 
   def computational_model( self, s ):
@@ -110,14 +112,14 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
-
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
-
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
+    
+    # Need to take pytorch gradients before here
+    y = solver.to_list(y)
+    
     s['Reference Evaluations'] = y
-    s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
-
+    s['Dispersion'] = len(y)*[p[-1]]
 
 
 
@@ -127,10 +129,12 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t.tolist(),backend='numpy')
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
+    y = solver.append_zero(y)
+    
+    # Need to take pytorch gradients before here
+    y = solver.to_list(y)
 
     js = {}
     js['Variables'] = []
@@ -142,40 +146,6 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    js['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
+    js['Dispersion'] = (len(y))*[p[-1]]
 
     s['Saved Results'] = js
-
-
-
-
-  def plot_intervals( self, ns=10):
-
-    fig = self.new_figure()
-
-    ax  = fig.subplots( 2 )
-
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-    z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
-
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
-
-    #----------------------------------------------------------------------------------------------------------------------------------
-
-    ax[-1].set_xlabel('time in days')
-
-    file = os.path.join(self.saveInfo['figures'],'prediction.png');
-    prepare_folder( os.path.dirname(file) )
-    fig.savefig(file)
-
-    plt.show()
-
-    plt.close(fig)

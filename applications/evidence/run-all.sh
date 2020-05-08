@@ -1,19 +1,21 @@
  #!/bin/bash
 
-declare -a arr=( "basic_nbin"
-                 "basic_nrm"
-                 "basic_tnrm"
-                 "altone_nbin"
-                 "altone_nrm"
-                 "altone_tnrm")
+declare -a arr=(
+"sir.nbin"
+"sir.nrm"
+"sir.tnrm"
+"sir_int.nbin"
+"sir_int.nrm"
+"sir_int.tnrm"
+)
 
 
 for i in "${arr[@]}"
 do
 
-   ./main.py -nt 12 -ns 5000 -cm "sir.$i"
+   ./sample.py --silentPlot -nt 12 -ns 2000 -cm "$i"
 
-   folder="data/switzerland/sir_$i/"
+   folder="data/switzerland/$i/"
 
    python3 -m korali.plotter --dir "$folder/_korali_samples" --output "$folder/figures/samples.png"
 

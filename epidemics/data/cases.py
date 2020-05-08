@@ -70,7 +70,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
         for day in range(len(days_cells)):
             cell = days_cells[day][c]
             if cell:
-                cell = tuple(int(x or 0) for x in cell.split('-'))
+                cell = tuple(int(0 if x == 'No data' else x or 0) for x in cell.split('-'))
             if not cell or len(cell) != 4:
                 cell = (0, 0, 0, 0)
             values.append(cell)
@@ -128,7 +128,7 @@ def get_field_data_all_cantons(field,cache_duration=1e9):
     for day in rows[1:]:  # Skip the header.
         cells = day.split(',')[1:-1]  # Skip "Date" and "CH".
         date.append(datetime.date.fromisoformat(day.split(',')[0]))
-        assert len(cells) == len(cantons), (len(cells), len(cantons))        
+        assert len(cells) == len(cantons), (len(cells), len(cantons))
         for canton, cell in zip(cantons, cells):
             data[canton].append(float(cell or 'nan'))
     data['date'] = date

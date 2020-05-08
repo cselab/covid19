@@ -32,6 +32,8 @@ class EpidemicsBase:
     self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
+    self.backend     = kwargs.pop('backend','numpy')
+    self.iterations_per_day = kwargs.pop('it_per_day',10)
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
@@ -144,24 +146,9 @@ class EpidemicsBase:
     self.e['Problem']['Likelihood Model'] = self.likelihoodModel
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
-
-    nested = True
-    if nested == False:
-        self.e['Solver']['Type'] = 'TMCMC'
-        self.e['Solver']['Population Size'] = self.nSamples
-        self.e['File Output']['Frequency'] = 50
-    else:
-        self.e['Solver']['Type'] = 'Nested'
-        self.e['Solver']['Number Live Points'] = self.nSamples
-        self.e['Solver']['Resampling Method'] = 'Ellipse'
-        #self.e['Solver']['Batch Size'] = 100
-        self.e["Solver"]["Termination Criteria"]["Max Generations"] = 1000000
-        self.e["Solver"]["Termination Criteria"]["Max Gain Factor"] = 1e-3
-        self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 50000
-        self.e["Solver"]["Termination Criteria"]["Max Log Likelihood"] = 999999
-        self.e['Console Output']['Frequency'] = 1000
-        self.e['File Output']['Frequency'] = 0
-
+    self.e['Solver']['Type'] = 'TMCMC'
+    self.e['Solver']['Population Size'] = self.nSamples
+    
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
@@ -336,7 +323,31 @@ class EpidemicsBase:
 
 
 
+  def load_parameters(self,samples_path):
 
+      print('[Epidemics] Loading posterior samples')
+
+      files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
+      files.sort()
+      filename = files[-1]
+
+      variable_names = []
+      with open(samples_path+'/'+files[-1]) as json_file:
+        data = json.load(json_file)
+        samples = data['Results']['Sample Database']
+        variables = data['Variables']
+
+      self.nParameters = len(variables)
+      self.nSamples = len(samples)
+      self.parameters = []
+      for j in range(self.nParameters):
+        self.parameters.append({})
+        self.parameters[j]['Name'] = variables[j]['Name']
+        self.parameters[j]['Values'] = np.asarray( [samples[k][j] for k in range(self.nSamples)] )
+
+      self.has_been_called['sample'] = True
+
+      print('[Epidemics] Loaded')
 
 
   def propagate( self ):
@@ -354,7 +365,6 @@ class EpidemicsBase:
       self.e['Variables'][k]['Name'] = self.parameters[k]['Name']
       self.e['Variables'][k]['Precomputed Values'] = self.parameters[k]['Values'].tolist()
 
-
     self.e['Solver']['Type'] = 'Executor'
 
     self.set_korali_output_files(self.saveInfo['korali propagation'])
@@ -370,7 +380,7 @@ class EpidemicsBase:
     Ns = self.nSamples
     Nv = self.e['Samples'][0]['Saved Results']['Number of Variables']
     Nt = self.e['Samples'][0]['Saved Results']['Length of Variables']
-
+    print('Nt ',Nt)
     varNames = []
     for k in range(Nv):
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
@@ -404,7 +414,7 @@ class EpidemicsBase:
 
 
   def new_figure(self):
-    print('[Epidemics] Compute and Plot credible intervals.')
+    print('[Epidemics] New figure...')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
@@ -445,7 +455,7 @@ class EpidemicsBase:
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
         r = self.propagatedVariables['Dispersion'][:,k]
-        p = p =  m/(m+r)
+        p =  m/(m+r)
         x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 
@@ -479,7 +489,8 @@ class EpidemicsBase:
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
-    ax.set_xticks( range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) ) )
+    x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
+    ax.set_xticks( x[0:-1:3] )
     ax.grid()
     if( self.logPlot ): ax.set_yscale('log')
 
