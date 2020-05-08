@@ -459,7 +459,10 @@ class EpidemicsBase:
         m = self.propagatedVariables[varName][:,k]
         r = self.propagatedVariables['Dispersion'][:,k]
         p =  m/(m+r)
-        x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
+        try:
+          x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
+        except:
+          print("Error p: {}".format(p)) 
         samples[:,k] = np.asarray(x).flatten()
 
     else:

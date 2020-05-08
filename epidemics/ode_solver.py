@@ -12,9 +12,9 @@ import torch
 # ---------------------------------------------------------------------------- #
 '''
 
-def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10):
+def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10,max_step=np.inf):
     if backend == 'numpy':
-        sol = solve_ivp(f,t_span=[0, T],y0=y0, args=args,t_eval=t_eval)
+        sol = solve_ivp(f,t_span=[0, T],y0=y0, args=args,t_eval=t_eval,max_step=max_step)
     elif backend == 'torch':
         sol = solve_ivp_torch(f,T,y0,args,t_eval=t_eval,iterations_per_day=iterations_per_day)
     return sol
@@ -30,10 +30,10 @@ def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
     dt = 1/iterations_per_day
     assert((Decimal(str(T)) % Decimal(str(dt)))==0.0) # weird fix?
 
-    y = torch.autograd.Variable(torch.Tensor(y0),requires_grad=True)
-    p = torch.autograd.Variable(torch.Tensor(args[1]),requires_grad=True)
-    N = torch.autograd.Variable(torch.Tensor([args[0]]),requires_grad=True)
-    out = torch.autograd.Variable(torch.empty(len(y0),T+1),requires_grad=False)
+    y = torch.autograd.Variable(torch.DoubleTensor(y0),requires_grad=True)
+    p = torch.autograd.Variable(torch.DoubleTensor(args[1]),requires_grad=True)
+    N = torch.autograd.Variable(torch.DoubleTensor([args[0]]),requires_grad=True)
+    out = torch.autograd.Variable(torch.empty(len(y0),T+1,dtype=torch.double),requires_grad=False)
     
     out[:,0] = y.clone()
     t_out = np.arange(0,T+1,1)
@@ -89,6 +89,9 @@ def to_list(y):
         return y.detach().numpy().tolist()
     else:
         return y.tolist()
+
+def check_zeros(y,tol):
+    return [tol if x<tol else tol for x in y]
 
 def append_zero(y):
     if isinstance(y,list): 

@@ -12,19 +12,48 @@ def run_phase_1(model,region,n_samples,params):
 
     model_class = import_from( 'epidemics.' + model, 'Model')
     params['country'] = region
-  
+    
+    print('[Phase 1] Running {}'.format(region))
     a = model_class(**params)
     a.sample(n_samples)
     a.propagate()
     a.save()
     a.plot_intervals()
 
-if __name__ == "__main__":  
+if __name__ == "__main__": 
 
-    model = 'sir.altone_nbin'
+    CANTON_LIST = [ 'ZH',
+                    'BE',
+                    'LU',
+                    'UR',
+                    'SZ',
+                    'OW',
+                    'NW',
+                    'GL',
+                    'ZG',
+                    'FR',
+                    'SO',
+                    'BS',
+                    'BL',
+                    'SH',
+                    'AR',
+                    'AI',
+                    'SG',
+                    'GR',
+                    'AG',
+                    'TG',
+                    'TI',
+                    'VD',
+                    'VS',
+                    'NE',
+                    'GE',
+                    'JU',
+                ]
+
+    model = 'sir_int.nbin'
     regions = CANTON_LIST
     n_samples = 2000
-    params = {'dataFolder': './data/'+model.replace('.','_')+'/phase_1_results_test/',
+    params = {'dataFolder': './data/'+model.replace('.','_')+'/phase_1_results/',
               'preprocess':True,
               'nThreads': 12,
               'nPropagation': 100,

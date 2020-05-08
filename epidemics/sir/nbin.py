@@ -82,15 +82,15 @@ class Model( ModelBase ):
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 30.
+    js['Distributions'][k]['Minimum'] = 0.5
+    js['Distributions'][k]['Maximum'] = 5.
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 30.
+    js['Distributions'][k]['Maximum'] = 10.
 
     k+=1
     js['Distributions'].append({})
@@ -114,12 +114,10 @@ class Model( ModelBase ):
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
 
-    if self.backend == 'torch':
-        J = solver.get_gradients(y,p)
-    
-    # Need to take pytorch gradients before here
     y = solver.to_list(y)
-    
+    if self.backend == 'torch':
+        y = solver.check_zeros(y,1e-9)
+
     s['Reference Evaluations'] = y
     s['Dispersion'] = len(y)*[p[-1]]
 
@@ -134,8 +132,6 @@ class Model( ModelBase ):
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t.tolist(),backend='numpy')
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     y = solver.append_zero(y)
-    
-    # Need to take pytorch gradients before here
     y = solver.to_list(y)
 
     js = {}

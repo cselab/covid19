@@ -10,6 +10,7 @@ import numpy as np
 
 from epidemics.tools.tools import save_file
 from .model_base import ModelBase
+import epidemics.ode_solver as solver
 
 
 class Model( ModelBase ):
@@ -125,10 +126,16 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=tt )
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
 
-    y = -np.diff(sol.y[0])
-    y = y.tolist()
+    if len(tt)-1 !=len(y):
+        print('[ODE] Rerunning with smaller dt')
+        sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend='numpy',max_step=1)    
+        y = -(sol.y[0][1:]-sol.y[0][:-1])
+
+    # Need to take pytorch gradients before here
+    y = solver.to_list(y)
 
     s['Reference Evaluations'] = y
     s['Dispersion'] = len(y)*[p[-1]]
@@ -141,11 +148,11 @@ class Model( ModelBase ):
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
-
-    sol = solve_ivp( self.sir_rhs, t_span=[0, t[-1]], y0=y0, args=(N,p), t_eval=t )
-
-    y = -np.diff(sol.y[0])
-    y = [0] + y.tolist()
+    
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t,backend='numpy')    
+    y = -(sol.y[0][1:]-sol.y[0][:-1])
+    y = solver.append_zero(y)
+    y = solver.to_list(y)
 
     js = {}
     js['Variables'] = []

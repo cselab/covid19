@@ -29,24 +29,28 @@ def run_phase_2(phase_1_path,phase_2_path):
 
 
     # Parameters of the conditionnal
-    e["Variables"][0]["Name"] = "Psi 1" # beta mean
-    e["Variables"][1]["Name"] = "Psi 2" # beta std
+    e["Variables"][0]["Name"] = "Psi 1" # R0 mean
+    e["Variables"][1]["Name"] = "Psi 2" # R0 std
     e["Variables"][2]["Name"] = "Psi 3" # gamma mean
     e["Variables"][3]["Name"] = "Psi 4" # gamma std
-    e["Variables"][4]["Name"] = "Psi 5" # [r] mean
-    e["Variables"][5]["Name"] = "Psi 6" # [r] std
+    e["Variables"][4]["Name"] = "Psi 5" # delta mean
+    e["Variables"][5]["Name"] = "Psi 6" # delta std    
+    e["Variables"][6]["Name"] = "Psi 7" # td mean
+    e["Variables"][7]["Name"] = "Psi 8" # td std
+    e["Variables"][6]["Name"] = "Psi 7" # [r] mean
+    e["Variables"][7]["Name"] = "Psi 8" # [r] std
 
-    e["Variables"][0]["Prior Distribution"] = "Uniform 0" # beta mean
-    e["Variables"][1]["Prior Distribution"] = "Uniform 1" # beta std
+    e["Variables"][0]["Prior Distribution"] = "Uniform 0" # R0 mean
+    e["Variables"][1]["Prior Distribution"] = "Uniform 1" # R0 std
     e["Variables"][2]["Prior Distribution"] = "Uniform 2" # gamma mean
     e["Variables"][3]["Prior Distribution"] = "Uniform 3" # gamma std
     e["Variables"][4]["Prior Distribution"] = "Uniform 4" # [r] mean
     e["Variables"][5]["Prior Distribution"] = "Uniform 5" # [r] std
 
     # Contidionals
-    e["Problem"]["Conditional Priors"] = [ "Conditional beta", "Conditional gamma", "Conditional [r]"]
+    e["Problem"]["Conditional Priors"] = [ "Conditional R0", "Conditional gamma", "Conditional [r]"]
 
-    e["Distributions"][0]["Name"] = "Conditional beta"
+    e["Distributions"][0]["Name"] = "Conditional R0"
     e["Distributions"][0]["Type"] = "Univariate/Normal"
     e["Distributions"][0]["Mean"] = "Psi 1"
     e["Distributions"][0]["Standard Deviation"] = "Psi 2"
@@ -65,12 +69,12 @@ def run_phase_2(phase_1_path,phase_2_path):
     # ---------------------------------- Priors ---------------------------------- #
     # ---------------------------------------------------------------------------- #
 
-    e["Distributions"][3]["Name"] = "Uniform 0" # beta mean
+    e["Distributions"][3]["Name"] = "Uniform 0" # R0 mean
     e["Distributions"][3]["Type"] = "Univariate/Uniform"
     e["Distributions"][3]["Minimum"] = 0.0
-    e["Distributions"][3]["Maximum"] = 20.0
+    e["Distributions"][3]["Maximum"] = 30.0
 
-    e["Distributions"][4]["Name"] = "Uniform 1" # beta std
+    e["Distributions"][4]["Name"] = "Uniform 1" # R0 std
     e["Distributions"][4]["Type"] = "Univariate/Uniform"
     e["Distributions"][4]["Minimum"] = 0.0
     e["Distributions"][4]["Maximum"] = 15.0
@@ -116,7 +120,7 @@ def run_phase_2(phase_1_path,phase_2_path):
 
 if __name__ == "__main__":  
 
-    model = 'sir_altone_nbin'
+    model = 'sir_int.nbin'
     # cantons = ['ZH','BE','VD','GE']
     cantons = CANTON_LIST
 
