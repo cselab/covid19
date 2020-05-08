@@ -74,6 +74,13 @@ def fill_nans_nearest(x):
 
 #
 def fill_nans_interp(t, x):
+    """
+    t: `numpy.ndarray`, (N)
+    x: `numpy.ndarray`, (N)
+    Returns:
+    `numpy.ndarray`, (N)
+      Array `x` where each NaN value is replaced using linear interpolation.
+    """
     from scipy.interpolate import interp1d
     x = np.copy(x)
     nans = np.isnan(x)
@@ -144,7 +151,6 @@ def get_data_switzerland_cantons(keys) -> Data:
         #Itotal = fill_nans_nearest(Itotal)
         Itotal[0] = 0
         Itotal = fill_nans_interp(data.time, Itotal)
-        #Itotal = moving_average(Itotal, 2) # XXX
         data.total_infected[i, :] = Itotal[:]
         data.population[i] = key_to_population[k]
     data.name = keys
@@ -152,13 +158,15 @@ def get_data_switzerland_cantons(keys) -> Data:
     data.commute_airports = get_infected_commuters_airports(keys)
     data.commute_borders = get_infected_commuters_borders(keys)
 
-    sel = -1
-    sel = 56  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = -1
+    #sel = 56  # XXX limit data to prevent `bus error`
     #sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
     #sel = 40
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
     #data.time = data.time[:sel]
     #data.total_infected = data.total_infected[:, :sel]
+
+    # select every second point to prevent segfault
     data.time = data.time[::2]
     data.total_infected = data.total_infected[:, ::2]
 
