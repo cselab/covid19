@@ -152,9 +152,9 @@ class Model(EpidemicsBase):
         assert min(tt1) >= 0
 
         params = self.get_params(p, N, C, Qa, Qb)
-        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, tt1)
+        _, _, Icum = self.ode.solve_S_I_Icum(params, [0, max(t)], y0, tt1)
         # S: shape (n_regions, nt)
-        Idaily = -np.diff(S, axis=1)  # shape (n_regions, nt-1)
+        Idaily = np.diff(Icum, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T  # shape (nt-1, n_regions)
         Idaily = list(Idaily.flatten())
 
@@ -178,10 +178,10 @@ class Model(EpidemicsBase):
         assert min(t1) >= 0
 
         params = self.get_params(p, N, C, Qa, Qb)
-        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, t1)
+        _, _, Icum = self.ode.solve_S_I_Icum(params, [0, max(t)], y0, t1)
         # S: shape (n_regions, nt)
         # shape (n_regions, nt-1)
-        Idaily = -np.diff(S, axis=1)
+        Idaily = np.diff(Icum, axis=1)
         # shape (n_regions, nt)
         Idaily = np.hstack((np.zeros((self.n_regions, 1)), (Idaily)))
 

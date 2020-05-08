@@ -36,10 +36,11 @@ class Ode:
         """
         raise NotImplementedError()
 
-    def solve_SI(self, params, t_span, y0, t_eval):
+    def solve_S_I_Icum(self, params, t_span, y0, t_eval):
         """
-        Solves model equations converting initial state and solution
-        from/to [S, I]: S (susceptible), I (infected)
+        Solves model equations converting the initial state from [S, I]
+        and the solution to [S, I, Icum]
+        S (susceptible), I (current infected), Icum (cumulative infected)
 
         params: dict()
             Parameters.
@@ -50,7 +51,7 @@ class Ode:
         t_eval: `array_like`, (nt)
             Times at which to store the computed solution.
         Returns:
-        si: `array_like`, (2, n_regions, nt)
+        s_i_icum: `array_like`, (3, n_regions, nt)
             Solution.
         """
         raise NotImplementedError()
@@ -85,9 +86,11 @@ class Sir(Ode):
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
 
-    def solve_SI(self, params, t_span, si0, t_eval):
-        si = self.solve(params, t_span, si0, t_eval)
-        return si
+    def solve_S_I_Icum(self, params, t_span, si0, t_eval):
+        S, I = self.solve(params, t_span, si0, t_eval)
+        N = params['N']
+        Icum = N[:,None] - S
+        return np.array((S, I, Icum))
 
 
 class Seir(Ode):
@@ -142,11 +145,13 @@ class Seir(Ode):
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
 
-    def solve_SI(self, params, t_span, si0, t_eval):
+    def solve_S_I_Icum(self, params, t_span, si0, t_eval):
         S0, I0 = np.array(si0)
         E0 = np.zeros_like(S0)
         S, E, I = self.solve(params, t_span, [S0, E0, I0], t_eval)
-        return np.array((S, I))
+        N = params['N']
+        Icum = N[:,None] - S - E
+        return np.array((S, I, Icum))
 
 
 class SeirCpp(Seir):
