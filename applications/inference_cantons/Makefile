@@ -24,5 +24,7 @@ clean: cleanplot cleandat
 plot_map:
 	./plot.py --map_data --map_fit --map_error --image --movie
 
+plot_map_error:
+	./plot.py --map_error --image
 
-.PHONY: default clean run plot_map cleanplot cleandat
+.PHONY: default clean run plot_map cleanplot cleandat plot_map_error

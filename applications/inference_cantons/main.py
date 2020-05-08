@@ -18,7 +18,7 @@ from model import Model
 
 
 def main():
-    nSamples = 1000
+    nSamples = 5000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -49,8 +49,8 @@ def main():
     params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2', 'beta_corr3']
     data.beta_corr_regions = {
             "beta_corr0" : ['TI'],
-            "beta_corr1" : ['VS'],
-            "beta_corr2" : ['AG'],
+            "beta_corr1" : ['VS', 'VD'],
+            "beta_corr2" : ['AG', 'ZG'],
             "beta_corr3" : ['BS', 'BL'],
             }
     data.beta_corr_regions = {k:list(map(keys.index, v)) for k,v in data.beta_corr_regions.items()}
