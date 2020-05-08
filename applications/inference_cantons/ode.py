@@ -96,14 +96,14 @@ class Sir(Ode):
 
 class Seir(Ode):
     params_fixed = {
-        'R0': 1.35,
-        'Z': 1,
-        'D': 2.7,
-        'tact': 31.,
-        'kbeta': 0.5,
-        'nu': 0.6,
+        'R0': 1.45,
+        'Z': 1.2,
+        'D': 2,
+        'nu': 0.5,
         'theta_a': 0,
-        'theta_b': 0.07,
+        'theta_b': 0.027,
+        'tact': 28.,
+        'kbeta': 0.5,
         'beta_corr0': 0,
         'beta_corr1': 0,
         'beta_corr2': 0,

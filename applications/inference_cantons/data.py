@@ -153,7 +153,8 @@ def get_data_switzerland_cantons(keys) -> Data:
     data.commute_borders = get_infected_commuters_borders(keys)
 
     sel = -1
-    sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
+    sel = 56  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
     #sel = 40
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
     data.time = data.time[:sel]
