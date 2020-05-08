@@ -39,18 +39,14 @@ void exportSEIIN(py::module &m) {
     using namespace seiin;
 
     py::class_<Parameters>(m, "Parameters")
-        .def(py::init<double, double, double, double, double, double, double, double, double, double>(),
-             "beta"_a, "mu"_a, "alpha"_a, "Z"_a, "D"_a, "theta"_a, "b0"_a,"b1"_a,"b2"_a,"b3"_a)
+        .def(py::init<double, double, double, double, double, double>(),
+             "beta"_a, "mu"_a, "alpha"_a, "Z"_a, "D"_a, "theta"_a)
         .def_readwrite("beta", &Parameters::beta)
         .def_readwrite("mu", &Parameters::mu)
         .def_readwrite("alpha", &Parameters::alpha)
         .def_readwrite("Z", &Parameters::Z)
         .def_readwrite("D", &Parameters::D)
-        .def_readwrite("theta", &Parameters::theta)
-        .def_readwrite("b0", &Parameters::b0)
-        .def_readwrite("b1", &Parameters::b1)
-        .def_readwrite("b2", &Parameters::b2)
-        .def_readwrite("b3", &Parameters::b3);
+        .def_readwrite("theta", &Parameters::theta);
 
     py::class_<State>(m, "State")
         .def(py::init<std::vector<double>>())
