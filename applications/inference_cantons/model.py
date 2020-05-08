@@ -84,6 +84,8 @@ class Model(EpidemicsBase):
             Qb = np.zeros([self.n_regions])
         self.data['Model']['Infected Commuters Borders'] = Qb
 
+        self.data['Model']['beta_corr_regions'] = data.beta_corr_regions
+
         T = np.ceil(t[-1])
         self.data['Propagation']['x-data'] = repeat(
             np.linspace(1, T, int(T + 1)), self.n_regions)
@@ -122,7 +124,7 @@ class Model(EpidemicsBase):
         k += 1
         return js
 
-    def get_params(self, korali_p, N, C, Qa, Qb):
+    def get_params(self, korali_p, N, C, Qa, Qb, beta_corr_regions):
         """
         N: `array_like`, (n_regions)
         Population of regions.
@@ -136,6 +138,7 @@ class Model(EpidemicsBase):
         params['C'] = np.array(C)
         params['Qa'] = np.array(Qa)
         params['Qb'] = np.array(Qb)
+        params['beta_corr_regions'] = beta_corr_regions
         return params
 
     def computational_model(self, s):
@@ -146,15 +149,16 @@ class Model(EpidemicsBase):
         C = self.data['Model']['Commute Matrix']
         Qa = self.data['Model']['Infected Commuters Airports']
         Qb = self.data['Model']['Infected Commuters Borders']
+        beta_corr_regions = self.data['Model']['beta_corr_regions']
         F = self.data['Model']['Fit Importance']
 
         tt1 = [min(t) - 1] + list(t[0::self.n_regions])
         assert min(tt1) >= 0
 
-        params = self.get_params(p, N, C, Qa, Qb)
-        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, tt1)
+        params = self.get_params(p, N, C, Qa, Qb, beta_corr_regions)
+        _, _, Icum = self.ode.solve_S_I_Icum(params, [0, max(t)], y0, tt1)
         # S: shape (n_regions, nt)
-        Idaily = -np.diff(S, axis=1)  # shape (n_regions, nt-1)
+        Idaily = np.diff(Icum, axis=1)  # shape (n_regions, nt-1)
         Idaily = Idaily.T  # shape (nt-1, n_regions)
         Idaily = list(Idaily.flatten())
 
@@ -172,16 +176,17 @@ class Model(EpidemicsBase):
         C = self.data['Model']['Commute Matrix']
         Qa = self.data['Model']['Infected Commuters Airports']
         Qb = self.data['Model']['Infected Commuters Borders']
+        beta_corr_regions = self.data['Model']['beta_corr_regions']
         F = self.data['Model']['Fit Importance']
 
         t1 = list(t[0::self.n_regions])
         assert min(t1) >= 0
 
-        params = self.get_params(p, N, C, Qa, Qb)
-        S, _ = self.ode.solve_SI(params, [0, max(t)], y0, t1)
+        params = self.get_params(p, N, C, Qa, Qb, beta_corr_regions)
+        _, _, Icum = self.ode.solve_S_I_Icum(params, [0, max(t)], y0, t1)
         # S: shape (n_regions, nt)
         # shape (n_regions, nt-1)
-        Idaily = -np.diff(S, axis=1)
+        Idaily = np.diff(Icum, axis=1)
         # shape (n_regions, nt)
         Idaily = np.hstack((np.zeros((self.n_regions, 1)), (Idaily)))
 

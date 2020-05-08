@@ -5,6 +5,7 @@ import numpy as np
 from epidemics.cantons.py.model import ModelData
 import libsolver
 
+
 def smooth_trans(u0, u1, t, tc, teps):
     """
     Smooth transition from u0 to u1 in interval `tc - teps < t < tc + teps`.
@@ -36,10 +37,11 @@ class Ode:
         """
         raise NotImplementedError()
 
-    def solve_SI(self, params, t_span, y0, t_eval):
+    def solve_S_I_Icum(self, params, t_span, y0, t_eval):
         """
-        Solves model equations converting initial state and solution
-        from/to [S, I]: S (susceptible), I (infected)
+        Solves model equations converting the initial state from [S, I]
+        and the solution to [S, I, Icum]
+        S (susceptible), I (current infected), Icum (cumulative infected)
 
         params: dict()
             Parameters.
@@ -50,7 +52,7 @@ class Ode:
         t_eval: `array_like`, (nt)
             Times at which to store the computed solution.
         Returns:
-        si: `array_like`, (2, n_regions, nt)
+        s_i_icum: `array_like`, (3, n_regions, nt)
             Solution.
         """
         raise NotImplementedError()
@@ -85,21 +87,27 @@ class Sir(Ode):
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
 
-    def solve_SI(self, params, t_span, si0, t_eval):
-        si = self.solve(params, t_span, si0, t_eval)
-        return si
+    def solve_S_I_Icum(self, params, t_span, si0, t_eval):
+        S, I = self.solve(params, t_span, si0, t_eval)
+        N = params['N']
+        Icum = N[:, None] - S
+        return np.array((S, I, Icum))
 
 
 class Seir(Ode):
     params_fixed = {
-        'R0': 1.35,
-        'Z': 1,
-        'D': 2.7,
-        'tact': 31.,
+        'R0': 1.45,
+        'Z': 1.2,
+        'D': 2,
+        'nu': 0.5,
+        'theta_a': 0,
+        'theta_b': 0.027,
+        'tact': 28.,
         'kbeta': 0.5,
-        'nu': 0.6,
-        'theta_a': 0.005,
-        'theta_b': 0.07,
+        'beta_corr0': 0,
+        'beta_corr1': 0,
+        'beta_corr2': 0,
+        'beta_corr3': 0,
     }
     params_prior = {
         'R0': (0.5, 4),
@@ -110,6 +118,10 @@ class Seir(Ode):
         'nu': (0.1, 10.),
         'theta_a': (0., 0.1),
         'theta_b': (0., 0.1),
+        'beta_corr0': (-0.5, 0.5),
+        'beta_corr1': (-0.5, 0.5),
+        'beta_corr2': (-0.5, 0.5),
+        'beta_corr3': (-0.5, 0.5),
     }
 
     def solve(self, params, t_span, y0, t_eval):
@@ -142,11 +154,13 @@ class Seir(Ode):
         y = y_flat.reshape(n_vars, n_regions, len(t_eval))
         return y
 
-    def solve_SI(self, params, t_span, si0, t_eval):
+    def solve_S_I_Icum(self, params, t_span, si0, t_eval):
         S0, I0 = np.array(si0)
         E0 = np.zeros_like(S0)
         S, E, I = self.solve(params, t_span, [S0, E0, I0], t_eval)
-        return np.array((S, I))
+        N = params['N']
+        Icum = N[:, None] - S - E
+        return np.array((S, I, Icum))
 
 
 class SeirCpp(Seir):
@@ -168,6 +182,10 @@ class SeirCpp(Seir):
         src += params['theta_a'] * np.array(params['Qa'])
         src += params['theta_b'] * np.array(params['Qb'])
         data.ext_com_Iu = [src] * n_days
+        data.Ui = [0] * n_regions
+        for var in ["beta_corr0", "beta_corr1", "beta_corr2", "beta_corr3"]:
+            for i in params["beta_corr_regions"].get(var, []):
+                data.Ui[i] = params[var]
 
         solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
 

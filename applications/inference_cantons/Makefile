@@ -13,12 +13,18 @@ tiles.png: $D/state.pickle plot.py
 $D/state.pickle: main.py ode.py data.py model.py
 	./main.py
 
-clean:
-	rm -rf data
+cleanplot:
 	rm -f samples.png prediction*.png data.{png,mp4} fit.{png,mp4} all.png
+
+cleandat:
+	rm -rf data
+
+clean: cleanplot cleandat
 
 plot_map:
 	./plot.py --map_data --map_fit --map_error --image --movie
 
+plot_map_error:
+	./plot.py --map_error --image
 
-.PHONY: default clean run plot_map
+.PHONY: default clean run plot_map cleanplot cleandat plot_map_error

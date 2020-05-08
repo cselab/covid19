@@ -81,12 +81,15 @@ class ModelBase( EpidemicsBase ):
 
 
 
-
-  # p = [ R0, mu, alpha, Z, D ]
+  #       0    1     2   3  4    5     6
+  # p = [ R0, mu, alpha, Z, D, delta, td ]
   def seiir_rhs( self, t, y, N, p ):
     S, E, Ir, Iu = y
 
     beta = p[0]*p[4]
+
+    if t>p[6] :
+      beta = p[0]*p[5]
 
     c1 = beta * S * Ir / N
     c2 = p[1] * beta * S * Iu / N

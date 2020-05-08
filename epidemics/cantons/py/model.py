@@ -36,14 +36,18 @@ class ModelData:
         Mij: A numpy matrix of region-region number of commuters.
         ext_com_Iu: A matrix [day][region] of estimated number of foreign
                     infected people visiting given region at given day.
+        Ui: User-defined, shape (K)
     """
-    def __init__(self, region_keys, region_population, Mij, Cij, *, ext_com_Iu=[]):
+    def __init__(self, region_keys, region_population, Mij, Cij, *, ext_com_Iu=[], Ui=[]):
         K = len(region_keys)
         assert len(region_population) == K
         assert Mij.shape == (K, K)
         assert Cij.shape == (K, K)
         assert all(len(row) == K for row in ext_com_Iu), \
                 (K, [len(row) for row in ext_com_Iu])
+        if not len(Ui):
+            Ui = [0] * K
+        assert len(Ui) == K
 
         self.num_regions = K
         self.region_keys = region_keys
@@ -51,6 +55,7 @@ class ModelData:
         self.Mij = Mij
         self.Cij = Cij
         self.ext_com_Iu = ext_com_Iu
+        self.Ui = Ui
 
         self.key_to_index = {key: k for k, key in enumerate(region_keys)}
 
@@ -60,7 +65,7 @@ class ModelData:
         Needed when running the model from Python using the C++ implementation."""
         return libsolver.ModelData(self.region_keys, self.region_population,
                                    flatten(self.Mij), flatten(self.Cij),
-                                   flatten(self.ext_com_Iu))
+                                   flatten(self.ext_com_Iu), self.Ui)
 
     def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
         """Generate cpp_model_data.dat, the data for the C++ ModelData class.
@@ -93,6 +98,7 @@ class ModelData:
             f.write(str(len(self.ext_com_Iu)) + '\n')
             for day in self.ext_com_Iu:
                 f.write(' '.join(str(x) for x in day) + '\n')
+            f.write(' '.join(str(u) for u in self.Ui) + '\n')
         print(f"Stored model data to {path}.")
 
 

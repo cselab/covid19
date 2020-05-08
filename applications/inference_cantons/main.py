@@ -18,7 +18,7 @@ from model import Model
 
 
 def main():
-    nSamples = 1000
+    nSamples = 5000
     x = argparse.Namespace()
     x.dataFolder = "data/"
     x.nPropagation = 20
@@ -46,7 +46,14 @@ def main():
     ode = SeirCpp()
     #params_to_infer = []
     params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
-    ode.params_fixed['theta_a'] = 0.
+    #params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2', 'beta_corr3']
+    params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2']
+    data.beta_corr_regions = {
+            "beta_corr0" : ['VS', 'UR'],
+            "beta_corr1" : ['AG', 'ZG', 'TG', 'JU', 'AR', 'AI', 'TI'],
+            "beta_corr2" : ['BS', 'BL', 'SH', 'SO'],
+            }
+    data.beta_corr_regions = {k:list(map(keys.index, v)) for k,v in data.beta_corr_regions.items()}
 
     #ode.params_fixed['tact'] = 1e10
     #params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b']

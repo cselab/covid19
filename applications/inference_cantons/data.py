@@ -9,9 +9,20 @@ class Data:
     commute_matrix = None  # Cij
     commute_airports = None  # Qa
     commute_borders = None  # Qb
-    # `numpy.ndarray()`, (n_regions,)
-    # defaults to 1, larger values increase the importance of a region
+
+    """
+    Fit importance.
+    `numpy.ndarray()`, (n_regions,)
+    defaults to 1, larger values increase the importance of a region
+    """
     fit_importance = None
+
+    """
+    Indices of regions for beta correction.
+    `dict(varname -> list[region_index])`
+    `varname` is ("beta_corr0", ...)
+    """
+    beta_corr_regions = dict()
 
 def moving_average(x, w):
     """
@@ -142,11 +153,14 @@ def get_data_switzerland_cantons(keys) -> Data:
     data.commute_borders = get_infected_commuters_borders(keys)
 
     sel = -1
-    sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
+    sel = 56  # XXX limit data to prevent `free(): invalid next size (fast)`
+    #sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
     #sel = 40
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
-    data.time = data.time[:sel]
-    data.total_infected = data.total_infected[:, :sel]
+    #data.time = data.time[:sel]
+    #data.total_infected = data.total_infected[:, :sel]
+    data.time = data.time[::2]
+    data.total_infected = data.total_infected[:, ::2]
 
     return data
 

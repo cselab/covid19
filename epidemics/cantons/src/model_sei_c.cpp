@@ -18,7 +18,8 @@ void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
             sumIC_N += x.I(j) * this->C_plus_Ct(i, j) * invNi[j];
         }
         const double ext = modelData_.getExternalCommutersIu(day, i);
-        const double A = beta * x.S(i) * invNi[i] * (
+        const double beta_i = beta * (1 + modelData_.Ui[i]);
+        const double A = beta_i * x.S(i) * invNi[i] * (
                 x.I(i) + p.nu * sumIC_N + ext);
         const double E_Z = x.E(i) / p.Z;
 
