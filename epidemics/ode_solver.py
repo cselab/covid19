@@ -3,9 +3,14 @@ import numpy as np
 from decimal import Decimal
 import torch
 
+'''
+# ------------------------------ ODE Solver ---------------------------------- #
+ 
+    This script handles the ODE part of the model. Provided a RHS the ODE is 
+    solved either using pytorch or numpy/scipy.
+
 # ---------------------------------------------------------------------------- #
-# ----------------------------------- Setup ---------------------------------- #
-# ---------------------------------------------------------------------------- #
+'''
 
 def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10):
     if backend == 'numpy':
@@ -13,17 +18,12 @@ def solve_ode(f,T,y0,args,t_eval,backend='numpy',iterations_per_day=10):
     elif backend == 'torch':
         sol = solve_ivp_torch(f,T,y0,args,t_eval=t_eval,iterations_per_day=iterations_per_day)
     return sol
-
-# ---------------------------------------------------------------------------- #
-# ---------------------------- Pytorch ODE Solver ---------------------------- #
-# ---------------------------------------------------------------------------- #
-
-class Solution():
-    def __init__(self,y,t):
-        self.y = y[0]
-        self.t = t
-        
+  
 def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
+    '''
+        ODE solver using pytorch. ~100x slower than scipy 
+        Using fixed time step RK4 integration
+    '''
     T = int(T)
     t_eval = [int(i) for i in t_eval]
     # Here somehow fix dt automatically in a smart way using values of p
@@ -34,6 +34,7 @@ def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
     p = torch.autograd.Variable(torch.Tensor(args[1]),requires_grad=True)
     N = torch.autograd.Variable(torch.Tensor([args[0]]),requires_grad=True)
     out = torch.autograd.Variable(torch.empty(len(y0),T+1),requires_grad=False)
+    
     out[:,0] = y.clone()
     t_out = np.arange(0,T+1,1)
     t = 0
@@ -48,10 +49,6 @@ def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
 
     return sol
 
-# ---------------------------------------------------------------------------- #
-# ----------------------------- Integrators ---------------------------------- #
-# ---------------------------------------------------------------------------- #
-
 def FE_step(f, y, t, dt, N, p):
     return y + dt * torch.cat(f(t,y,N,p)), t + dt
 
@@ -62,9 +59,12 @@ def RK4_step(f, y, t, dt, N, p):
     k4 = dt * torch.cat(f(t+dt, y + k3,N,p))
     return y + k1/6 + k2/3 + k3/3 + k4/6, t + dt
 
-# ---------------------------------------------------------------------------- #
 # -------------------------------- Utils ------------------------------------- #
-# ---------------------------------------------------------------------------- #
+
+class Solution():
+    def __init__(self,y,t):
+        self.y = y[0]
+        self.t = t
 
 def get_gradients(y,p):
     # Computes the Jacobian of the output w.r.t the model params

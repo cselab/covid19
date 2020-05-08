@@ -46,7 +46,6 @@ class Model( ModelBase ):
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
       self.data['Model']['y-data'] = np.diff( y[0:])
-      print('Data t {} y {}'.format(len(t[1:]),len(y[0:])))
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
       self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
@@ -114,6 +113,9 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
+
+    if self.backend == 'torch':
+        J = solver.get_gradients(y,p)
     
     # Need to take pytorch gradients before here
     y = solver.to_list(y)
