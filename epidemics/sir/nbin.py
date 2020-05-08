@@ -114,6 +114,10 @@ class Model( ModelBase ):
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
 
+    print(y0)
+    print(p)
+    print(tt)
+    print(y)
     if self.backend == 'torch':
         J = solver.get_gradients(y,p)
     

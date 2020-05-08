@@ -118,7 +118,7 @@ class Model( ModelBase ):
     if self.backend == 'torch':
         J = solver.get_gradients(y,p)
   
-  # Need to take pytorch gradients before here
+     # Need to take pytorch gradients before here
     y = solver.to_list(y)
  
     s['Reference Evaluations'] = y
