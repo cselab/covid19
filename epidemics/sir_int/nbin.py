@@ -134,7 +134,6 @@ class Model( ModelBase ):
         sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend='numpy',max_step=1)    
         y = -(sol.y[0][1:]-sol.y[0][:-1])
 
-    # Need to take pytorch gradients before here
     y = solver.to_list(y)
 
     s['Reference Evaluations'] = y

@@ -23,7 +23,7 @@ parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that 
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
-parser.add_argument('--preprocess','-pre',type=bool,default=False,help='Preprocess infection data')
+parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
 parser.add_argument('--backend','-b',default='numpy',help='numpy/scipy or torch')
 parser.add_argument('--it_per_day','-it',default=10,help='number of iterations per day when using the pytorch ODE solver')
 

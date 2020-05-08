@@ -114,13 +114,12 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
+    # Get gradients here
+    y = solver.to_list(y)
 
     if self.backend == 'torch':
-        J = solver.get_gradients(y,p)
-    
-    # Need to take pytorch gradients before here
-    y = solver.to_list(y)
-    
+        y = solver.check_zeros(y,1e-9)
+        
     s['Reference Evaluations'] = y
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
 
@@ -137,8 +136,6 @@ class Model( ModelBase ):
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t.tolist(),backend='numpy')
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     y = solver.append_zero(y)
-    
-    # Need to take pytorch gradients before here
     y = solver.to_list(y)
 
     js = {}

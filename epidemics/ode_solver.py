@@ -45,7 +45,7 @@ def solve_ivp_torch(f,T,y0,args, t_eval,iterations_per_day=10):
 
     # Return at t_eval
     idx = np.where(t_out  == t_eval)
-    sol = Solution(out[:,idx],t_eval)
+    sol = Solution(out[:,idx],t_eval,p)
 
     return sol
 
@@ -62,9 +62,10 @@ def RK4_step(f, y, t, dt, N, p):
 # -------------------------------- Utils ------------------------------------- #
 
 class Solution():
-    def __init__(self,y,t):
+    def __init__(self,y,t,p):
         self.y = y[0]
         self.t = t
+        self.p = p
 
 def get_gradients(y,p):
     # Computes the Jacobian of the output w.r.t the model params
