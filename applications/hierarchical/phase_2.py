@@ -13,6 +13,8 @@ from epidemics.data.files.canton_population import CANTON_LIST
 '''
 
 model = 'sir_altone_nbin'
+cantons = ['VD','ZH']
+# cantons = CANTON_LIST
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------------- Setup ----------------------------------- #
@@ -20,7 +22,7 @@ model = 'sir_altone_nbin'
 
 e = korali.Experiment()
 e["Problem"]["Type"]  = "Hierarchical/Psi"
-e["Problem"]["Sub Problems"] = ['data/phase_1_results/'+canton+'/'+model+'/_korali_samples' for canton in CANTON_LIST]
+e["Problem"]["Sub Problems"] = ['data/phase_1_results/'+canton+'/'+model+'/_korali_samples' for canton in cantons]
 
 # ---------------------------------------------------------------------------- #
 # ------------------------------- Conditionals ------------------------------- #

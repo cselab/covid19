@@ -66,34 +66,41 @@ class Model( ModelBase ):
 
 
 
-  def set_variables_and_distributions( self ):
+  def get_variables_and_distributions( self ):
 
     p = ['beta','gamma','[Sigma]']
+    js = {}
+    js['Variables']=[]
+    js['Distributions']=[]
     for k,x in enumerate(p):
-      self.e['Variables'][k]['Name'] = x
-      self.e['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
+      js['Variables'].append({})
+      js['Variables'][k]['Name'] = x
+      js['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
 
     self.nParameters = len(p)
 
     k=0
-    self.e['Distributions'][k]['Name'] = 'Prior for beta'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 1.
+    js['Distributions'][k]['Maximum'] = 100.
+
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for gamma'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 1.
+    js['Distributions'][k]['Maximum'] = 100.
 
-    self.e['Distributions'][k]['Name'] = 'Prior for gamma'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 1.
-    self.e['Distributions'][k]['Maximum'] = 100.
     k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Maximum'] = 10.
 
-    self.e['Distributions'][k]['Name'] = 'Prior for [Sigma]'
-    self.e['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    self.e['Distributions'][k]['Minimum'] = 0.00001
-    self.e['Distributions'][k]['Maximum'] = 10.
-
-
+    return js
 
 
   def computational_model( self, s ):
@@ -142,7 +149,7 @@ class Model( ModelBase ):
 
 
 
-  def plot_intervals( self ):
+  def plot_intervals( self, ns=10):
 
     fig = self.new_figure()
 
@@ -153,13 +160,13 @@ class Model( ModelBase ):
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Incidence', 20, ax[0], 'Daily Incidence' )
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Incidence', 20, ax[1], 'Cummulative number of infected', cummulate=1)
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
 

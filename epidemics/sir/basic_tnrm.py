@@ -136,7 +136,7 @@ class Model( ModelBase ):
 
 
 
-  def plot_intervals( self ):
+  def plot_intervals( self, ns=10):
 
     fig = self.new_figure()
 
@@ -145,7 +145,7 @@ class Model( ModelBase ):
     z = self.data['Model']['y-data']
     ax.plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Total Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Cummulative Infected', 20, ax, 'Daily Incidence' )
+    self.compute_plot_intervals( 'Cummulative Infected', ns, ax, 'Daily Incidence' )
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )

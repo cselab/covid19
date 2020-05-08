@@ -6,9 +6,9 @@ import itertools
 
 class OSP:
 
-  ############################################################################
-  def __init__(self, path, nSensors, nMeasure, Ntheta=0, Ny = 100, korali = False):
-  ############################################################################
+  ##################################################################################
+  def __init__(self, path, nSensors, nMeasure, Ntheta=0, Ny = 100, korali = False, informed_prior = True):
+  ##################################################################################
     self.path         = path         # path to output.npy
     self.nSensors     = nSensors     # how many sensors to place
     self.nMeasure     = nMeasure     # how many quantities each sensor measures
@@ -18,24 +18,60 @@ class OSP:
     self.data = np.empty(0)
     self.paramters = np.empty(0)
     if Ntheta == 0:
-        self.Ntheta = self.data.shape[0] # number of simulations
-        self.data         = np.load(path+"/output.npy")
-        self.parameters   = np.load(path+"/params.npy")
+        self.Ntheta      = self.data.shape[0] # number of simulations
+        self.data        = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
+        self.parameters  = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
     else:
-        self.Ntheta = Ntheta 
-        self.data         = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
-        self.parameters   = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
+        self.Ntheta      = Ntheta 
+        self.data        = np.load(path+"/output_Ntheta={:05d}.npy".format(Ntheta))
+        self.parameters  = np.load(path+"/params_Ntheta={:05d}.npy".format(Ntheta))
 
     self.korali = korali
 
     self.l = 3
     assert nMeasure == 1
-    self.sigma = 0.2 #np.std(self.data.flatten())
+    self.sigma = 0.2 
 
 
     self.sigma_mean = self.sigma * np.mean ( np.mean(self.data,axis=0) , axis = 1)
 
 
+    self.prior = np.zeros(self.Ntheta)
+    if informed_prior == True:
+#       real_data  = np.load("canton_daily_cases.npy") # Daily cases  [canton][day]
+#       model_data = np.load(path + "/reported.npy")    # Model output for daily cases  [Simulations][Days][canton]
+#
+#       
+#       cantons = real_data.shape[0]
+#       days    = real_data.shape[1]
+#       assert cantons == 26
+#
+#       E = []
+#       m = []
+#
+#       diag = []
+#       for c in range(cantons):
+#           for d in range(days):
+#              if np.isnan(real_data[c,d]) == False:
+#                 E.append(real_data[c,d])
+#                 m_ = np.zeros(self.Ntheta)
+#                 for theta in range(self.Ntheta):
+#                     m_[theta] = model_data[theta,d,c]
+#                 diag.append( np.mean(m_) )
+#                 m.append(m_)
+#
+#       E = np.asarray(E)
+#       m = np.asarray(m)
+#       diag = ( 0.3*np.asarray(diag)**2 ) * np.eye(len(E))
+#
+#       rv  = sp.multivariate_normal(E , diag ,allow_singular=True)
+#       for theta in range(self.Ntheta):
+#           self.prior[theta] = rv.pdf( m[:,theta]  )
+#
+#       print (np.sum(self.prior))
+       self.prior = 1.0
+    else:
+       self.prior = 1.0
 
 #
 #
@@ -122,7 +158,8 @@ class OSP:
     retval = 0.0
     for theta in range(0,self.Ntheta):
 
-      p_theta = 1.0
+      p_theta = 1.0 #self.prior[theta]
+      #p_theta = 1.0
       #if self.UseReported:
       #  t_tilde = np.max(time)
       #  if t_tilde > 0:
@@ -134,15 +171,8 @@ class OSP:
 
 
 
-      #sig = (self.sigma*mean)**2 * np.eye(N)
-      #sig = (self.sigma)**2 * np.eye(N)
 
-      #sig = sigma_mean**2 * np.eye(N)
       sig = sigma_mean * np.eye(N)
-
-
-      #rv  = sp.multivariate_normal(np.zeros(n), sig*cov,allow_singular=True)
-      #y   = np.random.multivariate_normal(mean, sig*cov, self.Ny)  
       rv  = sp.multivariate_normal(np.zeros(n), sig*cov*sig,allow_singular=True)
       y   = np.random.multivariate_normal(mean, sig*cov*sig, self.Ny)  
       s1  = np.mean(rv.logpdf(y-mean))    
@@ -165,6 +195,7 @@ class OSP:
       retval += (s1-s2)*p_theta
 
     retval /= self.Ntheta
+    print ("Sample ok:",retval)
     if self.korali:
       space_time["F(x)"] = retval
     else:
@@ -295,112 +326,3 @@ class OSP:
         posterior[i,j] = sp.multivariate_normal.pdf(F[j][:] ,mean, cov)
 
     return posterior      
-
-
-'''
-Slow version of EvaluateUtility and area bombing optimization  
-
-  #####################################
-  def EvaluateUtility(self,space_time):
-  #####################################
-    n = int ( len(space_time)/2 )
-    space = []
-    time  = []
-    for i in range(n):
-      space.append(space_time[i])
-      time. append(space_time[i+n])
-
-
-    #time is an array containing the time instance of each one of the nSensors measurements
-    #space contains the place where each measurement happens
-    M = self.nMeasure
-    N = len(time)  #self.nSensors
-
-    F = np.zeros((self.Ntheta,  M*N ))
-    for theta in range(0,self.Ntheta):
-      for s in range(0,N):
-        F[theta][s*M:(s+1)*M] = self.data[theta][time[s]][ self.nMeasure*space[s] : self.nMeasure*(space[s]+1) ] 
-
-    retval = 0.0
-    T1,T2 = np.meshgrid(time ,time )
-    X1,X2 = np.meshgrid(space,space)
-    block = self.sigma * self.sigma * np.exp( -self.distance(T1,X1,T2,X2) )      
-    cov = np.kron(np.eye(self.nMeasure,dtype=int), block)
-
-    if np.abs( np.linalg.det(cov) ) < 1e-7:
-      cov[np.diag_indices_from(cov)] += 1e-3
-
-    if np.abs( np.linalg.det(cov) ) < 1e-3:
-      return 0.0
-
-    for theta in range(0,self.Ntheta):
-      mean = F[theta][:]  
-      y = np.random.multivariate_normal(mean, cov, self.Ny)
-
-      rv = sp.multivariate_normal(mean, cov,allow_singular=True)
-      s1 = np.mean(rv.logpdf(y))
-      
-      Pdf_inner = np.empty((self.Ntheta,self.Ny))
-      for k in range(0,self.Ntheta):
-        rvInner = sp.multivariate_normal(F[k][:], cov,allow_singular=True)
-        Pdf_inner[k,:] = rvInner.pdf(y)
-      s2 = np.mean ( np.log( np.mean( Pdf_inner,axis=0) ) )
-
-      retval += (s1-s2)
-
-    retval /= self.Ntheta
-    
-    return retval
-
-  ######################
-  def AreaBombing(self):
-  ######################
-    t_locations = self.data.shape[1]
-    x_locations = int(self.data.shape[2] / self.nMeasure)
-
-    t = np.arange(0,t_locations)
-    x = np.arange(0,x_locations)
-
-    self.value = np.zeros( (  t_locations**self.nSensors , x_locations**self.nSensors ) )
-
-    max_v = -1e50
-    max_t = np.zeros(self.nSensors)
-    max_s = np.zeros(self.nSensors) 
-    min_v =  1e50
-    min_t = np.zeros(self.nSensors)
-    min_s = np.zeros(self.nSensors) 
-
-
-    time  = np.zeros(self.nSensors)
-    space = np.zeros(self.nSensors)
-    
-    #those loops are wrong because they do not allow to place two sensors
-    # at different locations but at the same time
-    for s_x in itertools.combinations_with_replacement( range(x_locations), self.nSensors ):
-      for s_t in itertools.combinations( range(t_locations), self.nSensors ):
-        time = s_t
-        space = s_x
-        t_index = self.index(s_t,t_locations)
-        x_index = self.index(s_x,x_locations)
-        self.value[t_index][x_index] = self.EvaluateUtility(space + time)
-        print (space[0],time[0],self.value[t_index][x_index],flush=True)
-        if self.value[t_index][x_index] > max_v:
-          max_t = time
-          max_s = space
-          max_v = self.value[t_index][x_index]
-
-        if self.value[t_index][x_index] < min_v:
-          min_t = time
-          min_s = space
-          min_v = self.value[t_index][x_index]
-      print(' ',flush=True)
-      print(' ',flush=True)
-
-
-    print ("Maximum utility:", max_v)
-    print ("Optimal sensor locations")
-    for n in range (self.nSensors):
-      print ("Sensor",n,"in location ",max_s[n],"at time",max_t[n])
-
-    return max_t,max_s,max_v
-'''

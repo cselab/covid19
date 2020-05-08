@@ -61,6 +61,7 @@ class EpidemicsBase:
 
     self.nParameters = 0
     self.parameters = []
+    self.bestParameters = []
 
     self.propagatedVariables = {}
     self.standardDeviation = []
@@ -80,10 +81,6 @@ class EpidemicsBase:
 
   def computational_model_propagate( s ):
     pass
-
-  def set_variables_for_interval( s ):
-    pass
-
 
 
 
@@ -165,10 +162,10 @@ class EpidemicsBase:
         self.e['Console Output']['Frequency'] = 1000
         self.e['File Output']['Frequency'] = 0
 
-    self.set_variables_and_distributions()
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
 
     self.set_korali_output_files( self.saveInfo['korali samples'] )
-
     self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -194,9 +191,26 @@ class EpidemicsBase:
       self.parameters[j]['Name'] = self.e['Variables'][0]['Name']
       self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
 
+
+    logP = []
+    for k in range(self.nSamples):
+      logP.append( self.e['Samples'][k]['logPosterior'] )
+    ind = np.argmax(np.asarray(logP))
+
+    self.bestParameters = {}
+    self.bestParameters['Reference Evaluations'] = self.e['Samples'][0]['Reference Evaluations']
+    self.bestParameters['Sample Index'] = ind
+    if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
+      self.bestParameters['Standard Deviation'] = self.e['Samples'][0]['Standard Deviation']
+    elif( self.likelihoodModel=='Negative Binomial' ):
+      self.bestParameters['Dispersion'] = self.e['Samples'][0]['Dispersion']
+    else:
+      sys.exit('\n[Epidemics] Likelihood not found in sample.\n')
+
     self.has_been_called['sample'] = True
     self.has_been_called['propagate'] = False
     print('[Epidemics] Done copying variables.')
+
 
 
 
@@ -215,13 +229,10 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "CMAES"
     self.e["Solver"]["Population Size"] = 24
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-5
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
 
-    self.set_variables_and_distributions()
-
-    for k in range(self.nParameters):
-      self.e["Variables"][k]["Initial Mean"] = ( self.e['Distributions'][k]['Maximum'] + self.e['Distributions'][k]['Minimum'] ) / 2
-      self.e["Variables"][k]["Initial Standard Deviation"] = ( self.e['Distributions'][k]['Maximum'] - self.e['Distributions'][k]['Minimum'] ) / 4
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
 
     self.set_korali_output_files( self.saveInfo['korali samples'] )
 
@@ -251,6 +262,83 @@ class EpidemicsBase:
 
 
 
+  def least_squares( self, maxGenerations):
+
+    self.nSamples = 1
+    self.maxGenerations = maxGenerations
+
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Optimization/Stochastic'
+    y = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Objective Function'] = lambda p: self.sum_of_squares_errors(p,y)
+
+    self.e["Solver"]["Type"] = "CMAES"
+    self.e["Solver"]["Population Size"] = 48
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
+
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
+
+    self.set_korali_output_files( self.saveInfo['korali samples'] )
+
+    if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
+    else: self.e['Console Output']['Verbosity'] = 'Detailed'
+
+    self.e['File Output']['Frequency'] = 10
+    self.e["Store Sample Information"] = True
+
+    k = korali.Engine()
+    k['Conduit']['Type'] = 'Concurrent'
+    k['Conduit']['Concurrent Jobs'] = self.nThreads
+
+    k.run(self.e)
+
+    return self.e['Results']['Best Sample']['Parameters']
+
+
+
+
+  def sum_of_squares_errors(self,s,y):
+
+    self.computational_model( s )
+
+    dif = np.asarray(y) - np.asarray(s['Reference Evaluations'])
+
+    s['F(x)'] = -np.sum(dif*dif) / len(y)
+
+
+
+
+  def set_variables_and_distributions( self, js ):
+
+    if self.e['Problem']['Type']=='Bayesian/Reference' :
+      nP = self.nParameters
+      for k in range(nP):
+        self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
+        self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
+        self.e['Distributions'][k]['Name'] = js['Distributions'][k]['Name']
+        self.e['Distributions'][k]['Type'] = js['Distributions'][k]['Type']
+        self.e['Distributions'][k]['Minimum'] = js['Distributions'][k]['Minimum']
+        self.e['Distributions'][k]['Maximum'] = js['Distributions'][k]['Maximum']
+
+    else:
+      nP = self.nParameters-1
+      for k in range(nP):
+        self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
+
+
+    if self.e["Solver"]["Type"] == "CMAES":
+      for k in range(nP):
+        self.e["Variables"][k]["Lower Bound"] = js['Distributions'][k]['Minimum']
+        self.e["Variables"][k]["Upper Bound"] = js['Distributions'][k]['Maximum']
+
+
+
+
+
+
   def propagate( self ):
 
     if not self.has_been_called['sample'] and not self.has_been_called['optimize'] :
@@ -271,8 +359,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files(self.saveInfo['korali propagation'])
 
-    if(self.silent):
-      self.e['Console Output']['Verbosity'] = 'Silent'
+    if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
     self.e['Store Sample Information'] = True
 
@@ -324,6 +411,7 @@ class EpidemicsBase:
     if(self.silentPlot): plt.ion()
 
     return fig
+
 
 
 

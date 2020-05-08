@@ -30,12 +30,14 @@ import matplotlib.pyplot as plt
 
 
 
+
+
 from epidemics.seiir.altone_tnrm import Model
 x = Model()
 N = x.regionalData.populationSize
 T = x.regionalData.time[-1]
-p = [ 2, 0.9, 0.05, 3, 5 ]
-
+# p = [ 2, 0.9, 0.05, 3, 5 ]
+p = [+3.575e+00,+2.822e-04,+1.004e-01,+9.886e+00,+9.008e+01]
 sol = x.solve_ode( [N-1,0,1,0], T, N, p )
 t = np.linspace(0,T,1000)
 S = sol.sol(t)[0]
