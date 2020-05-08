@@ -46,12 +46,12 @@ def main():
     ode = SeirCpp()
     #params_to_infer = []
     params_to_infer = ['R0', 'Z', 'D', 'nu', 'theta_b', 'tact']
-    params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2', 'beta_corr3']
+    #params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2', 'beta_corr3']
+    params_to_infer += ['beta_corr0', 'beta_corr1', 'beta_corr2']
     data.beta_corr_regions = {
-            "beta_corr0" : ['TI'],
-            "beta_corr1" : ['VS', 'VD'],
-            "beta_corr2" : ['AG', 'ZG'],
-            "beta_corr3" : ['BS', 'BL'],
+            "beta_corr0" : ['VS', 'UR'],
+            "beta_corr1" : ['AG', 'ZG', 'TG', 'JU', 'AR', 'AI', 'TI'],
+            "beta_corr2" : ['BS', 'BL', 'SH', 'SO'],
             }
     data.beta_corr_regions = {k:list(map(keys.index, v)) for k,v in data.beta_corr_regions.items()}
 

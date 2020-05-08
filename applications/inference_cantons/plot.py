@@ -31,6 +31,12 @@ from main import Model, Ode, Sir, Seir, SeirCpp
 
 from epidemics.tools.tools import prepare_folder
 
+"""
+Always returns `int` (while `round(np.float32(1))` returns `np.float32`)
+"""
+def intround(a):
+    return round(float(a))
+
 
 def compute_plot_intervals(model, varName, ns, ax, ylabel, cummulate=-1):
     xdata = model.data['Propagation']['x-data'][::model.n_regions]
@@ -187,8 +193,7 @@ def plot_tiles(model, keys=None):
         y = model.data['Model']['y-data'][region::model.n_regions]
         ycum = np.cumsum(y)
         ax.scatter(x, ycum, s=1, color='black')
-        ax.set_ylim(0, 60)
-        ax.set_xticks([0, 30, 60])
+        ax.set_xticks([0, max(x) // 2, max(x)])
         ax.set_ylim(0, ycum.max() * 2)
         ax.set_yticks([0, int(ycum.max())])
 
@@ -275,12 +280,13 @@ def get_fit(model, keys, n_samples=5):
     Itotal = dict()
     for key in keys:
         region = model.region_names.index(key)
-        t = model.data['Model']['x-data'][region::model.n_regions]
-        t = np.array(t).flatten()
+        t_data = model.data['Model']['x-data'][region::model.n_regions]
+        t_data = np.array(t_data).flatten()
 
         var = "Daily Incidence {:}".format(region)
         Ns = model.propagatedVariables[var].shape[0]
         Nt = model.propagatedVariables[var].shape[1]
+        t = np.linspace(0, max(t_data), Nt)
         ns = n_samples
         samples = np.zeros((Ns * ns, Nt))
         if model.likelihoodModel == 'Negative Binomial':
@@ -326,14 +332,15 @@ def plot_map(model,
         t, _, Itotal = get_fit(model, keys)
         nt = len(t)
     elif map_type == MapType.error:
-        tdata, _, Itotal_data = get_data(model, keys)
-        tfit, _, Itotal_fit = get_fit(model, keys)
-        nt = min(len(tdata), len(tfit))
-        assert len(tdata) == len(tfit)
+        t_data, _, Itotal_data = get_data(model, keys)
+        t_fit, _, Itotal_fit = get_fit(model, keys)
+        nt = intround(max(max(t_data), max(t_fit)))
+        t = np.linspace(1, nt, nt)
+
         Itotal_error = dict()
         for key in keys:
-            Id = Itotal_data[key][:nt]
-            If = Itotal_fit[key][:nt]
+            Id = np.interp(t, t_data, Itotal_data[key])
+            If = np.interp(t, t_fit, Itotal_fit[key])
             Itotal_error[key] = (If - Id) / np.maximum(1, Id)
     else:
         raise NotImplementedError()
@@ -369,14 +376,15 @@ def plot_map(model,
                     draw_Cij=True)
 
     fnbase = map_type
+    frames = intround(max(t)) + 1
     if image:
-        frame = min(image_day, nt - 1) if image_day != -1 else nt - 1
+        frame = min(image_day, frames - 1) if image_day != -1 else frames - 1
         fn = "{:}_day{:}.png".format(fnbase, frame)
-        rend.save_image(frame=image_day, frames=nt, filename=fn)
+        rend.save_image(frame=image_day, frames=frames, filename=fn)
         printlog(fn)
     if movie:
         fn = fnbase + ".mp4"
-        rend.save_movie(frames=nt, filename=fn)
+        rend.save_movie(frames=intround(max(t)), filename=fn)
         printlog(fn)
 
 

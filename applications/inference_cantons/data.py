@@ -157,8 +157,10 @@ def get_data_switzerland_cantons(keys) -> Data:
     #sel = 59  # XXX limit data to prevent `free(): invalid next size (fast)`
     #sel = 40
     #sel = 61  # XXX gives `free(): invalid next size (fast)`
-    data.time = data.time[:sel]
-    data.total_infected = data.total_infected[:, :sel]
+    #data.time = data.time[:sel]
+    #data.total_infected = data.total_infected[:, :sel]
+    data.time = data.time[::2]
+    data.total_infected = data.total_infected[:, ::2]
 
     return data
 
