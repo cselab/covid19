@@ -1,11 +1,12 @@
 *.swp
 .DS_Store
+._*
+._README.rst
+/applications/hierarchical/data/
+/applications/hierarchical/results/
 /data/
 /epidemics/data/cache
 /epidemics/data/downloads
 __pycache__
+build
 covid19_cases_switzerland_openzh.csv
-._README.rst
-._*
-/applications/hierarchical/data/
-/applications/hierarchical/results/

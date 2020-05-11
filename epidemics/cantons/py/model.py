@@ -10,7 +10,7 @@ import sys
 import urllib.request
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'build'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'build'))
 
 try:
     import libsolver

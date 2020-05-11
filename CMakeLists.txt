@@ -51,7 +51,12 @@ add_executable(
 
 target_compile_options(solver PUBLIC ${KORALI_CXXFLAGS})
 target_compile_options(solver PUBLIC ${CUSTOM_CXXFLAGS} -Wno-unused-parameter)
-set_target_properties(solver PROPERTIES LINK_FLAGS ${KORALI_LINKERFLAGS})
+
+if (CMAKE_VERSION VERSION_LESS 3.17)
+    set_target_properties(solver PROPERTIES LINK_FLAGS ${KORALI_LINKERFLAGS})
+else()
+    target_link_options(solver PUBLIC ${KORALI_LINKERFLAGS})
+endif()
 
 # Make Release mode the default.
 if(NOT CMAKE_BUILD_TYPE)
