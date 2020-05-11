@@ -9,85 +9,59 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import numpy as np
 import matplotlib.pyplot as plt
 
-# from epidemics.sir.altone_nbin import Model
-# x = Model()
-# N = x.regionalData.populationSize
-# T = x.regionalData.time[-1]
-# # p = [ +4.151e+01, +4.170e+01 ]
-# # p = [ +7.440e+01, +7.429e+01 ]
-# p = [ +7.154e+01, +7.142e+01 ]
-# sol = x.solve_ode( [N-1,1], T, N, p )
-# t = np.linspace(0,T,1000)
-# S = sol.sol(t)[0]
-# fig = plt.figure(figsize=(12, 8))
-# ax  = fig.subplots(1)
-#
-# ax.plot( t[1:], -np.diff(S), '-', lw=2, label='Daily Reported' )
-#
-# ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-# ax.grid()
-# ax.legend(loc='upper left')
-# # ax[k].set_yscale('log')
-#
-# plt.show()
 
-
-
-
-
-
-from epidemics.sir_int.nbin import Model
-x = Model()
-N = x.regionalData.populationSize
-T = x.regionalData.time[-1]
-p = [ 2.390152804204263, 0.5, 15.528833362506703, 4.209474337603897 ]
-sol = x.solve_ode( [N-1,1], T, N, p )
+from epidemics.sir_d.model_base import ModelBase
+x = ModelBase()
+N = 1000
+T = 10
+p = [ 2, 1 ]
+y0 = [N-1,1,0,0,0,0]
+sol = x.solve_ode( y0, T, N, p )
 t = np.linspace(0,T,1000)
-S = sol.sol(t)[0]
+
 fig = plt.figure(figsize=(12, 8))
-ax  = fig.subplots(1)
+ax  = fig.subplots(3)
 
-# ax.plot( t[1:], -np.diff(S), '-', lw=2, label='Daily Reported' )
 
-ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Reported Infected', color='black')
-ax.grid()
-ax.legend(loc='upper left')
-ax.set_xlabel('time (days)')
-# ax[k].set_yscale('log')
+S = sol.sol(t)[0]
+I = sol.sol(t)[1]
+dS0 = sol.sol(t)[2]
+dI0 = sol.sol(t)[3]
+dS1 = sol.sol(t)[4]
+dI1 = sol.sol(t)[5]
+
+ax[0].plot( t, S, '-', lw=2, label='S' )
+ax[0].plot( t, I, '-', lw=2, label='I' )
+
+ax[1].plot( t, dS0, '-', lw=2, label='dS-R0' )
+ax[1].plot( t, dI0, '-', lw=2, label='dI-R0' )
+
+ax[2].plot( t, dS1, '-', lw=2, label='dS-gamma' )
+ax[2].plot( t, dI1, '-', lw=2, label='dI-gamma' )
+
+
+
+
+epsilon = 1e-5
+p = [ 2+epsilon, 1 ]
+sol = x.solve_ode( y0, T, N, p )
+Se = sol.sol(t)[0]
+Ie = sol.sol(t)[1]
+ax[1].plot( t, (Se-S)/epsilon, '--', lw=2, label='dS-R0 (FD)' )
+ax[1].plot( t, (Ie-I)/epsilon, '--', lw=2, label='dI-R0 (FD)' )
+
+p = [ 2, 1+epsilon ]
+sol = x.solve_ode( y0, T, N, p )
+Se = sol.sol(t)[0]
+Ie = sol.sol(t)[1]
+ax[2].plot( t, (Se-S)/epsilon, '--', lw=2, label='dS-gamma (FD)' )
+ax[2].plot( t, (Ie-I)/epsilon, '--', lw=2, label='dI-gamma (FD)' )
+
+
+
+
+for k in ax:
+  k.grid()
+  k.legend(loc='upper left')
 
 plt.show()
-
-
-
-
-
-
-#
-# from epidemics.seiir.altone_tnrm import Model
-# x = Model()
-# N = x.regionalData.populationSize
-# T = x.regionalData.time[-1]
-# # p = [ 2, 0.9, 0.05, 3, 5 ]
-# p = [+2.667e+00,+1.163e-03,+3.221e-01,+2.104e-02,+1.325e+00]
-# sol = x.solve_ode( [N-1,0,1,0], T, N, p )
-# t = np.linspace(0,T,1000)
-# S = sol.sol(t)[0]
-# E = sol.sol(t)[1]
-# Ir = sol.sol(t)[2]
-# Iu = sol.sol(t)[3]
-#
-# fig = plt.figure(figsize=(12, 8))
-# ax  = fig.subplots(1)
-#
-# ax.plot( t[1:], -p[2]*(np.diff(S)+np.diff(E)), '-', lw=2, label='Daily Reported' )
-#
-# ax.plot( x.data['Model']['x-data'], x.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
-#
-#
-#
-# ax.grid()
-# ax.legend(loc='upper left')
-# plt.show()
-# # ax[k].set_yscale('log')
-#
-# # plt.savefig('ode.pdf')

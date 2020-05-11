@@ -39,22 +39,38 @@ class ModelBase( EpidemicsBase ):
 
 
   def save_data_path( self ):
-    if hasattr(self, 'property'):
-      return ( self.dataFolder, self.country, self.modelName )
-    else:
-      return ( self.dataFolder, self.country )
+      if hasattr(self, 'property'):
+        return ( self.dataFolder, self.country, self.modelName )
+      else:
+        return ( self.dataFolder, self.country )
 
 
 
   # beta, gamma
   def sir_rhs( self, t, y, N, p ):
-    S, I = y
-    c1 = p[0] * p[1] * S * I / N
-    c2 = p[1] * I
-    dSdt = -c1
-    dIdt =  c1 - c2
-    print(p[0],p[1],S,I,dSdt,dIdt)
-    return dSdt, dIdt
+      S, I, S0, I0, S1, I1 = y
+
+      SI = S*I
+      p01N = p[0] * p[1] / N
+
+      c1 = p01N*SI
+      c2 = p[1]*I
+      c3 = p[1]/N*SI
+      c4 = p[0]/N*SI
+
+      a11 = -p01N*I; a12 = -p01N*S
+      a21 =  p01N*I; a22 =  p01N*S - p[1]
+
+      dSdt = -c1
+      dIdt =  c1 - c2
+
+      dS0dt = a11*S0 + a12*I0 - c3
+      dI0dt = a21*S0 + a22*I0 + c3
+
+      dS1dt = a11*S1 + a12*I1 - c4
+      dI1dt = a21*S1 + a22*I1 + c4 - I
+
+      return dSdt, dIdt, dS0dt, dI0dt, dS1dt, dI1dt
 
 
 
