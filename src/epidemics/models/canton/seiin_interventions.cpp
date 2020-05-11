@@ -1,14 +1,30 @@
-#include "model_seiin.h"
+#include "seiin_interventions.h"
 #include "common.hh"
 
-namespace seiin {
+namespace seiin_interventions {
 
 void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
 {
     for (size_t i = 0; i < modelData_.numRegions; ++i) {
         double extComIu = modelData_.getExternalCommutersIu(day, i);
-        double A = p.beta * x.S(i) / x.N(i) * (x.Ir(i) + extComIu);
-        double B = p.beta * x.S(i) / x.N(i) * p.mu * x.Iu(i);
+
+        //interventions: beta is modelled as a function of time
+        double BETA = 0.0;
+        if ( day < p.b0)
+        {
+           BETA = p.beta;
+        }
+        else if (day < p.b1)
+        {
+           BETA = p.b2;
+        }
+        else
+        {
+           BETA = p.b3;
+        }
+
+        double A = BETA * x.S(i) / x.N(i) * (x.Ir(i) + extComIu);
+        double B = BETA * x.S(i) / x.N(i) * p.mu * x.Iu(i);
         double E_Z = x.E(i) / p.Z;
 
         double dS = -(A + B);
@@ -38,4 +54,4 @@ void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
     }
 }
 
-}  // namespace seiin
+}  // namespace seiin_interventions

@@ -27,30 +27,35 @@ set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
 # Files common to .so and to the executable.
 SET(COMMON_SRC_FILES
-    ${SRC_DIR}/common.cpp
-    ${SRC_DIR}/data.cpp
-    ${SRC_DIR}/model_seiin.cpp
-    ${SRC_DIR}/model_seii_c.cpp
-    ${SRC_DIR}/model_sei_c.cpp
-    ${SRC_DIR}/model_seiin_interventions.cpp
-    ${SRC_DIR}/utils.cpp)
+    ${SRC_DIR}/epidemics/models/canton/data.cpp
+    ${SRC_DIR}/epidemics/models/canton/seiin.cpp
+    ${SRC_DIR}/epidemics/models/canton/seii_c.cpp
+    ${SRC_DIR}/epidemics/models/canton/sei_c.cpp
+    ${SRC_DIR}/epidemics/models/canton/seiin_interventions.cpp
+    ${SRC_DIR}/epidemics/utils/assert.cpp
+    ${SRC_DIR}/epidemics/utils/signal.cpp
+)
 
 # Set up the Python .so code.
 add_subdirectory(${EXTERN_DIR}/pybind11 sir_pybind11)
 pybind11_add_module(
     libsolver
     ${COMMON_SRC_FILES}
-    ${SRC_DIR}/bindings.cpp)
+    ${SRC_DIR}/epidemics/bindings/bindings.cpp
+    ${SRC_DIR}/epidemics/bindings/canton.cpp
+)
 target_compile_options(libsolver PUBLIC ${CUSTOM_CXXFLAGS})
+target_include_directories(libsolver PUBLIC ${SRC_DIR})
 
 # Set up the C++-only code.
 add_executable(
     solver
     ${COMMON_SRC_FILES}
-    ${SRC_DIR}/korali_setup.cpp)
+    ${SRC_DIR}/epidemics/models/canton/korali_setup.cpp)
 
 target_compile_options(solver PUBLIC ${KORALI_CXXFLAGS})
 target_compile_options(solver PUBLIC ${CUSTOM_CXXFLAGS} -Wno-unused-parameter)
+target_include_directories(solver PUBLIC ${SRC_DIR})
 
 if (CMAKE_VERSION VERSION_LESS 3.17)
     set_target_properties(solver PROPERTIES LINK_FLAGS ${KORALI_LINKERFLAGS})

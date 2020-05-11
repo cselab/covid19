@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include <epidemics/utils/signal.h>
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>

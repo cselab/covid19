@@ -1,4 +1,4 @@
-#include "model_sei_c.h"
+#include "sei_c.h"
 #include "common.hh"
 
 namespace sei_c {

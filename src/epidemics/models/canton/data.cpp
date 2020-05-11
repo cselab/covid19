@@ -1,5 +1,5 @@
 #include "data.h"
-#include "utils.h"
+#include <epidemics/utils/assert.h>
 
 std::vector<double> ReferenceData::getReferenceData() const {
     size_t N = cases.size();

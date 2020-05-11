@@ -4,13 +4,6 @@
 
 #include <cassert>
 
-
-/// For handling Ctrl-C.
-using CheckSignalsFunc = void(*)();
-
-// Initially nullptr. If set, it will be called from the solver on every time step.
-extern CheckSignalsFunc check_signals_func;
-
 /*
  * Using custom types with boost::odeint is not that simple.
  * Instead, we use a single std::vector<double> to store the
