@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cmath>
 
 namespace epidemics {
@@ -18,6 +19,9 @@ auto inverse(T x) {
 /** First partial derivatives class. */
 template <typename T, int N>
 struct AutoDiff {
+    using ValueType = T;
+    static constexpr int kNumVariables = N;
+
     AutoDiff() : AutoDiff(T{}) { }
 
     /* implicit */ AutoDiff(T value) {
@@ -25,6 +29,12 @@ struct AutoDiff {
         for (int i = 0; i < N; ++i)
             d(i) = T{};
     }
+    /* implicit */ AutoDiff(T value, std::array<T, N> der) {
+        val() = value;
+        for (int i = 0; i < N; ++i)
+            d(i) = der[i];
+    }
+
     template <typename First, typename Second, typename ...Args>
     AutoDiff(First first, Second second, Args ...args) :
         v_{first, second, args...}
@@ -57,11 +67,6 @@ struct AutoDiff {
             result.d(i) += b.d(i);
         return result;
     }
-    friend AutoDiff operator+(const AutoDiff &a, T b) {
-        AutoDiff result = a;
-        result.val() += b;
-        return result;
-    }
     friend AutoDiff operator-(const AutoDiff &a, const AutoDiff &b) {
         AutoDiff result = a;
         result.val() -= b.val();
@@ -82,7 +87,7 @@ struct AutoDiff {
         AutoDiff result;
         result.val() = a.val() * inv_b0;
         for (int i = 0; i < N; ++i)
-            result.d(i) = (a.d(i) * b.val() - a.val() * b.d()) * sqr(inv_b0);
+            result.d(i) = (a.d(i) * b.val() - a.val() * b.d(i)) * sqr(inv_b0);
         return result;
     }
 
@@ -135,7 +140,8 @@ private:
 
 template <typename T, typename ...Args>
 AutoDiff<T, sizeof...(Args)> make_ad(T value, Args ...derivatives) {
-    return AutoDiff<T, sizeof...(Args)>{value, derivatives...};
+    return AutoDiff<T, sizeof...(Args)>{
+        value, static_cast<T>(derivatives)...};
 }
 
 }  // namespace epidemics

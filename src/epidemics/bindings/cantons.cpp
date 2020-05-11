@@ -5,15 +5,12 @@
 #include <epidemics/models/cantons/seiin.h>
 #include <epidemics/models/cantons/seiin_interventions.h>
 #include "bindings.h"
-#include <pybind11/stl.h>
 
 namespace epidemics {
 namespace cantons {
 
-namespace py = pybind11;
-
 template <typename State>
-static auto makeValuesGetter(int valueIndex) {
+static auto makeValuesGetter(size_t valueIndex) {
     assert(0 <= valueIndex && valueIndex < State::kVarsPerRegion);
     /// Extract a subvector of the state corresponding to the given value.
     return [valueIndex](const State &state) {
@@ -24,7 +21,7 @@ static auto makeValuesGetter(int valueIndex) {
 }
 
 static void exportSEIIN(py::module &m) {
-    using namespace pybind11::literals;
+    using namespace py::literals;
     using namespace seiin;
 
     py::class_<Parameters>(m, "Parameters")
@@ -67,7 +64,7 @@ static void exportSEIIN(py::module &m) {
 }
 
 static void exportSEII_C(py::module &m) {
-    using namespace pybind11::literals;
+    using namespace py::literals;
     using namespace seii_c;
 
     py::class_<Parameters>(m, "Parameters")
@@ -107,7 +104,7 @@ static void exportSEII_C(py::module &m) {
 }
 
 static void exportSEI_C(py::module &m) {
-    using namespace pybind11::literals;
+    using namespace py::literals;
     using namespace sei_c;
 
     py::class_<Parameters>(m, "Parameters")
@@ -146,7 +143,7 @@ static void exportSEI_C(py::module &m) {
 }
 
 static void exportSEIIN_INTERVENTIONS(py::module &m) {
-    using namespace pybind11::literals;
+    using namespace py::literals;
     using namespace seiin_interventions;
 
     py::class_<Parameters>(m, "Parameters")
@@ -192,7 +189,7 @@ static void exportSEIIN_INTERVENTIONS(py::module &m) {
             "parameters"_a, "initial_state"_a, "days"_a);
 }
 
-void exportCantonModels(py::module &m)
+void exportCantonModels(py::module &/*top*/, py::module &m)
 {
     auto seiin  = m.def_submodule("seiin");
     auto seii_c = m.def_submodule("seii_c");

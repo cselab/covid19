@@ -20,6 +20,7 @@ add_library(
     ${CODE_DIR}/models/cantons/seii_c.cpp
     ${CODE_DIR}/models/cantons/sei_c.cpp
     ${CODE_DIR}/models/cantons/seiin_interventions.cpp
+    ${CODE_DIR}/models/country/sir.cpp
     ${CODE_DIR}/utils/assert.cpp
     ${CODE_DIR}/utils/signal.cpp
 )
@@ -32,6 +33,7 @@ pybind11_add_module(
     libepidemics
     ${CODE_DIR}/bindings/bindings.cpp
     ${CODE_DIR}/bindings/cantons.cpp
+    ${CODE_DIR}/bindings/country.cpp
 )
 target_link_libraries(libepidemics PRIVATE libepidemics::core)
 
@@ -39,7 +41,7 @@ target_link_libraries(libepidemics PRIVATE libepidemics::core)
 ###########################
 # Test
 ###########################
-set(UNIT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests")
+set(UNIT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp")
 add_executable(
     libepidemics_unittests
     ${UNIT_SRC_DIR}/test_autodiff.cpp

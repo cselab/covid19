@@ -1,6 +1,22 @@
+#pragma once
+
+// Pybind11 headers must be included consistently,
+// otherwise you get a One-definition rule violation.
+// https://github.com/pybind/pybind11/issues/1055
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <epidemics/utils/signal.h>
+
+#include <boost/array.hpp>
+
+namespace py = pybind11;
+
+// Specialization of pybind type_caster for boost::array.
+template <typename Type, size_t Size>
+struct py::detail::type_caster<boost::array<Type, Size>>
+    : py::detail::array_caster<boost::array<Type, Size>, Type, false, Size> { };
+
 
 namespace epidemics {
 
