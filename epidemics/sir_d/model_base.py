@@ -46,7 +46,7 @@ class ModelBase( EpidemicsBase ):
 
 
 
-  # beta, gamma
+  # R0, gamma
   def sir_rhs( self, t, y, N, p ):
       S, I, S0, I0, S1, I1 = y
 

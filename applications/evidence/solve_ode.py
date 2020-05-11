@@ -10,54 +10,59 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from epidemics.sir_d.model_base import ModelBase
+
+# from epidemics.sir_d.model_base import ModelBase
+# Ny = 2
+# Np = 2
+# x = ModelBase()
+# N = 1000
+# T = 10
+# p = [ 2, 1 ]
+# y0 = [N-1,1,0,0,0,0]
+
+
+from epidemics.seiir_d.model_base import ModelBase
+Ny = 4
+Np = 5
 x = ModelBase()
 N = 1000
 T = 10
-p = [ 2, 1 ]
-y0 = [N-1,1,0,0,0,0]
+p = [ 2, 0.1, 0.4, 2, 3 ]
+y0 = np.zeros(((Np+1)*Ny,))
+y0[0] = N-10
+y0[1] = 10
+
+
+#===============================================================================
+# Common for all models
+#===============================================================================
+
 sol = x.solve_ode( y0, T, N, p )
+
 t = np.linspace(0,T,1000)
 
 fig = plt.figure(figsize=(12, 8))
-ax  = fig.subplots(3)
+ax  = fig.subplots(Np+1)
 
+Y = sol.sol(t)
 
-S = sol.sol(t)[0]
-I = sol.sol(t)[1]
-dS0 = sol.sol(t)[2]
-dI0 = sol.sol(t)[3]
-dS1 = sol.sol(t)[4]
-dI1 = sol.sol(t)[5]
+for i in range(Ny):
+  ax[0].plot( t, Y[i], '-', lw=2, label='dY'+str(i) )
 
-ax[0].plot( t, S, '-', lw=2, label='S' )
-ax[0].plot( t, I, '-', lw=2, label='I' )
-
-ax[1].plot( t, dS0, '-', lw=2, label='dS-R0' )
-ax[1].plot( t, dI0, '-', lw=2, label='dI-R0' )
-
-ax[2].plot( t, dS1, '-', lw=2, label='dS-gamma' )
-ax[2].plot( t, dI1, '-', lw=2, label='dI-gamma' )
-
-
+for k in range(Np):
+  for i in range(Ny):
+    ax[k+1].plot( t, Y[(k+1)*Ny+i], '-', lw=2, label='dY'+str(i+1)+'P'+str(k+1) )
 
 
 epsilon = 1e-5
-p = [ 2+epsilon, 1 ]
-sol = x.solve_ode( y0, T, N, p )
-Se = sol.sol(t)[0]
-Ie = sol.sol(t)[1]
-ax[1].plot( t, (Se-S)/epsilon, '--', lw=2, label='dS-R0 (FD)' )
-ax[1].plot( t, (Ie-I)/epsilon, '--', lw=2, label='dI-R0 (FD)' )
 
-p = [ 2, 1+epsilon ]
-sol = x.solve_ode( y0, T, N, p )
-Se = sol.sol(t)[0]
-Ie = sol.sol(t)[1]
-ax[2].plot( t, (Se-S)/epsilon, '--', lw=2, label='dS-gamma (FD)' )
-ax[2].plot( t, (Ie-I)/epsilon, '--', lw=2, label='dI-gamma (FD)' )
+for k in range(Np):
+  pe = p.copy(); pe[k] = pe[k] + epsilon
+  sol = x.solve_ode( y0, T, N, pe )
+  Ye = sol.sol(t)
 
-
+  for i in range(Ny):
+    ax[k+1].plot( t, (Ye[i]-Y[i])/epsilon, '--', lw=2, label='dY'+str(i+1)+'P'+str(k+1)+' (FD)' )
 
 
 for k in ax:

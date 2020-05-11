@@ -46,7 +46,7 @@ class ModelBase( EpidemicsBase ):
 
 
 
-  # beta, gamma
+  # R0, gamma
   def sir_rhs( self, t, y, N, p ):
     S, I = y
     c1 = p[0] * p[1] * S * I / N
