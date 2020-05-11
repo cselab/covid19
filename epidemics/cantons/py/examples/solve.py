@@ -14,13 +14,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..',
 # also appends `sys.path` by `build/`
 from epidemics.cantons.py.model import ModelData
 
-import libsolver
+import libepidemics
 
-params = libsolver.solvers.sei_c.Parameters(beta=1.12,
-                                            nu=0.,
-                                            Z=3.69,
-                                            D=3.47,
-                                            tact=3)
+params = libepidemics.cantons.sei_c.Parameters(
+        beta=1.12, nu=0., Z=3.69, D=3.47, tact=3)
 
 n_regions = 2
 population = [100] * n_regions
@@ -37,7 +34,7 @@ data = ModelData(['ZH', 'TI'], [100, 200], Mij, Cij)
 src = np.zeros(data.num_regions)
 data.ext_com_Iu = [src]
 
-solver = libsolver.solvers.sei_c.Solver(data.to_cpp(), verbose=True)
+solver = libepidemics.cantons.sei_c.Solver(data.to_cpp(), verbose=True)
 
 S0 = N0 - E0 - I0
 y0 = list(np.vstack((S0, E0, I0)).flatten())

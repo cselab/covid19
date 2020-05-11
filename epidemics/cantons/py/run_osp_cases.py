@@ -17,22 +17,23 @@ from epidemics.cantons.py.model import \
         get_canton_model_data, get_canton_reference_data, \
         get_municipality_model_data, ModelData
 
-import libsolver
+import libepidemics
 
 data = get_canton_model_data(include_foreign=False)
 def example_run_seiin(num_days: int, inputs):
     """Runs the SEIIN model for some set of parameters and some initial conditions."""
 
-    params = libsolver.solvers.seiin_interventions.Parameters(beta =inputs[0],\
-                                                mu   =inputs[1],\
-                                                alpha=inputs[2],\
-                                                Z    =inputs[3],\
-                                                D    =inputs[4],\
-                                                theta=inputs[5],\
-                                                b0   =inputs[6],\
-                                                b1   =inputs[7],\
-                                                b2   =inputs[8],\
-                                                b3   =inputs[9])
+    params = libepidemics.cantons.seiin_interventions.Parameters(
+            beta =inputs[0],
+            mu   =inputs[1],
+            alpha=inputs[2],
+            Z    =inputs[3],
+            D    =inputs[4],
+            theta=inputs[5],
+            b0   =inputs[6],
+            b1   =inputs[7],
+            b2   =inputs[8],
+            b3   =inputs[9])
     # Initial state.
     N0 = list(data.region_population)
     E0 = [0] * data.num_regions
@@ -46,7 +47,7 @@ def example_run_seiin(num_days: int, inputs):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.solvers.seiin_interventions.Solver(data.to_cpp(), verbose=False)
+    solver = libepidemics.cantons.seiin_interventions.Solver(data.to_cpp(), verbose=False)
     return solver.solve(params, y0, num_days)
 
 

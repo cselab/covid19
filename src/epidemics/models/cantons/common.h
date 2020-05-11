@@ -4,12 +4,8 @@
 
 #include <cassert>
 
-
-/// For handling Ctrl-C.
-using CheckSignalsFunc = void(*)();
-
-// Initially nullptr. If set, it will be called from the solver on every time step.
-extern CheckSignalsFunc check_signals_func;
+namespace epidemics {
+namespace cantons {
 
 /*
  * Using custom types with boost::odeint is not that simple.
@@ -88,3 +84,6 @@ protected:
     ModelData modelData_;
     bool verbose_;
 };
+
+}  // namespace cantons
+}  // namespace epidemics

@@ -1,16 +1,19 @@
-#include "common.hh"
-#include "data.h"
-#include "model_seiin.h"
-#include "model_seii_c.h"
-#include "model_sei_c.h"
-#include "model_seiin_interventions.h"
-#include <pybind11/pybind11.h>
+#include <epidemics/models/cantons/common.hh>
+#include <epidemics/models/cantons/data.h>
+#include <epidemics/models/cantons/sei_c.h>
+#include <epidemics/models/cantons/seii_c.h>
+#include <epidemics/models/cantons/seiin.h>
+#include <epidemics/models/cantons/seiin_interventions.h>
+#include "bindings.h"
 #include <pybind11/stl.h>
+
+namespace epidemics {
+namespace cantons {
 
 namespace py = pybind11;
 
 template <typename State>
-auto makeValuesGetter(int valueIndex) {
+static auto makeValuesGetter(int valueIndex) {
     assert(0 <= valueIndex && valueIndex < State::kVarsPerRegion);
     /// Extract a subvector of the state corresponding to the given value.
     return [valueIndex](const State &state) {
@@ -20,21 +23,7 @@ auto makeValuesGetter(int valueIndex) {
     };
 }
 
-class SignalRAII {
-public:
-    SignalRAII() {
-        check_signals_func = []() {
-            // https://stackoverflow.com/questions/14707049/allowing-ctrl-c-to-interrupt-a-python-c-extension
-            if (PyErr_CheckSignals() != 0)
-                throw std::runtime_error("Signal received. Breaking.");
-        };
-    }
-    ~SignalRAII() {
-        check_signals_func = nullptr;
-    }
-};
-
-void exportSEIIN(py::module &m) {
+static void exportSEIIN(py::module &m) {
     using namespace pybind11::literals;
     using namespace seiin;
 
@@ -77,7 +66,7 @@ void exportSEIIN(py::module &m) {
             "parameters"_a, "initial_state"_a, "days"_a);
 }
 
-void exportSEII_C(py::module &m) {
+static void exportSEII_C(py::module &m) {
     using namespace pybind11::literals;
     using namespace seii_c;
 
@@ -117,7 +106,7 @@ void exportSEII_C(py::module &m) {
             "parameters"_a, "initial_state"_a, "days"_a);
 }
 
-void exportSEI_C(py::module &m) {
+static void exportSEI_C(py::module &m) {
     using namespace pybind11::literals;
     using namespace sei_c;
 
@@ -156,7 +145,7 @@ void exportSEI_C(py::module &m) {
             "parameters"_a, "initial_state"_a, "days"_a);
 }
 
-void exportSEIIN_INTERVENTIONS(py::module &m) {
+static void exportSEIIN_INTERVENTIONS(py::module &m) {
     using namespace pybind11::literals;
     using namespace seiin_interventions;
 
@@ -203,13 +192,12 @@ void exportSEIIN_INTERVENTIONS(py::module &m) {
             "parameters"_a, "initial_state"_a, "days"_a);
 }
 
-PYBIND11_MODULE(libsolver, m)
+void exportCantonModels(py::module &m)
 {
-    auto solvers = m.def_submodule("solvers");
-    auto seiin = solvers.def_submodule("seiin");
-    auto seii_c = solvers.def_submodule("seii_c");
-    auto sei_c = solvers.def_submodule("sei_c");
-    auto seiin_interventions = solvers.def_submodule("seiin_interventions");
+    auto seiin  = m.def_submodule("seiin");
+    auto seii_c = m.def_submodule("seii_c");
+    auto sei_c  = m.def_submodule("sei_c");
+    auto seiin_interventions = m.def_submodule("seiin_interventions");
     exportSEIIN(seiin);
     exportSEII_C(seii_c);
     exportSEI_C(sei_c);
@@ -221,3 +209,6 @@ PYBIND11_MODULE(libsolver, m)
                       std::vector<double>, std::vector<double>>());
     m.def("readModelData", &readModelData, "filename");
 }
+
+}  // namespace cantons
+}  // namespace epidemics

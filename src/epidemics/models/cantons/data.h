@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 
+namespace epidemics {
+namespace cantons {
+
 /// A data value for the given region and day.
 struct DataPoint {
     int day;
@@ -66,3 +69,6 @@ struct ReferenceData {
 
 ModelData readModelData(const char *filename = "data/cpp_model_data.dat");
 ReferenceData readReferenceData(const char *filename = "data/cpp_reference_data.dat");
+
+}  // namespace cantons
+}  // namespace epidemics

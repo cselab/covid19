@@ -10,7 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data
 from epidemics.cantons.py.solver import Solver
 from epidemics.cantons.py.plot_ode import plot_ode_results_canton
-import libsolver  # Must be AFTER .plot_ode (because of sys.path...).
+import libepidemics  # Must be AFTER .plot_ode (because of sys.path...).
 
 
 MODEL_DATA = get_canton_model_data()
@@ -60,7 +60,7 @@ def solve_and_visualize(y0, params, Mij, num_days):
     states = solver.solve(y0, params, num_days)
 
     # Convert to C++ State object, expected by `plot_ode_results`.
-    states = [libsolver.solvers.seiin.State(state.tolist()) for state in states]
+    states = [libepidemics.cantons.seiin.State(state.tolist()) for state in states]
     plot_ode_results_canton(MODEL_DATA, states)
 
 

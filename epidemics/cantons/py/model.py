@@ -13,9 +13,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'build'))
 
 try:
-    import libsolver
+    import libepidemics
 except ModuleNotFoundError:
-    sys.exit("libsolver not found. Did you forget to compile the C++ code?")
+    sys.exit("libepidemics not found. Did you forget to compile the C++ code?")
 
 from epidemics.data import DATA_CACHE_DIR
 from epidemics.data.cases import get_region_cases
@@ -28,7 +28,7 @@ class ModelData:
     """Model data such as region population and Mij matrix.
 
     For conveniece, we store parameters beta, mu, alpha and other scalars
-    separately (as libsolver.Parameters).
+    separately (as libepidemics.cantons.<model>.Parameters).
 
     Arguments:
         region_keys: List of region names.
@@ -60,12 +60,14 @@ class ModelData:
         self.key_to_index = {key: k for k, key in enumerate(region_keys)}
 
     def to_cpp(self):
-        """Return the libsolver.ModelData instance.
+        """Return the libepidemics.ModelData instance.
 
         Needed when running the model from Python using the C++ implementation."""
-        return libsolver.ModelData(self.region_keys, self.region_population,
-                                   flatten(self.Mij), flatten(self.Cij),
-                                   flatten(self.ext_com_Iu), self.Ui)
+        # DEPRECATED
+        return libepidemics.cantons.ModelData(
+                self.region_keys, self.region_population,
+                flatten(self.Mij), flatten(self.Cij),
+                flatten(self.ext_com_Iu), self.Ui)
 
     def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
         """Generate cpp_model_data.dat, the data for the C++ ModelData class.

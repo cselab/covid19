@@ -1,10 +1,14 @@
 #pragma once
 
 #include "common.h"
+#include <epidemics/utils/signal.h>
 
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <cstdio>
+
+namespace epidemics {
+namespace cantons {
 
 using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
@@ -69,3 +73,6 @@ SolverBase<Derived, State, Parameters>::solve(
             Stepper{}, rhs, initialState, 0.0, dt, days * STEPS_PER_DAY, observer);
     return result;
 }
+
+}  // namespace cantons
+}  // namespace epidemics

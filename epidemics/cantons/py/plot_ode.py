@@ -19,7 +19,7 @@ from epidemics.cantons.py.model import \
         get_municipality_model_data, ModelData
 from epidemics.cantons.py.plot import Renderer
 
-import libsolver
+import libepidemics
 
 class Level:
     canton = "canton"
@@ -78,7 +78,7 @@ def example_run_seiin(data: ModelData, num_days: int, level):
 
     # Parameters.
     # Li2020, Table 1
-    params = libsolver.solvers.seiin.Parameters(
+    params = libepidemics.cantons.seiin.Parameters(
             beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
@@ -126,14 +126,14 @@ def example_run_seiin(data: ModelData, num_days: int, level):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libsolver.solvers.seiin.Solver(data.to_cpp(), verbose=True)
+    solver = libepidemics.cantons.seiin.Solver(data.to_cpp(), verbose=True)
     return solver.solve(params, y0, num_days)
 
 
 def example_run_seii_c(data, num_days):
     """Runs the SEII_C model for some set of parameters and some initial conditions."""
     # Parameters. Note that nu is relative to beta.
-    params = libsolver.solvers.seii_c.Parameters(
+    params = libepidemics.cantons.seii_c.Parameters(
             beta=3.0, nu=1.0, alpha=0.6, Z=3.69, D=3.47)
 
     # Initial state.
@@ -150,7 +150,7 @@ def example_run_seii_c(data, num_days):
     y0 = S0 + E0 + IR0 + IU0
 
     # Run the ODE solver.
-    solver = libsolver.solvers.seii_c.Solver(data.to_cpp(), verbose=True)
+    solver = libepidemics.cantons.seii_c.Solver(data.to_cpp(), verbose=True)
     return solver.solve(params, y0, num_days)
 
 
