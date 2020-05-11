@@ -7,6 +7,9 @@
 #include "bindings.h"
 #include <pybind11/stl.h>
 
+namespace epidemics {
+namespace cantons {
+
 namespace py = pybind11;
 
 template <typename State>
@@ -206,3 +209,6 @@ void exportCantonModels(py::module &m)
                       std::vector<double>, std::vector<double>>());
     m.def("readModelData", &readModelData, "filename");
 }
+
+}  // namespace cantons
+}  // namespace epidemics

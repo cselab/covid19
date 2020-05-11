@@ -1,6 +1,8 @@
 #include "sei_c.h"
 #include "common.hh"
 
+namespace epidemics {
+namespace cantons {
 namespace sei_c {
 
 void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
@@ -34,3 +36,5 @@ void Solver::rhs(int day, Parameters p, const State &x, State &dxdt) const
 }
 
 }  // namespace sei_c
+}  // namespace cantons
+}  // namespace epidemics

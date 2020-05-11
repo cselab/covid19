@@ -2,6 +2,8 @@
 
 #include <epidemics/utils/signal.h>
 
+namespace epidemics {
+
 class SignalRAII {
 public:
     SignalRAII() {
@@ -15,3 +17,5 @@ public:
         check_signals_func = nullptr;
     }
 };
+
+}  // namespace epidemics

@@ -1,6 +1,9 @@
 #include "data.h"
 #include <epidemics/utils/assert.h>
 
+namespace epidemics {
+namespace cantons {
+
 std::vector<double> ReferenceData::getReferenceData() const {
     size_t N = cases.size();
     std::vector<double> out(N, 0.0);
@@ -132,3 +135,6 @@ ReferenceData readReferenceData(const char *filename) {
 
     return out;
 }
+
+}  // namespace cantons
+}  // namespace epidemics

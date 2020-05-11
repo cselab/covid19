@@ -1,6 +1,8 @@
 #include "seii_c.h"
 #include "common.hh"
 
+namespace epidemics {
+namespace cantons {
 namespace seii_c {
 
 void Solver::rhs([[maybe_unused]] int day, Parameters p, const State &x, State &dxdt) const
@@ -27,3 +29,5 @@ void Solver::rhs([[maybe_unused]] int day, Parameters p, const State &x, State &
 }
 
 }  // namespace seii_c
+}  // namespace cantons
+}  // namespace epidemics

@@ -4,6 +4,9 @@
 
 #include <cassert>
 
+namespace epidemics {
+namespace cantons {
+
 /*
  * Using custom types with boost::odeint is not that simple.
  * Instead, we use a single std::vector<double> to store the
@@ -81,3 +84,6 @@ protected:
     ModelData modelData_;
     bool verbose_;
 };
+
+}  // namespace cantons
+}  // namespace epidemics

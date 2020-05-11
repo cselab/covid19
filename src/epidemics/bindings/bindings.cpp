@@ -1,11 +1,15 @@
 #include "bindings.h"
 
+namespace epidemics {
+
 namespace py = pybind11;
 
-void exportCantonModels(py::module &m);
+namespace cantons { void exportCantonModels(py::module &m); };
+
+}  // namespace epidemics
 
 PYBIND11_MODULE(libepidemics, m)
 {
     auto cantons = m.def_submodule("cantons");
-    exportCantonModels(cantons);
+    epidemics::cantons::exportCantonModels(cantons);
 }

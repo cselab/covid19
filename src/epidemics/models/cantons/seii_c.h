@@ -1,5 +1,7 @@
 #include "common.h"
 
+namespace epidemics {
+namespace cantons {
 namespace seii_c {
 
 /// Human-friendly wrapper around RawState.
@@ -32,3 +34,5 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 };
 
 }  // namesapce seii_c
+}  // namespace cantons
+}  // namespace epidemics
