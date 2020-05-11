@@ -3,7 +3,7 @@ import numpy as np
 
 # also appends `sys.path` by `build/`
 from epidemics.cantons.py.model import ModelData
-import libsolver
+import libepidemics
 
 
 def smooth_trans(u0, u1, t, tc, teps):
@@ -184,14 +184,15 @@ class SeirCpp(Seir):
             for i in params["beta_corr_regions"].get(var, []):
                 data.Ui[i] = params[var]
 
-        solver = libsolver.solvers.sei_c.Solver(data.to_cpp())
+        solver = libepidemics.cantons.sei_c.Solver(data.to_cpp())
 
-        p = libsolver.solvers.sei_c.Parameters(beta=beta,
-                                               nu=params['nu'],
-                                               Z=params['Z'],
-                                               D=params['D'],
-                                               tact=params['tact'],
-                                               kbeta=params['kbeta'])
+        p = libepidemics.cantons.sei_c.Parameters(
+                beta=beta,
+                nu=params['nu'],
+                Z=params['Z'],
+                D=params['D'],
+                tact=params['tact'],
+                kbeta=params['kbeta'])
         sol = solver.solve(p, list(y0.flatten()), n_days)
 
         y = np.zeros((n_vars, n_regions, len(t_eval)))

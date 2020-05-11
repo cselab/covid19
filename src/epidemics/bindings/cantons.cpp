@@ -1,9 +1,9 @@
-#include <epidemics/models/canton/common.hh>
-#include <epidemics/models/canton/data.h>
-#include <epidemics/models/canton/sei_c.h>
-#include <epidemics/models/canton/seii_c.h>
-#include <epidemics/models/canton/seiin.h>
-#include <epidemics/models/canton/seiin_interventions.h>
+#include <epidemics/models/cantons/common.hh>
+#include <epidemics/models/cantons/data.h>
+#include <epidemics/models/cantons/sei_c.h>
+#include <epidemics/models/cantons/seii_c.h>
+#include <epidemics/models/cantons/seiin.h>
+#include <epidemics/models/cantons/seiin_interventions.h>
 #include "bindings.h"
 #include <pybind11/stl.h>
 
@@ -191,11 +191,10 @@ static void exportSEIIN_INTERVENTIONS(py::module &m) {
 
 void exportCantonModels(py::module &m)
 {
-    auto solvers = m.def_submodule("solvers");
-    auto seiin = solvers.def_submodule("seiin");
-    auto seii_c = solvers.def_submodule("seii_c");
-    auto sei_c = solvers.def_submodule("sei_c");
-    auto seiin_interventions = solvers.def_submodule("seiin_interventions");
+    auto seiin  = m.def_submodule("seiin");
+    auto seii_c = m.def_submodule("seii_c");
+    auto sei_c  = m.def_submodule("sei_c");
+    auto seiin_interventions = m.def_submodule("seiin_interventions");
     exportSEIIN(seiin);
     exportSEII_C(seii_c);
     exportSEI_C(sei_c);

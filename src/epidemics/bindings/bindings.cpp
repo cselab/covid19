@@ -4,8 +4,8 @@ namespace py = pybind11;
 
 void exportCantonModels(py::module &m);
 
-PYBIND11_MODULE(libsolver, m)
+PYBIND11_MODULE(libepidemics, m)
 {
-    // TODO: Restructure namespaces.
-    exportCantonModels(m);
+    auto cantons = m.def_submodule("cantons");
+    exportCantonModels(cantons);
 }
