@@ -87,7 +87,7 @@ struct AutoDiff {
         AutoDiff result;
         result.val() = a.val() * inv_b0;
         for (int i = 0; i < N; ++i)
-            result.d(i) = (a.d(i) * b.val() - a.val() * b.d(i)) * sqr(inv_b0);
+            result.d(i) = (a.d(i) - result.val() * b.d(i)) * inv_b0;
         return result;
     }
 
@@ -114,6 +114,14 @@ struct AutoDiff {
         return *this = (*this / b);
     }
 
+    AutoDiff inv() const {
+        AutoDiff result;
+        result.val() = inverse(val());
+        auto inv2 = sqr(result.val());
+        for (int i = 0; i < N; ++i)
+            result.d(i) = -d(i) * inv2;
+        return result;
+    }
 
     /* Too lazy to write other operators now... */
     friend bool operator<(const AutoDiff &a, const AutoDiff &b) {

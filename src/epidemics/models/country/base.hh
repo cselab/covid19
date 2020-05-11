@@ -19,8 +19,7 @@ SolverBase<Derived, State, Parameters>::solve(
     using RawState = typename State::RawState;
     using Stepper = boost::numeric::odeint::runge_kutta_dopri5<RawState>;
 
-    const int STEPS_PER_DAY = 10;
-    const double dt = 1.0 / STEPS_PER_DAY;
+    const double dt = 1.0 / 10;
     std::vector<State> result;
     result.reserve(tEval.size());
 

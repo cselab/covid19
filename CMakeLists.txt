@@ -16,10 +16,11 @@ add_library(
     libepidemics_core
     STATIC
     ${CODE_DIR}/models/cantons/data.cpp
-    ${CODE_DIR}/models/cantons/seiin.cpp
-    ${CODE_DIR}/models/cantons/seii_c.cpp
     ${CODE_DIR}/models/cantons/sei_c.cpp
+    ${CODE_DIR}/models/cantons/seii_c.cpp
+    ${CODE_DIR}/models/cantons/seiin.cpp
     ${CODE_DIR}/models/cantons/seiin_interventions.cpp
+    ${CODE_DIR}/models/country/seiir.cpp
     ${CODE_DIR}/models/country/sir.cpp
     ${CODE_DIR}/utils/assert.cpp
     ${CODE_DIR}/utils/signal.cpp

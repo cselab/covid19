@@ -4,6 +4,14 @@
 
 #include <cassert>
 
+// TODO: Rename common.h/.hh to base.h/.hh
+// TODO: Automatic differentiation.
+// TODO: Solver::solve should take a std::vector<double> of time instances at which to compute the result.
+//
+//       Check country-level models for implementation details.
+
+
+
 namespace epidemics {
 namespace cantons {
 
