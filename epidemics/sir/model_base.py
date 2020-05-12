@@ -29,6 +29,7 @@ class ModelBase( EpidemicsBase ):
     self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
+    print(self.preprocess)
 
     super().__init__( **kwargs )
 
@@ -53,7 +54,7 @@ class ModelBase( EpidemicsBase ):
     c2 = p[1] * I
     dSdt = -c1
     dIdt =  c1 - c2
-    print(p[0],p[1],S,I,dSdt,dIdt)
+    # print(p[0],p[1],S,I,dSdt,dIdt)
     return dSdt, dIdt
 
 

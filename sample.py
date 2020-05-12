@@ -31,6 +31,9 @@ args = parser.parse_args()
 
 
 x = copy.deepcopy(args)
+
+print(x)
+
 del x.compModel
 del x.nSamples
 del x.nGenerations

@@ -154,7 +154,8 @@ class EpidemicsBase:
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Population Size'] = self.nSamples
-    
+
+
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
