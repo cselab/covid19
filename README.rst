@@ -30,7 +30,7 @@ From the repository root folder do:
     mkdir -p
     cd build
     cmake ..
-    make -j4
+    make
 
 Tests
 =====
@@ -72,9 +72,9 @@ Follow these steps to create a new C++ country-level model. The steps are shown 
 
 6. Update the model: update the ``make_ad`` at the beginning to initialize AD variables, update formulae and the output.
 
-7. Go to ``src/epidemics/country.cpp`` and make a function ``exportSEIIR`` similar to ``exportSIR``.
+7. Go to ``src/epidemics/country.cpp`` and make a function ``exportXYZ`` similar to ``exportSIR``.
 
-8. Call ``exportSEIIR`` from ``exportCountryModels``.
+8. Call ``exportXYZ`` from ``exportCountryModels``.
 
 9. Add the new .cpp file to ``CMakeLists.txt``.
 
