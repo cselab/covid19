@@ -62,23 +62,17 @@ Follow these steps to create a new C++ country-level model. The steps are shown 
 
 2. Change the ``sir`` namespace to ``xyz``.
 
-2. Update the ``Parameters`` struct. Update the number of derivatives in ``Element``.
+2. Update the ``Parameters`` struct.
 
 3. Update the ``State`` struct: change the number of states in ``StateBase`` parent class, and customize named getters.
 
-4. Make a copy of ``src/epidemics/models/country/sir.cpp`` and name it ``xyz.cpp``.
+4. Update the model, the ``Solver::rhs`` function.
 
-5. Change the ``sir`` namespace to ``xyz``.
+5. Edit ``src/epidemics/bindings/generate_country_models.py`` and add your model to the ``main`` function.
 
-6. Update the model: update the ``make_ad`` at the beginning to initialize AD variables, update formulae and the output.
+6. Edit ``CMakeLists.txt`` and add your model to the ``GENERATED_COUNTRY_BINDINGS`` variable.
 
-7. Go to ``src/epidemics/country.cpp`` and make a function ``exportXYZ`` similar to ``exportSIR``.
-
-8. Call ``exportXYZ`` from ``exportCountryModels``.
-
-9. Add the new .cpp file to ``CMakeLists.txt``.
-
-10. Create a ``test/py/test_country_xyz.py`` analoguous to ``test_country_sir.h`` and test your code. You may skip testing the derivatives, since AD should already be tested.
+7. Create a ``test/py/test_country_xyz.py`` analoguous to ``test_country_sir.h`` and test your code. You may skip testing the derivatives, since AD should already be tested.
 
 In the case AD does not support some operation, add it in ``src/epidemics/utils/autodiff.h``.
 Create a test in ``test/cpp/test_autodiff.cpp``!

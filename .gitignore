@@ -7,6 +7,7 @@
 /data/
 /epidemics/data/cache
 /epidemics/data/downloads
+_*.generated.cpp
 __pycache__
 build
 covid19_cases_switzerland_openzh.csv

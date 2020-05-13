@@ -54,13 +54,19 @@ class TestCountrySEIIR(TestCaseEx):
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 6.0, 7.0]
         initial = seiir.State(y0)
         py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=data.N)
-        cpp_result = solver.solve(params, initial, t_eval=t_eval)
+        cpp_result_noad = solver.solve   (params, initial, t_eval=t_eval)
+        cpp_result_ad   = solver.solve_ad(params, initial, t_eval=t_eval)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
-        for py, cpp in zip(py_result[1:], cpp_result[1:]):
+        for py, noad, ad in zip(py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):
             # See common.TestCaseEx.assertRelative
-            self.assertRelative(py[0], cpp.S().val(),  tolerance=1e-5)
-            self.assertRelative(py[1], cpp.E().val(),  tolerance=1e-5)
-            self.assertRelative(py[2], cpp.Ir().val(), tolerance=1e-5)
-            self.assertRelative(py[3], cpp.Iu().val(), tolerance=1e-5)
-            self.assertRelative(py[4], cpp.R().val(),  tolerance=1e-5)
+            self.assertRelative(noad.S(),  ad.S().val(),  tolerance=1e-9)
+            self.assertRelative(noad.E(),  ad.E().val(),  tolerance=1e-9)
+            self.assertRelative(noad.Ir(), ad.Ir().val(), tolerance=1e-9)
+            self.assertRelative(noad.Iu(), ad.Iu().val(), tolerance=1e-9)
+            self.assertRelative(noad.R(),  ad.R().val(),  tolerance=1e-9)
+            self.assertRelative(py[0], ad.S().val(),  tolerance=1e-5)
+            self.assertRelative(py[1], ad.E().val(),  tolerance=1e-5)
+            self.assertRelative(py[2], ad.Ir().val(), tolerance=1e-5)
+            self.assertRelative(py[3], ad.Iu().val(), tolerance=1e-5)
+            self.assertRelative(py[4], ad.R().val(),  tolerance=1e-5)
