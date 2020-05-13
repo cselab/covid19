@@ -26,6 +26,7 @@ From the repository root folder do:
 
 .. code-block:: bash
 
+    pip3 install jinja2
     git submodule update --init --recursive
     mkdir -p
     cd build
