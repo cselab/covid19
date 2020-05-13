@@ -23,17 +23,19 @@ add_custom_command(
     ${GENERATED_COUNTRY_BINDINGS}
     COMMAND
     ${PYTHON_EXECUTABLE}
-    ${CODE_DIR}/bindings/generate_country_models.py
+    ${CODE_DIR}/bindings/generate_bindings.py
     DEPENDS
-    ${CODE_DIR}/bindings/generate_country_models.py
+    ${CODE_DIR}/bindings/generate_bindings.py
     ${CODE_DIR}/bindings/country.template.cpp
     ${CODE_DIR}/bindings/country_model.template.cpp
-    COMMENT "Generating bindings fro country models."
+    COMMENT "Generating bindings for cantons and country models."
 )
 
 add_library(
     libepidemics_core
     STATIC
+    # For now, bindings are responsible for instantiating template
+    # functions `Solver::solve`, so there's not that many files here.
     ${CODE_DIR}/models/cantons/data.cpp
     ${CODE_DIR}/models/cantons/sei_c.cpp
     ${CODE_DIR}/models/cantons/seii_c.cpp

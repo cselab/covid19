@@ -10,8 +10,34 @@ NO_EDIT_NOTE = f"""
 
 """.lstrip()
 
+EXPORT_PARAMETERS_TEMPLATE = jinja2.Template('''
+template <typename T>
+static auto exportParameters(py::module &m, const char *name) {
+    return py::class_<Parameters<T>>(m, name)
+        .def(py::init<{{ (['T'] * PARAMS|length) | join(', ') }}>(),
+        {%- for param in PARAMS %}
+             "{{param}}"_a{% if not loop.last %},{% endif %}
+        {%- endfor -%}
+            )
+    {%- for param in PARAMS %}
+        .def_readwrite("{{param}}", &Parameters<T>::{{param}})
+    {%- endfor %}
+        .def("__getitem__",
+            [](const Parameters<T> &params, size_t index) {
+                switch (index) {
+            {%- for param in PARAMS %}
+                    case {{ loop.index0 }}: return params.{{param}};
+            {%- endfor %}
+                    default: throw py::index_error(std::to_string(index));
+                }
+            });
+    ;
+}
+''')
+
 with open(os.path.join(PATH, 'country_model.template.cpp')) as f:
     COUNTRY_TEMPLATE = jinja2.Template(f.read())
+
 
 
 def save_if_modified(filename, content):
@@ -29,12 +55,20 @@ def save_if_modified(filename, content):
         f.write(content)
 
 
-def generate_country_model(name, state, params):
-    """Generate bindings for one country model."""
+def _generate_model(template, name, state, params):
+    """Helper class for model generation functions."""
     state = state.split()
     params = params.split()
-    code = NO_EDIT_NOTE + COUNTRY_TEMPLATE.render(
-            NAME=name, STATE=state, PARAMS=params)
+    kwargs = {'NAME': name, 'STATE': state, 'PARAMS': params}
+    params_code = EXPORT_PARAMETERS_TEMPLATE.render(**kwargs)
+    code = NO_EDIT_NOTE + template.render(
+            EXPORT_PARAMETERS=params_code, **kwargs)
+    return code
+
+
+def generate_country_model(name, state, params):
+    """Generate bindings for one country model."""
+    code = _generate_model(COUNTRY_TEMPLATE, name, state, params)
     save_if_modified(os.path.join(PATH, f'_country.{name}.generated.cpp'), code)
 
 

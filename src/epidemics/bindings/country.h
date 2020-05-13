@@ -2,7 +2,6 @@
 #include "autodiff.h"
 
 #include <epidemics/models/country/base.h>
-#include <epidemics/utils/autodiff.h>
 
 namespace epidemics {
 namespace country {
