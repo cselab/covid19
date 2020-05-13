@@ -13,6 +13,11 @@ option(INSTALL_GTEST OFF)
 add_subdirectory(${EXTERN_DIR}/googletest)
 
 set(GENERATED_COUNTRY_BINDINGS
+    ${CODE_DIR}/bindings/_cantons.generated.cpp
+    ${CODE_DIR}/bindings/_cantons.sei_c.generated.cpp
+    ${CODE_DIR}/bindings/_cantons.seii_c.generated.cpp
+    ${CODE_DIR}/bindings/_cantons.seiin.generated.cpp
+    ${CODE_DIR}/bindings/_cantons.seiin_interventions.generated.cpp
     ${CODE_DIR}/bindings/_country.generated.cpp
     ${CODE_DIR}/bindings/_country.sir.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir.generated.cpp
@@ -26,6 +31,8 @@ add_custom_command(
     ${CODE_DIR}/bindings/generate_bindings.py
     DEPENDS
     ${CODE_DIR}/bindings/generate_bindings.py
+    ${CODE_DIR}/bindings/cantons.template.cpp
+    ${CODE_DIR}/bindings/cantons_model.template.cpp
     ${CODE_DIR}/bindings/country.template.cpp
     ${CODE_DIR}/bindings/country_model.template.cpp
     COMMENT "Generating bindings for cantons and country models."
@@ -37,10 +44,6 @@ add_library(
     # For now, bindings are responsible for instantiating template
     # functions `Solver::solve`, so there's not that many files here.
     ${CODE_DIR}/models/cantons/data.cpp
-    ${CODE_DIR}/models/cantons/sei_c.cpp
-    ${CODE_DIR}/models/cantons/seii_c.cpp
-    ${CODE_DIR}/models/cantons/seiin.cpp
-    ${CODE_DIR}/models/cantons/seiin_interventions.cpp
     ${CODE_DIR}/utils/assert.cpp
     ${CODE_DIR}/utils/signal.cpp
 )
@@ -53,7 +56,6 @@ pybind11_add_module(
     libepidemics
     ${GENERATED_COUNTRY_BINDINGS}
     ${CODE_DIR}/bindings/bindings.cpp
-    ${CODE_DIR}/bindings/cantons.cpp
 )
 target_link_libraries(libepidemics PRIVATE libepidemics::core)
 

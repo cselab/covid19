@@ -38,6 +38,8 @@ static auto exportParameters(py::module &m, const char *name) {
 with open(os.path.join(PATH, 'country_model.template.cpp')) as f:
     COUNTRY_TEMPLATE = jinja2.Template(f.read())
 
+with open(os.path.join(PATH, 'cantons_model.template.cpp')) as f:
+    CANTONS_TEMPLATE = jinja2.Template(f.read())
 
 
 def save_if_modified(filename, content):
@@ -72,6 +74,12 @@ def generate_country_model(name, state, params):
     save_if_modified(os.path.join(PATH, f'_country.{name}.generated.cpp'), code)
 
 
+def generate_canton_model(name, state, params):
+    """Generate bindings for one cantons model."""
+    code = _generate_model(CANTONS_TEMPLATE, name, state, params)
+    save_if_modified(os.path.join(PATH, f'_cantons.{name}.generated.cpp'), code)
+
+
 def generate_country(*models):
     """Generate _country.generated.cpp, responsible for libepidemics.country submodule."""
     with open(os.path.join(PATH, 'country.template.cpp')) as f:
@@ -80,10 +88,22 @@ def generate_country(*models):
     save_if_modified(os.path.join(PATH, '_country.generated.cpp'), code)
 
 
+def generate_canton(*models):
+    """Generate _canton.generated.cpp, responsible for libepidemics.cantons submodule."""
+    with open(os.path.join(PATH, 'cantons.template.cpp')) as f:
+        template = jinja2.Template(f.read())
+    code = NO_EDIT_NOTE + template.render(MODELS=models)
+    save_if_modified(os.path.join(PATH, '_cantons.generated.cpp'), code)
+
 def main():
     generate_country_model('sir', 'S I R', 'beta gamma')
     generate_country_model('seiir', 'S E Ir Iu R', 'beta mu alpha Z D')
+    generate_canton_model('sei_c', 'S E I', 'beta nu Z D tact kbeta')
+    generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
+    generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
+    generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b0 b1 b2 b3')
     generate_country('sir', 'seiir')
+    generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 
 if __name__ == '__main__':

@@ -47,8 +47,9 @@ def example_run_seiin(num_days: int, inputs):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libepidemics.cantons.seiin_interventions.Solver(data.to_cpp(), verbose=False)
-    return solver.solve(params, y0, num_days)
+    solver = libepidemics.cantons.seiin_interventions.Solver(data.to_cpp())
+    y0 = libepidemics.cantons.seiin_interventions.State(y0)
+    return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 
 

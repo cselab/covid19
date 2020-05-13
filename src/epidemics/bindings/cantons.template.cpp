@@ -3,14 +3,14 @@
 using namespace py::literals;
 
 namespace epidemics {
-namespace country {
+namespace cantons {
 
 {% for model in MODELS -%}
 namespace {{model}} { void exportAll(py::module &top, py::module &m); }
 {% endfor %}
 
-/// Export all country models to Python.
-void exportCountryModels(py::module &top, py::module &m)
+/// Export all cantons models to Python.
+void exportCantonsModels(py::module &top, py::module &m)
 {
     {% for model in MODELS %}
     auto {{model}} = m.def_submodule("{{model}}");
@@ -18,6 +18,6 @@ void exportCountryModels(py::module &top, py::module &m)
     {% endfor %}
 }
 
-}  // namespace country
+}  // namespace cantons
 }  // namespace epidemics
 
