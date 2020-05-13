@@ -61,17 +61,21 @@ class TestCountrySIR(TestCaseEx):
         t_eval = [0, 0.3, 0.6, 1.0]
         initial = sir.State(y0)
         py_result = solve_sir(params.beta, params.gamma, y0=y0, t_eval=t_eval, N=data.N)
-        cpp_result = solver.solve(params, initial, t_eval=t_eval)
+        cpp_result_noad = solver.solve   (params, initial, t_eval=t_eval)
+        cpp_result_ad   = solver.solve_ad(params, initial, t_eval=t_eval)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
-        for py, cpp in zip(py_result[1:], cpp_result[1:]):
+        for py, noad, ad in zip(py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):
             # See common.TestCaseEx.assertRelative
-            self.assertRelative(py[0], cpp.S().val(), tolerance=1e-5)
-            self.assertRelative(py[1], cpp.I().val(), tolerance=1e-5)
-            self.assertRelative(py[2], cpp.R().val(), tolerance=1e-5)
-            self.assertRelative(py[3], cpp.S().d(0),  tolerance=1e-5)
-            self.assertRelative(py[4], cpp.I().d(0),  tolerance=1e-5)
-            self.assertRelative(py[5], cpp.R().d(0),  tolerance=1e-5)
-            self.assertRelative(py[6], cpp.S().d(1),  tolerance=1e-5)
-            self.assertRelative(py[7], cpp.I().d(1),  tolerance=1e-5)
-            self.assertRelative(py[8], cpp.R().d(1),  tolerance=1e-5)
+            self.assertRelative(noad.S(), ad.S().val(), tolerance=1e-9)
+            self.assertRelative(noad.I(), ad.I().val(), tolerance=1e-9)
+            self.assertRelative(noad.R(), ad.R().val(), tolerance=1e-9)
+            self.assertRelative(py[0], ad.S().val(), tolerance=1e-5)
+            self.assertRelative(py[1], ad.I().val(), tolerance=1e-5)
+            self.assertRelative(py[2], ad.R().val(), tolerance=1e-5)
+            self.assertRelative(py[3], ad.S().d(0),  tolerance=1e-5)
+            self.assertRelative(py[4], ad.I().d(0),  tolerance=1e-5)
+            self.assertRelative(py[5], ad.R().d(0),  tolerance=1e-5)
+            self.assertRelative(py[6], ad.S().d(1),  tolerance=1e-5)
+            self.assertRelative(py[7], ad.I().d(1),  tolerance=1e-5)
+            self.assertRelative(py[8], ad.R().d(1),  tolerance=1e-5)

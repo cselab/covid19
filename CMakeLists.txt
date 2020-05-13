@@ -12,6 +12,25 @@ include(GoogleTest)
 option(INSTALL_GTEST OFF)
 add_subdirectory(${EXTERN_DIR}/googletest)
 
+set(GENERATED_COUNTRY_BINDINGS
+    ${CODE_DIR}/bindings/_country.generated.cpp
+    ${CODE_DIR}/bindings/_country.sir.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiir.generated.cpp
+)
+
+add_custom_command(
+    OUTPUT
+    ${GENERATED_COUNTRY_BINDINGS}
+    COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CODE_DIR}/bindings/generate_country_models.py
+    DEPENDS
+    ${CODE_DIR}/bindings/generate_country_models.py
+    ${CODE_DIR}/bindings/country.template.cpp
+    ${CODE_DIR}/bindings/country_model.template.cpp
+    COMMENT "Generating bindings fro country models."
+)
+
 add_library(
     libepidemics_core
     STATIC
@@ -20,8 +39,6 @@ add_library(
     ${CODE_DIR}/models/cantons/seii_c.cpp
     ${CODE_DIR}/models/cantons/seiin.cpp
     ${CODE_DIR}/models/cantons/seiin_interventions.cpp
-    ${CODE_DIR}/models/country/seiir.cpp
-    ${CODE_DIR}/models/country/sir.cpp
     ${CODE_DIR}/utils/assert.cpp
     ${CODE_DIR}/utils/signal.cpp
 )
@@ -32,9 +49,9 @@ add_library(libepidemics::core ALIAS libepidemics_core)
 
 pybind11_add_module(
     libepidemics
+    ${GENERATED_COUNTRY_BINDINGS}
     ${CODE_DIR}/bindings/bindings.cpp
     ${CODE_DIR}/bindings/cantons.cpp
-    ${CODE_DIR}/bindings/country.cpp
 )
 target_link_libraries(libepidemics PRIVATE libepidemics::core)
 

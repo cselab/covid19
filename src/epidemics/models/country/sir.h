@@ -6,31 +6,45 @@ namespace epidemics {
 namespace country {
 namespace sir {
 
+template <typename T>
 struct Parameters {
-    double beta;   /// Transmission rate.
-    double gamma;  /// Recovery rate.
+    static constexpr size_t numParameters = 2;
+
+    T beta;   /// Transmission rate.
+    T gamma;  /// Recovery rate.
 };
 
-/// Each of S, I and R are autodiff objects with 2 derivatives.
-using Element = AutoDiff<double, 2>;
-
 /// SIR state has 3 elements: S, I, R.
-struct State : StateBase<Element, 3> {
-    using StateBase<Element, 3>::StateBase;
+template <typename T>
+struct State : StateBase<T, 3> {
+    using StateBase<T, 3>::StateBase;
 
-    Element &S() { return v_[0]; }
-    Element &I() { return v_[1]; }
-    Element &R() { return v_[2]; }
+    T &S() { return this->v_[0]; }
+    T &I() { return this->v_[1]; }
+    T &R() { return this->v_[2]; }
 
-    const Element &S() const { return v_[0]; }
-    const Element &I() const { return v_[1]; }
-    const Element &R() const { return v_[2]; }
+    const T &S() const { return this->v_[0]; }
+    const T &I() const { return this->v_[1]; }
+    const T &R() const { return this->v_[2]; }
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
     using SolverBase<Solver, State, Parameters>::SolverBase;
 
-    void rhs(double t, Parameters p, const State &x, State &dxdt) const;
+    template <typename T>
+    void rhs(double /* t */,
+             Parameters<T> p,
+             const State<T> &x,
+             State<T> & __restrict__ dxdt) const
+    {
+        double invN = 1. / data_.N;
+        auto A = invN * p.beta * x.I() * x.S();
+        auto B = p.gamma * x.I();
+
+        dxdt.S() = -A;
+        dxdt.I() = A - B;
+        dxdt.R() = B;
+    }
 };
 
 }  // namespace sir
