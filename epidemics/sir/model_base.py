@@ -47,14 +47,13 @@ class ModelBase( EpidemicsBase ):
 
 
 
-  # R0, gamma
+  # p: R0, gamma
   def sir_rhs( self, t, y, N, p ):
     S, I = y
     c1 = p[0] * p[1] * S * I / N
     c2 = p[1] * I
     dSdt = -c1
     dIdt =  c1 - c2
-    # print(p[0],p[1],S,I,dSdt,dIdt)
     return dSdt, dIdt
 
 

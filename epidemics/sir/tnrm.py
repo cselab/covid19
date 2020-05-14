@@ -83,7 +83,7 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.5
-    js['Distributions'][k]['Maximum'] = 5.
+    js['Distributions'][k]['Maximum'] = 5
 
     k+=1
     js['Distributions'].append({})
@@ -97,7 +97,7 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Maximum'] = 100.
 
     return js
 
@@ -128,11 +128,10 @@ class Model( ModelBase ):
 
   def computational_model_propagate( self, s ):
     p = s['Parameters']
-    p[0] = p[0]/p[1]
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
-
+    
     sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = t.tolist(),backend='numpy')
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     y = solver.append_zero(y)
