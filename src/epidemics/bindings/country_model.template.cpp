@@ -2,7 +2,7 @@
 
 #include "bindings.h"
 #include "country.h"
-#include <epidemics/models/country/base.hh>
+#include <epidemics/models/country/base.h>
 #include <epidemics/models/country/{{NAME}}.h>
 
 using namespace py::literals;

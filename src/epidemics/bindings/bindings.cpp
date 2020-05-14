@@ -2,11 +2,22 @@
 
 #include <epidemics/models/country/base.h>
 #include <epidemics/models/cantons/data.h>
+#include <epidemics/integrator.h>
 
 namespace py = pybind11;
 using namespace py::literals;
 
 namespace epidemics {
+
+IntegratorSettings integratorSettingsFromKwargs(py::kwargs kwargs) {
+    auto pop = kwargs.attr("pop");
+    IntegratorSettings out;
+    out.dt = pop("dt", out.dt).cast<double>();
+    if (!kwargs.empty())
+        throw py::key_error(kwargs.begin()->first.cast<std::string>());
+    return out;
+}
+
 namespace country {
 
 void exportCountryModels(py::module &top, py::module &m);
@@ -39,6 +50,11 @@ static void exportModelData(py::module &m) {
 
 PYBIND11_MODULE(libepidemics, m)
 {
+    using namespace epidemics;
+    py::class_<IntegratorSettings>(m, "IntegratorSettings")
+        .def(py::init<double>(), "dt"_a)
+        .def_readwrite("dt", &IntegratorSettings::dt);
+
     auto country = m.def_submodule("country");
     epidemics::country::exportCountryModels(m, country);
     epidemics::country::exportModelData(country);

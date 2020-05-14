@@ -64,4 +64,3 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 }  // namespace seiir
 }  // namespace country
 }  // namespace epidemics
-
