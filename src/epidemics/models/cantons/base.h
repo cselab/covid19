@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data.h"
+#include <epidemics/integrator.h>
 
 #include <cassert>
 
@@ -70,9 +71,23 @@ public:
     }
 
     template <typename T>
-    std::vector<State<T>> solve(const Parameters<T> &parameters,
-                                typename State<T>::RawState initialState,
-                                const std::vector<double> &tEval) const;
+    std::vector<State<T>> solve(
+            const Parameters<T> &parameters,
+            State<T> y0,
+            const std::vector<double> &tEval,
+            IntegratorSettings settings) const
+    {
+        if (y0.raw().size() != modelData_.numRegions * State<T>::kVarsPerRegion)
+            throw std::invalid_argument("Invalid state vector length.");
+
+        return integrate(
+                [this, parameters](double t, const State<T> &x, State<T> &dxdt) {
+                    assert(x.raw().size() == dxdt.raw().size());
+                    assert(x.raw().size() == modelData_.numRegions * State<T>::kVarsPerRegion);
+                    return derived()->rhs(t, parameters, x, dxdt);
+                },
+                std::move(y0), tEval, std::move(settings));
+    }
 
 protected:
     Derived *derived() noexcept {

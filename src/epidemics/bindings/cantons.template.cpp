@@ -20,4 +20,3 @@ void exportCantonsModels(py::module &top, py::module &m)
 
 }  // namespace cantons
 }  // namespace epidemics
-

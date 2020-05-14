@@ -32,9 +32,9 @@ add_custom_command(
     DEPENDS
     ${CODE_DIR}/bindings/generate_bindings.py
     ${CODE_DIR}/bindings/cantons.template.cpp
-    ${CODE_DIR}/bindings/cantons_model.template.cpp
+    ${CODE_DIR}/bindings/cantons.model.template.cpp
     ${CODE_DIR}/bindings/country.template.cpp
-    ${CODE_DIR}/bindings/country_model.template.cpp
+    ${CODE_DIR}/bindings/country.model.template.cpp
     COMMENT "Generating bindings for cantons and country models."
 )
 

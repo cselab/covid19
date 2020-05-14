@@ -57,7 +57,7 @@ def solve_seiin(params, y0, t_eval, *, data):
         return [*dS, *dE, *dIr, *dIu, *dN]
 
     # Initial derivatives are 0.
-    results = solve_ivp(rhs, y0=y0, t_span=(0, t_eval[-1]), t_eval=t_eval)
+    results = solve_ivp(rhs, y0=y0, t_span=(0, t_eval[-1]), t_eval=t_eval, rtol=1e-8, atol=1e-8)
     results = np.transpose(results.y)
     assert len(results) == len(t_eval)
     assert len(results[0]) == K * 5
@@ -74,24 +74,24 @@ class TestCantonsSEIIN(TestCaseEx):
         params = seiin.Parameters(beta=0.3, mu=0.7, alpha=0.03, Z=4.0, D=5.0, theta=0.789)
 
         # S..., E..., Ir..., Iu..., N....
-        y0 = (10, 11, 12, 1, 2, 3, 5, 6, 7, 0, 1, 2, 1000000, 2000000, 3000000)
+        y0 = (1.0e6, 0.9e6, 0.8e6, 1, 2, 3, 5, 6, 7, 0, 1, 2, 1000000, 2000000, 3000000)
         t_eval = [0., 0.3, 0.6, 1.]
         py_result = solve_seiin(params, y0=y0, t_eval=t_eval, data=data)
         y0 = seiin.State(y0)
-        cpp_result_noad = solver.solve   (params, y0, t_eval=t_eval)
-        cpp_result_ad   = solver.solve_ad(params, y0, t_eval=t_eval)
+        cpp_result_noad = solver.solve   (params, y0, t_eval=t_eval, dt=0.1)
+        cpp_result_ad   = solver.solve_ad(params, y0, t_eval=t_eval, dt=0.1)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
         for py, noad, ad in zip(py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):
             # See common.TestCaseEx.assertRelative
             for k in range(K):
-                self.assertRelative(noad.S(k),  ad.S(k).val(),  tolerance=1e-9)
-                self.assertRelative(noad.E(k),  ad.E(k).val(),  tolerance=1e-9)
-                self.assertRelative(noad.Ir(k), ad.Ir(k).val(), tolerance=1e-9)
-                self.assertRelative(noad.Iu(k), ad.Iu(k).val(), tolerance=1e-9)
-                self.assertRelative(noad.N(k),  ad.N(k).val(),  tolerance=1e-9)
-                self.assertRelative(noad.S(k),  py[0 * K + k], tolerance=1e-5)
-                self.assertRelative(noad.E(k),  py[1 * K + k], tolerance=1e-5)
-                self.assertRelative(noad.Ir(k), py[2 * K + k], tolerance=1e-5)
-                self.assertRelative(noad.Iu(k), py[3 * K + k], tolerance=1e-5)
-                self.assertRelative(noad.N(k),  py[4 * K + k], tolerance=1e-5)
+                self.assertRelative(noad.S(k),  ad.S(k).val(),  tolerance=1e-12)
+                self.assertRelative(noad.E(k),  ad.E(k).val(),  tolerance=1e-12)
+                self.assertRelative(noad.Ir(k), ad.Ir(k).val(), tolerance=1e-12)
+                self.assertRelative(noad.Iu(k), ad.Iu(k).val(), tolerance=1e-12)
+                self.assertRelative(noad.N(k),  ad.N(k).val(),  tolerance=1e-12)
+                self.assertRelative(noad.S(k),  py[0 * K + k], tolerance=1e-7)
+                self.assertRelative(noad.E(k),  py[1 * K + k], tolerance=1e-7)
+                self.assertRelative(noad.Ir(k), py[2 * K + k], tolerance=1e-7)
+                self.assertRelative(noad.Iu(k), py[3 * K + k], tolerance=1e-7)
+                self.assertRelative(noad.N(k),  py[4 * K + k], tolerance=1e-7)

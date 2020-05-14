@@ -1,6 +1,6 @@
 #pragma once
 
-#include <epidemics/utils/autodiff.h>
+#include <epidemics/integrator.h>
 
 #include <boost/array.hpp>
 #include <vector>
@@ -55,9 +55,19 @@ public:
     SolverBase(ModelData data) : data_{std::move(data)} { }
 
     template <typename T>
-    std::vector<State<T>> solve(const Parameters<T> &parameters,
-                                typename State<T>::RawState initialState,
-                                const std::vector<double> &tEval) const;
+    std::vector<State<T>> solve(
+            const Parameters<T> &parameters,
+            State<T> y0,
+            const std::vector<double> &tEval,
+            IntegratorSettings settings) const
+    {
+        return integrate(
+                [this, parameters](double t, const State<T> &x, State<T> &dxdt) {
+                    return derived()->rhs(t, parameters, x, dxdt);
+                },
+                std::move(y0), tEval, std::move(settings));
+    }
+
 protected:
     Derived *derived() noexcept {
         return static_cast<Derived *>(this);
