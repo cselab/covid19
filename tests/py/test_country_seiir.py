@@ -61,11 +61,11 @@ class TestCountrySEIIR(TestCaseEx):
         for t, py, noad, ad in zip(t_eval[1:], py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):
             # See common.TestCaseEx.assertRelative
             try:
-                self.assertRelative(noad.S(),  ad.S().val(),  tolerance=1e-9)
-                self.assertRelative(noad.E(),  ad.E().val(),  tolerance=1e-9)
-                self.assertRelative(noad.Ir(), ad.Ir().val(), tolerance=1e-9)
-                self.assertRelative(noad.Iu(), ad.Iu().val(), tolerance=1e-9)
-                self.assertRelative(noad.R(),  ad.R().val(),  tolerance=1e-9)
+                self.assertRelative(noad.S(),  ad.S().val(),  tolerance=1e-12)
+                self.assertRelative(noad.E(),  ad.E().val(),  tolerance=1e-12)
+                self.assertRelative(noad.Ir(), ad.Ir().val(), tolerance=1e-12)
+                self.assertRelative(noad.Iu(), ad.Iu().val(), tolerance=1e-12)
+                self.assertRelative(noad.R(),  ad.R().val(),  tolerance=1e-12)
                 self.assertRelative(py[0], ad.S().val(),  tolerance=1e-7)
                 self.assertRelative(py[1], ad.E().val(),  tolerance=1e-7)
                 self.assertRelative(py[2], ad.Ir().val(), tolerance=1e-7)

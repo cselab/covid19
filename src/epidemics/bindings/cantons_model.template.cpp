@@ -2,7 +2,7 @@
 
 #include "bindings.h"
 #include "cantons.h"
-#include <epidemics/models/cantons/base.hh>
+#include <epidemics/models/cantons/base.h>
 #include <epidemics/models/cantons/{{NAME}}.h>
 
 using namespace py::literals;
@@ -49,7 +49,7 @@ void exportAll(py::module &top, py::module &m) {
     py::implicitly_convertible<State<double>, State<AD>>();
 
     m.attr("ElementAD") = exportAutoDiff<AD>(top);
-    exportSolver<Solver, State, Parameters>(m);
+    exportSolver<Solver, ModelData, State, Parameters>(m);
 }
 
 }  // namespace {{NAME}}

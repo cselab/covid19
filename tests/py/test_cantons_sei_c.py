@@ -22,6 +22,6 @@ class TestCantonsSEI_C(TestCaseEx):
         for noad, ad in zip(cpp_result_noad[1:], cpp_result_ad[1:]):
             # See common.TestCaseEx.assertRelative
             for k in range(K):
-                self.assertRelative(noad.S(k), ad.S(k).val(), tolerance=1e-9)
-                self.assertRelative(noad.E(k), ad.E(k).val(), tolerance=1e-9)
-                self.assertRelative(noad.I(k), ad.I(k).val(), tolerance=1e-9)
+                self.assertRelative(noad.S(k), ad.S(k).val(), tolerance=1e-12)
+                self.assertRelative(noad.E(k), ad.E(k).val(), tolerance=1e-12)
+                self.assertRelative(noad.I(k), ad.I(k).val(), tolerance=1e-12)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <epidemics/utils/autodiff.h>
 #include <epidemics/integrator.h>
 
 #include <boost/array.hpp>
