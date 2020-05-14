@@ -35,10 +35,10 @@ static auto exportParameters(py::module &m, const char *name) {
 }
 ''')
 
-with open(os.path.join(PATH, 'country_model.template.cpp')) as f:
+with open(os.path.join(PATH, 'country.model.template.cpp')) as f:
     COUNTRY_TEMPLATE = jinja2.Template(f.read())
 
-with open(os.path.join(PATH, 'cantons_model.template.cpp')) as f:
+with open(os.path.join(PATH, 'cantons.model.template.cpp')) as f:
     CANTONS_TEMPLATE = jinja2.Template(f.read())
 
 
@@ -65,6 +65,9 @@ def _generate_model(template, name, state, params):
     params_code = EXPORT_PARAMETERS_TEMPLATE.render(**kwargs)
     code = NO_EDIT_NOTE + template.render(
             EXPORT_PARAMETERS=params_code, **kwargs)
+
+    # Make differentiation between generated and template code easier.
+    code = '/**/' + code.replace('\n', '\n/**/')
     return code
 
 

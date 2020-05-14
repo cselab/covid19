@@ -20,4 +20,3 @@ void exportCountryModels(py::module &top, py::module &m)
 
 }  // namespace country
 }  // namespace epidemics
-
