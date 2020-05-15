@@ -90,7 +90,7 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Maximum'] = 100.
 
     k+=1
     js['Distributions'].append({})
