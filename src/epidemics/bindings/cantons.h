@@ -7,7 +7,7 @@ namespace epidemics {
 namespace cantons {
 
 /// Helper function factory for State getters.
-template <template <typename> typename State, typename T>
+template <template <typename> class State, typename T>
 static auto makeValuesGetter(size_t valueIndex) {
     assert(0 <= valueIndex && valueIndex < State<T>::kVarsPerRegion);
     /// Extract a subvector of the state corresponding to the given value.
@@ -19,7 +19,7 @@ static auto makeValuesGetter(size_t valueIndex) {
 }
 
 /// Convert a State<double> to State<AD>.
-template <template <typename> typename State, typename AD>
+template <template <typename> class State, typename AD>
 State<AD> convertScalarStateToAD(const State<double> &state) {
     State<AD> out(state.numRegions());
     for (size_t i = 0; i < state.raw().size(); ++i)

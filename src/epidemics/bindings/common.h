@@ -8,7 +8,7 @@
 namespace epidemics {
 
 /// Shorthand for the autodiff type used for the given model.
-template <template <typename> typename Parameters>
+template <template <typename> class Parameters>
 using ADType = AutoDiff<double, Parameters<double>::numParameters>;
 
 IntegratorSettings integratorSettingsFromKwargs(py::kwargs kwargs);
@@ -36,8 +36,8 @@ void exportSolverSolve(
 /// Export a model Solver. Returns the Solver class handler.
 template <typename Solver,
           typename ModelData,
-          template <typename> typename State,
-          template <typename> typename Parameters>
+          template <typename> class State,
+          template <typename> class Parameters>
 auto exportSolver(py::module &m) {
     using namespace py::literals;
     using AD = ADType<Parameters>;

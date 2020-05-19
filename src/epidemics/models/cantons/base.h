@@ -49,8 +49,8 @@ protected:
  * the base class in `base.hh`.
  */
 template <typename Derived,
-          template <typename> typename State,
-          template <typename> typename Parameters>
+          template <typename> class State,
+          template <typename> class Parameters>
 class SolverBase {
 public:
     SolverBase(ModelData modelData) :
