@@ -2,14 +2,12 @@
 
 import json
 import subprocess as sp
+import os
 
 presets = "./countries.json"
 
 with open(presets) as f:
     js = json.loads(f.read())
-
-print(len(js))
-
 
 def filter_few(confirmed, population):
     i = 0
@@ -28,6 +26,9 @@ countries = {
     "Ireland",
     "Germany",
     "Hungary",
+    "Russian Federation",
+    "Sweden",
+    "United Kingdom",
 }
 
 for row in js:
@@ -38,12 +39,14 @@ for row in js:
     pop = row["population"]
     data = filter_few(data, pop)
     outdir = country.replace(' ', '')
+    if os.path.isdir(outdir):
+        print("skip existing {}".format(outdir))
+        continue
     cmd = ["./main.py"] + \
             ["--dataFolder", outdir] + \
             ["--nThreads", "8"] + \
+            ["--nSamples", "5000"] + \
             ["--populationSize", str(pop)] + \
             ["--data"] + list(map(str, data))
-    o = sp.run(cmd)
     print(cmd)
-    #print(o)
-    #exit()
+    o = sp.run(cmd)

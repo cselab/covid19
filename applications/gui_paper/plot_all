@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -eu
+
+for f in */intervals.json ; do
+  d=${f%/*}
+  echo $d
+  ./plot_effective_growth.py "$f" --output_dir "$d" --title "$d"
+done
