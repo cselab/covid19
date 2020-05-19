@@ -18,9 +18,6 @@ plt.ioff()
 from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
-
-
-
 class EpidemicsBase:
 
   def __init__( self, **kwargs ):
@@ -32,16 +29,12 @@ class EpidemicsBase:
     self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
-    self.backend     = kwargs.pop('backend','numpy')
     self.sampler     = kwargs.pop('sampler','TMCMC')
 
     self.iterations_per_day = kwargs.pop('it_per_day',10)
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
-
-    if ((self.sampler == 'mTMCMC') and (self.backend == 'torch')):
-        sys.exit(f"\n mTMCMC requires scipy backend\n")
 
     self.saveInfo ={
       'state': 'state.pickle',
@@ -80,9 +73,6 @@ class EpidemicsBase:
     self.e = None  #korali.Experiment()
 
 
-
-
-
   def computational_model( s ):
     pass
 
@@ -99,8 +89,6 @@ class EpidemicsBase:
       pickle.dump(self, f)
 
 
-
-
   def __getstate__(self):
     """Return the state for pickling."""
     state = self.__dict__.copy()
@@ -111,12 +99,8 @@ class EpidemicsBase:
     return state
 
 
-
-
   def get_module_name(self,path):
     return 'epidemics.' + path.split('/epidemics/')[1][:-3].replace( '/','.')
-
-
 
 
   def get_model_name(self,path):
@@ -152,9 +136,9 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
     self.e['Solver']['Type'] = "TMCMC"
-    self.e['Solver']['Version'] = self.sampler
+    #self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
+    #self.e['Solver']['Target Coefficient Of Variation'] = 0.4
 
 
     js = self.get_variables_and_distributions()
