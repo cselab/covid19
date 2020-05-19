@@ -6,11 +6,14 @@ set(SRC_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(CODE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src/epidemics")
 set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
+set(CMAKE_CXX_STANDARD 14)
 add_subdirectory(${EXTERN_DIR}/pybind11 sir_pybind11)
 
 include(GoogleTest)
 option(INSTALL_GTEST OFF)
 add_subdirectory(${EXTERN_DIR}/googletest)
+
+find_package(Boost)
 
 set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_cantons.generated.cpp
@@ -50,6 +53,7 @@ add_library(
 set_property(TARGET libepidemics_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_options(libepidemics_core PUBLIC ${CUSTOM_CXXFLAGS})
 target_include_directories(libepidemics_core PUBLIC ${SRC_DIR})
+target_link_libraries(libepidemics_core PUBLIC Boost::headers)
 add_library(libepidemics::core ALIAS libepidemics_core)
 
 pybind11_add_module(

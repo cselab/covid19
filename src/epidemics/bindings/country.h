@@ -6,10 +6,10 @@
 namespace epidemics {
 namespace country {
 
-template <template <typename> typename State, typename AD>
+template <template <typename> class State, typename AD>
 State<AD> convertScalarStateToAD(const State<double> &state) {
     State<AD> out;
-    static_assert(out.size() == state.size(), "Sanity check.");
+    static_assert(State<AD>::size() == State<double>::size(), "Sanity check.");
     for (size_t i = 0; i < state.size(); ++i)
         out.raw()[i] = state.raw()[i];
     return out;
