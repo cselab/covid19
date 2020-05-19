@@ -47,9 +47,7 @@ class ModelBase( EpidemicsBase ):
     data      = libepidemics.country.ModelData(N=N)
     cppsolver = sir.Solver(data)
 
-    beta  = p[0]
-    gamma = p[1]
-    params = sir.Parameters(beta=beta, gamma=gamma)
+    params = sir.Parameters(beta=p[0], gamma=p[1])
     
     s0, i0 = y0
     y0cpp   = (s0, i0, 0.0)

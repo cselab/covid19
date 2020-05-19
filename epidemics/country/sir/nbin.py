@@ -142,6 +142,6 @@ class Model( ModelBase ):
     js['Number of Variables'] = 3
     js['Length of Variables'] = len(t)
 
-    s['Dispersion'] = ( p[-1] * y ).tolist()
+    js['Dispersion'] = (len(y)) * [p[-1]]
 
     s['Saved Results'] = js

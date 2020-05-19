@@ -138,7 +138,7 @@ class EpidemicsBase:
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
+#    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)

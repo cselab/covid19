@@ -157,6 +157,5 @@ class Model( ModelBase ):
     js['Number of Variables'] = 3
     js['Length of Variables'] = len(t)
 
-    js['Standard Deviation'] = ( p[-1] * y ).tolist()
-
+    s['Standard Deviation'] = ( p[-1] * y ).tolist()
     s['Saved Results'] = js

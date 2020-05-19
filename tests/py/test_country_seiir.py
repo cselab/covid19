@@ -44,11 +44,11 @@ def solve_seiir(p, y0, t_eval, *, N):
 
 class TestCountrySEIIR(TestCaseEx):
     def test_seiir(self):
-        """Test the C++ autodiff implementation of the SEIIR model."""
-        seiir = libepidemics.country.seiir
+        
+        seiir  = libepidemics.country.seiir
         data   = libepidemics.country.ModelData(N=100050)
         solver = seiir.Solver(data)
-        params = seiir.Parameters(beta=0.2, mu=0.1, alpha=0.15, Z=5.3, D=3.2)
+        params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
 
         y0 = (1e5, 1., 2., 3., 5.)  # S, E, Ir, Iu, R.
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
