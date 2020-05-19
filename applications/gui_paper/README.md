@@ -1,5 +1,15 @@
-* `countries.json` from `git@gitlab.ethz.ch:mavt-cse/coronavirus.git` `python/data/fetch_all.py`
-last day is `2020-05-17`
+# `countries.json` 
+
+geneated by
+
+`git@gitlab.ethz.ch:mavt-cse/coronavirus.git` `python/data/fetch_all.py`
+
+last row of data is `2020-05-17`
+
+
+# `request_country.py`
+
+* Create a symlink to `main.py` from `korali-apps:5.coronavirus/main.py`
 
 # TODO
 

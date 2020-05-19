@@ -3,7 +3,7 @@
 import json
 import subprocess as sp
 
-presets = "../../repoweb/wsgi/corona/static/countries.json"
+presets = "./countries.json"
 
 with open(presets) as f:
     js = json.loads(f.read())
