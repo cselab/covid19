@@ -18,7 +18,7 @@ parser.add_argument('--nThreads', '-nt', type=int, default=12, help='Number of t
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate that many days in future, after the time of observation of the last data.')
 parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that many data from the end of the data list to validate the prediction.')
-parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
+parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
 parser.add_argument('--backend','-b',default='numpy',help='numpy/scipy or pytorch')

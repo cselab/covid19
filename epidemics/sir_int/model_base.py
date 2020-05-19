@@ -47,13 +47,18 @@ class ModelBase( EpidemicsBase ):
   def sir_rhs( self, t, y, N, p ):
     S, I = y
 
-    if( t<p[3] ):
-      beta = p[0]
-    else:
-      beta = p[0]*p[2]
+    R0 = p[0]
+    gamma = p[1]
 
-    c1 = beta * p[1] * S * I / N
-    c2 = p[1] * I
+    if( t<p[3] ):
+        beta = R0*gamma
+    elif t > 40:
+        beta = R0*gamma*p[2]*1.5
+    else:
+        beta = R0*gamma*p[2]
+
+    c1 = beta * S * I / N
+    c2 = gamma * I
     dSdt = -c1
     dIdt =  c1 - c2
     return dSdt, dIdt
