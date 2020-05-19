@@ -24,7 +24,6 @@ parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--sampler', '-sa', default='TMCMC', help='Choose sampler TMCMC or mTMCMC')
-parser.add_argument('--backend','-b',default='numpy',help='numpy/scipy or torch')
 parser.add_argument('--it_per_day','-it',default=10,help='number of iterations per day when using the pytorch ODE solver')
 
 args = parser.parse_args()

@@ -136,10 +136,9 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
     self.e['Solver']['Type'] = "TMCMC"
-    #self.e['Solver']['Version'] = self.sampler
+    self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Population Size'] = self.nSamples
-    #self.e['Solver']['Target Coefficient Of Variation'] = 0.4
-
+    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
@@ -276,8 +275,6 @@ class EpidemicsBase:
     return self.e['Results']['Best Sample']['Parameters']
 
 
-
-
   def sum_of_squares_errors(self,s,y):
 
     self.computational_model( s )
@@ -285,8 +282,6 @@ class EpidemicsBase:
     dif = np.asarray(y) - np.asarray(s['Reference Evaluations'])
 
     s['F(x)'] = -np.sum(dif*dif) / len(y)
-
-
 
 
   def set_variables_and_distributions( self, js ):
@@ -371,7 +366,6 @@ class EpidemicsBase:
     Ns = self.nSamples
     Nv = self.e['Samples'][0]['Saved Results']['Number of Variables']
     Nt = self.e['Samples'][0]['Saved Results']['Length of Variables']
-    print('Nt ',Nt)
     varNames = []
     for k in range(Nv):
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
@@ -402,8 +396,6 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = True
 
 
-
-
   def new_figure(self):
     print('[Epidemics] New figure...')
     fig = plt.figure(figsize=(12, 8))
@@ -412,8 +404,6 @@ class EpidemicsBase:
     if(self.silentPlot): plt.ion()
 
     return fig
-
-
 
 
   def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
