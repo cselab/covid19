@@ -1,6 +1,8 @@
 #pragma once
 
 #include "bindings.h"
+#include <epidemics/utils/autodiff.h>
+
 #include <sstream>
 
 namespace epidemics {
@@ -33,6 +35,7 @@ py::handle exportAutoDiff(py::module &m) {
         .def("d", py::overload_cast<int>(&AD::d, py::const_), "i"_a,
              "Get the derivative with respect to the ith variable.");
 
+    py::implicitly_convertible<long long, AD>();
     py::implicitly_convertible<T, AD>();
     return cls;
 }

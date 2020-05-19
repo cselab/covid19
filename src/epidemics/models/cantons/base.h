@@ -1,30 +1,21 @@
 #pragma once
 
 #include "data.h"
+#include <epidemics/integrator.h>
 
 #include <cassert>
-
-// TODO: Rename common.h/.hh to base.h/.hh
-// TODO: Automatic differentiation.
-// TODO: Solver::solve should take a std::vector<double> of time instances at which to compute the result.
-//
-//       Check country-level models for implementation details.
-
-
 
 namespace epidemics {
 namespace cantons {
 
 /*
- * Using custom types with boost::odeint is not that simple.
- * Instead, we use a single std::vector<double> to store the
- * whole state of the simulation, and the wrapper below to
- * access the data in a human-friendly way.
+ * Using custom types with boost::odeint is not that simple. Instead, we use a
+ * single std::vector<> to store the whole state of the simulation, and the
+ * wrapper below to access the data in a human-friendly way.
  */
-using RawState = std::vector<double>;
-
-template <size_t VarsPerRegion>
+template <typename T, size_t VarsPerRegion>
 struct StateBase {
+    using RawState = std::vector<T>;
     static constexpr size_t kVarsPerRegion = VarsPerRegion;
 
     /// Create a state with all values set to 0.
@@ -42,6 +33,7 @@ struct StateBase {
     }
 
     size_t numRegions() const noexcept { return numRegions_; }
+    RawState &raw() & { return v_; }
     const RawState &raw() const & { return v_; }
     RawState raw() && { return std::move(v_); }
 
@@ -51,12 +43,18 @@ protected:
 };
 
 
-template <typename Derived, typename State, typename Parameters>
+/** CRTP base class for solvers.
+ *
+ * Solvers have to only define a `rhs` function, the integrator is handled by
+ * the base class in `base.hh`.
+ */
+template <typename Derived,
+          template <typename> class State,
+          template <typename> class Parameters>
 class SolverBase {
 public:
-    SolverBase(ModelData modelData, bool verbose = false) :
-        modelData_{std::move(modelData)},
-        verbose_{verbose}
+    SolverBase(ModelData modelData) :
+        modelData_{std::move(modelData)}
     { }
 
     double M(int from, int to) const {
@@ -72,14 +70,24 @@ public:
         return modelData_.C_plus_Ct[from * modelData_.numRegions + to];
     }
 
-    std::vector<State> solve(const Parameters &parameters, State initialState, int days) const {
-        return solve(parameters, std::move(initialState).raw(), days);
-    }
+    template <typename T>
+    std::vector<State<T>> solve(
+            const Parameters<T> &parameters,
+            State<T> y0,
+            const std::vector<double> &tEval,
+            IntegratorSettings settings) const
+    {
+        if (y0.raw().size() != modelData_.numRegions * State<T>::kVarsPerRegion)
+            throw std::invalid_argument("Invalid state vector length.");
 
-    std::vector<State> solve(
-            const Parameters &parameters,
-            RawState initialState,
-            int days) const;
+        return integrate(
+                [this, parameters](double t, const State<T> &x, State<T> &dxdt) {
+                    assert(x.raw().size() == dxdt.raw().size());
+                    assert(x.raw().size() == modelData_.numRegions * State<T>::kVarsPerRegion);
+                    return derived()->rhs(t, parameters, x, dxdt);
+                },
+                std::move(y0), tEval, std::move(settings));
+    }
 
 protected:
     Derived *derived() noexcept {
@@ -90,7 +98,6 @@ protected:
     }
 
     ModelData modelData_;
-    bool verbose_;
 };
 
 }  // namespace cantons

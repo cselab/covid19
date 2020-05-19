@@ -93,7 +93,7 @@ class Solver:
             dS  += theta * (torch.mv(Mij, tmpS_NI)  - colsumMij * tmpS_NI)
             dE  += theta * (torch.mv(Mij, tmpE_NI)  - colsumMij * tmpE_NI)
             dIu += theta * (torch.mv(Mij, tmpIu_NI) - colsumMij * tmpIu_NI)
-            dN   = theta * (colsumMij - rowsumMij)  # This can be also set to 0.
+            dN   = theta * (rowsumMij - colsumMij)  # This can be also set to 0.
 
             return torch.cat((dS, dE, dIr, dIu, dN))
 

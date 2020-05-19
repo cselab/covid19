@@ -63,7 +63,6 @@ class ModelData:
         """Return the libepidemics.ModelData instance.
 
         Needed when running the model from Python using the C++ implementation."""
-        # DEPRECATED
         return libepidemics.cantons.ModelData(
                 self.region_keys, self.region_population,
                 flatten(self.Mij), flatten(self.Cij),

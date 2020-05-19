@@ -126,8 +126,9 @@ def example_run_seiin(data: ModelData, num_days: int, level):
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libepidemics.cantons.seiin.Solver(data.to_cpp(), verbose=True)
-    return solver.solve(params, y0, num_days)
+    solver = libepidemics.cantons.seiin.Solver(data.to_cpp())
+    y0 = libepidemics.cantons.seiin.State(y0)
+    return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 
 def example_run_seii_c(data, num_days):
@@ -150,8 +151,9 @@ def example_run_seii_c(data, num_days):
     y0 = S0 + E0 + IR0 + IU0
 
     # Run the ODE solver.
-    solver = libepidemics.cantons.seii_c.Solver(data.to_cpp(), verbose=True)
-    return solver.solve(params, y0, num_days)
+    solver = libepidemics.cantons.seii_c.Solver(data.to_cpp())
+    y0 = libepidemics.cantons.seii_c.State(y0)
+    return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 
 def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True):

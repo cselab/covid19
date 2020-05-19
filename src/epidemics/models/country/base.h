@@ -1,6 +1,6 @@
 #pragma once
 
-#include <epidemics/utils/autodiff.h>
+#include <epidemics/integrator.h>
 
 #include <boost/array.hpp>
 #include <vector>
@@ -25,16 +25,17 @@ struct ModelData {
  * (which has a nice .S(), .I(), .R()... interface) is a wrapper around a
  * boost::array (RawState).
  */
-template <typename T, int N>
+template <typename T, size_t N>
 struct StateBase {
     using RawState = boost::array<T, N>;
 
-    explicit StateBase(RawState state) :
-        v_{std::move(state)}
-    { }
+    explicit StateBase() { }
+    explicit StateBase(RawState state) : v_{std::move(state)} { }
 
-    const RawState &raw() const & { return v_; }
-    RawState raw() && { return std::move(v_); }
+    const RawState &raw() const { return v_; }
+    RawState& raw() { return v_; }
+
+    static constexpr size_t size() noexcept { return N; }
 
 protected:
     RawState v_;
@@ -46,14 +47,27 @@ protected:
  * Solvers have to only define a `rhs` function, the integrator is handled by
  * the base class in `base.hh`.
  */
-template <typename Derived, typename State, typename Parameters>
+template <typename Derived,
+          template <typename> class State,
+          template <typename> class Parameters>
 class SolverBase {
 public:
     SolverBase(ModelData data) : data_{std::move(data)} { }
 
-    std::vector<State> solve(const Parameters &parameters,
-                             typename State::RawState initialState,
-                             const std::vector<double> &tEval) const;
+    template <typename T>
+    std::vector<State<T>> solve(
+            const Parameters<T> &parameters,
+            State<T> y0,
+            const std::vector<double> &tEval,
+            IntegratorSettings settings) const
+    {
+        return integrate(
+                [this, parameters](double t, const State<T> &x, State<T> &dxdt) {
+                    return derived()->rhs(t, parameters, x, dxdt);
+                },
+                std::move(y0), tEval, std::move(settings));
+    }
+
 protected:
     Derived *derived() noexcept {
         return static_cast<Derived *>(this);

@@ -15,7 +15,10 @@ struct DataPoint {
 
 /// Model bulk parameters (not optimized for).
 struct ModelData {
-    // Note: py/model.py:ModelData.to_cpp depends on this structure.
+    // Note: The following files depend on the structure of this struct:
+    //       epidemics/cantons/py/model.py:ModelData.to_cpp
+    //       src/epidemics/bindings/cantons.template.cpp
+    //       tests/py/common.py
     std::vector<std::string> regionKeys;
     std::vector<double> Ni;     // Region population.
     std::vector<double> Mij;    // Row-major migration matrix [to][from].

@@ -34,12 +34,12 @@ data = ModelData(['ZH', 'TI'], [100, 200], Mij, Cij)
 src = np.zeros(data.num_regions)
 data.ext_com_Iu = [src]
 
-solver = libepidemics.cantons.sei_c.Solver(data.to_cpp(), verbose=True)
+solver = libepidemics.cantons.sei_c.Solver(data.to_cpp())
 
 S0 = N0 - E0 - I0
-y0 = list(np.vstack((S0, E0, I0)).flatten())
+y0 = libepidemics.cantons.sei_c.State(np.vstack((S0, E0, I0)).flatten())
 num_days = 10
 
-r = solver.solve(params, y0, num_days)
+r = solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 print(list([s.S()] for s in r))
