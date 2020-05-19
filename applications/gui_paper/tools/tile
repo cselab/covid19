@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eu
+
+name=$(basename $(pwd))
+out=$name.pdf
+files=$(ls *.pdf | grep -v "$out" | xargs)
+cmd="pdfnup --nup 5x2 --outfile '$out' $files"
+echo "$cmd"
+eval "$cmd"
+
+out=$name.png
+files=$(ls *.png | grep -v "$out" | xargs)
+cmd="magick montage -label %f -density 300 -geometry +0 -tile 5x2 $files '$out' "
+echo "$cmd"
+eval "$cmd"

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eu
+
+prefix=total
+outdir=$prefix
+
+mkdir -p "$outdir"
+
+for f in */total.pdf ; do
+  name=$(dirname "$f")
+  o=$outdir/$name.pdf
+  [ -f "$o" ] || ln -srv "$f" "$o"
+done
+
+for f in */samples.png ; do
+  name=$(dirname "$f")
+  o=$outdir/$name.png
+  [ -f "$o" ] || ln -srv "$f" "$o"
+done
