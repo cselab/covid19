@@ -95,20 +95,25 @@ fig, [ax,ax2] = plt.subplots(2)
 ax.set_axis_off()
 ax2.set_axis_off()
 
+ax.set_title(r"$\lambda*=\beta - \gamma$ before intervention")
 shapes.plot(column='lambda',
             ax=ax,
             edgecolor='black',
             lw=0.1,
             cmap=plt.get_cmap('coolwarm'),
             vmin=0,
-            vmax=0.3)
+            vmax=0.3,
+            legend=True)
 
+ax2.set_title(r"$\lambda*=\beta - \gamma$ after intervention")
 shapes.plot(column='lambda2',
             ax=ax2,
             edgecolor='black',
             lw=0.1,
             cmap=plt.get_cmap('coolwarm'),
-            vmin=-0.07,
-            vmax=0.05)
+            vmin=-0.1,
+            vmax=0.05,
+            legend=True)
 
-plt.savefig("a.pdf")
+plt.tight_layout()
+plt.savefig("map.pdf")
