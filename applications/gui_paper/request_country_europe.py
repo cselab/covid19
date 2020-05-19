@@ -18,25 +18,52 @@ def filter_few(confirmed, population):
 
 
 countries = {
-    "Switzerland",
-    "Spain",
-    "Italy",
-    "Austria",
-    "Germany",
-    "Ireland",
-    "Germany",
-    "Hungary",
     "Russian Federation",
+    "Ukraine",
+    "France",
+    "Spain",
     "Sweden",
+    "Norway",
+    "Germany",
+    "Finland",
+    "Poland",
+    "Italy",
     "United Kingdom",
+    "Romania",
+    "Belarus",
+    "Kazakhstan",
+    "Greece",
+    "Bulgaria",
+    "Iceland",
+    "Hungary",
+    "Portugal",
+    "Austria",
+    "Czech Republic",
+    "Serbia",
+    "Ireland",
+    "Lithuania",
+    "Latvia",
+    "Croatia",
+    "Bosnia and Herzegovina",
+    "Slovakia",
+    "Estonia",
+    "Denmark",
+    "Switzerland",
+    "Netherlands",
 }
 
-for row in js:
-    country = row["country"]
+country_to_idx = {row['country']:idx for idx,row in enumerate(js)}
+
+for country in countries:
+    assert country in country_to_idx % "Error: unknown country '{}'".format(country)
+
+for country in countries:
+    idx = country_to_idx[country]
+    row = js[idx]
     if country not in countries:
         continue
-    data = row["confirmed"]
-    pop = row["population"]
+    data = row['confirmed']
+    pop = row['population']
     data = filter_few(data, pop)
     outdir = country.replace(' ', '')
     if os.path.isdir(outdir):

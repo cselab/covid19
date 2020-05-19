@@ -77,9 +77,10 @@ ax.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
 ydata = np.array(d['y-data']).astype(float)
 
 mean = d['Daily Infected']['Mean']
+median = d['Daily Infected']['Median']
 low = d['Daily Infected']['Intervals'][0]['Low Interval']
 high = d['Daily Infected']['Intervals'][0]['High Interval']
-ax2.plot(days, mean)
+ax2.plot(days, median)
 ax2.fill_between(days, low, high, alpha=0.5)
 ax2.scatter(daysdata, np.diff(ydata, prepend=0), c='black', s=4)
 ax2.set_ylabel('Daily new reported')
@@ -87,9 +88,10 @@ ax2.set_xlim(left=days.min())
 ax2.set_ylim(bottom=0)
 
 mean = d['Total Infected']['Mean']
+median = d['Total Infected']['Median']
 low = d['Total Infected']['Intervals'][0]['Low Interval']
 high = d['Total Infected']['Intervals'][0]['High Interval']
-ax3.plot(days, mean)
+ax3.plot(days, median)
 ax3.fill_between(days, low, high, alpha=0.5)
 ax3.scatter(daysdata, ydata, c='black', s=4)
 ax3.set_ylabel('Total new reported')

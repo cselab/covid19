@@ -4,7 +4,7 @@ geneated by
 
 `git@gitlab.ethz.ch:mavt-cse/coronavirus.git` `python/data/fetch_all.py`
 
-last row of data is `2020-05-17`
+last row of data is `2020-05-18`
 
 
 # `request_country.py`
