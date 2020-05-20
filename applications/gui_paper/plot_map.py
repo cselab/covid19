@@ -38,7 +38,16 @@ def geocountry_to_folder(gc):
     return gc.replace(' ', '')
 
 
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+# http://naciscdn.org/naturalearth/packages/natural_earth_vector.zip
+path = "50m_cultural/ne_50m_admin_0_countries.shp"
+if os.path.isfile(path):
+    print("Loading highres map '{:}'".format(path))
+    world = gpd.read_file(path)
+    world['name'] = world['NAME_EN']
+else:
+    print("Highres map not found in '{:}'".format(path))
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+
 world = world.to_crs(epsg=3395)
 
 df_folder = world.name.copy()
@@ -148,7 +157,7 @@ ax2.set_ylim(*ylim)
 
 
 fig.subplots_adjust(top=1,bottom=0.05, left=0.025, right=0.975, wspace=0.05)
-cbar_ax = fig.add_axes([0.05, 0.07, 0.9, 0.05])
+cbar_ax = fig.add_axes([0.025, 0.07, 0.95, 0.05])
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 fig.colorbar(sm, cax=cbar_ax, cmap=cmap,norm=norm,orientation='horizontal',
