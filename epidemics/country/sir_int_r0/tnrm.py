@@ -97,8 +97,6 @@ class Model( ModelBase ):
     js['Distributions'][k]['Minimum'] = 0.0
     js['Distributions'][k]['Maximum'] = 1.0
 
-
-
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for Sigma'
