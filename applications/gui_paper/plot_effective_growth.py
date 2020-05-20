@@ -1,0 +1,1 @@
+../../../korali-apps/5.coronavirus/plot_effective_growth.py

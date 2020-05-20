@@ -11,3 +11,4 @@ _*.generated.cpp
 __pycache__
 build
 covid19_cases_switzerland_openzh.csv
+/applications/gui_paper/data/
