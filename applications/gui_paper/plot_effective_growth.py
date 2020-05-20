@@ -27,15 +27,22 @@ intervention_trans = linear_trans
 import matplotlib.dates as mdates
 
 parser = argparse.ArgumentParser()
-parser.add_argument('intervals', help="Path to 'intervals.json'.")
+parser.add_argument('dataDir', help="Path to 'intervals.json' and '_korali_samples'.")
 parser.add_argument('--title', type=str, default="", help="Title for the figure")
-parser.add_argument('--output_dir',
-                    default=".",
-                    help="Directory for output images.")
+parser.add_argument('--output_dir',default=".", help="Directory for output images.")
 args = parser.parse_args()
 
-with open(args.intervals) as f:
+dirFiles = os.listdir(args.dataDir+'_korali_samples/')
+
+intervalFile = args.dataDir + '/intervals.json'
+samplesFile = args.dataDir + '_korali_samples/' + dirFiles[-1]
+
+with open(intervalFile) as f:
     d = json.load(f)
+
+with open(samplesFile) as f:
+    samples = json.load(f)
+
 
 fig = plt.figure(figsize=(6, 9))
 ax, ax2, ax3 = fig.subplots(3)
@@ -66,11 +73,31 @@ ax.xaxis.set_major_formatter(myFmt)
 ax2.xaxis.set_major_formatter(myFmt)
 ax3.xaxis.set_major_formatter(myFmt)
 
-for i in range(len(t)):
-    beta = R0 * intervention_trans(1., kbeta, t[i], tact, dtact * 0.5) * gamma
-    lambdaeff[i] = beta - gamma
 
-ax.plot(days, lambdaeff)
+db    = np.array(samples['Results']['Sample Database']);
+R0    = db[:,0]
+tact  = db[:,1]
+kbeta = db[:,2]
+
+Nt = len(t)
+Ns = R0.shape[0]
+
+lambdaeff = np.zeros((Nt,Ns))
+for i in range(Nt):
+  for j in range(Ns):
+    beta =  R0[j]* intervention_trans(1., kbeta[j], t[i], tact[j], dtact * 0.5) * gamma
+    lambdaeff[i,j] = beta - gamma
+
+
+mean = np.mean(lambdaeff,axis=1)
+ax.plot(days, mean)
+
+median = np.quantile(lambdaeff, 0.5, axis=1)
+q1 = np.quantile(lambdaeff, 0.05, axis=1)
+q2 = np.quantile(lambdaeff, 0.95, axis=1)
+ax.fill_between(days, q1, q2, alpha=0.5)
+
+
 ax.axhline(y=0, color='black', linestyle=':')
 ax.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
 
