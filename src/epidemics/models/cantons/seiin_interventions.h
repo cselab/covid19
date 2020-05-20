@@ -27,7 +27,7 @@ struct State : StateBase<T, 5> {
 /// Lightweight parameters (optimized for).
 template <typename T>
 struct Parameters {
-    static constexpr size_t numParameters = 10;
+    static constexpr size_t numParameters = 12;
 
     T beta;   /// Transmission rate.
     T mu;     /// Reduction factor for transmission rate of undocumented individuals.
@@ -37,10 +37,12 @@ struct Parameters {
     T theta;  /// Corrective multiplicative factor for Mij.
 
     // Intervention parameters.
-    T b0;     /// Day of 1st intervention.
-    T b1;     /// Day of 2nd intervention.
-    T b2;     /// beta after 1st intervention.
-    T b3;     /// beta after 2nd intervention.
+    T b1;     /// beta after 1st intervention.
+    T b2;     /// beta after 2nd intervention.
+    T b3;     /// beta after 3rd intervention.
+    T d1;     /// day of 1st intervention
+    T d2;     /// day of 2nd intervention
+    T d3;     /// day of 3rd intervention
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
@@ -59,9 +61,11 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             // Interventions: beta is modelled as a function of time.
             // NOTE: AD will NOT work b0, b1!!
             T BETA = 0.0;
-            if ( day < p.b0) {
+            if ( day < p.d1) {
                BETA = p.beta;
-            } else if (day < p.b1) {
+            } else if (day < p.d2) {
+               BETA = p.b1;
+            } else if (day < p.d3) {
                BETA = p.b2;
             } else {
                BETA = p.b3;
