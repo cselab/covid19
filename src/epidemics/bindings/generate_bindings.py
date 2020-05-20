@@ -107,7 +107,7 @@ def main():
     generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
     generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
     generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3')
-    generate_country('sir', 'sir_int', 'seiir')
+    generate_country('sir', 'sir_int', 'sir_int_r0', 'seiir')
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 

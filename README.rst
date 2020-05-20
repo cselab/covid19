@@ -69,7 +69,7 @@ Follow these steps to create a new C++ country-level model. The steps are shown 
 
 4. Update the model, the ``Solver::rhs`` function.
 
-5. Edit ``src/epidemics/bindings/generate_bindings.py`` and add your model to the ``main`` function.
+5. Edit ``src/epidemics/bindings/generate_bindings.py`` and add your model to the ``main`` function in the generate_country or generate_canton function.
 
 6. Edit ``CMakeLists.txt`` and add your model to the ``GENERATED_COUNTRY_BINDINGS`` variable.
 
