@@ -53,7 +53,7 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 1.5
+    js['Distributions'][k]['Maximum'] = 2.0
 
     k+=1
     js['Distributions'].append({})

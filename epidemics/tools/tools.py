@@ -24,7 +24,7 @@ def flatten(matrix):
     ]
 
 
-def prepare_folder( dir, clean=True ):
+def prepare_folder( dir, clean=False ):
   dir = os.path.relpath( dir )
   if( os.path.commonpath( ['data',dir])  != 'data' ):
      sys.exit(f'\n[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}\n')

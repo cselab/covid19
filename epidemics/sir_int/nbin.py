@@ -84,14 +84,14 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.5
-    js['Distributions'][k]['Maximum'] = 1.5
+    js['Distributions'][k]['Maximum'] = 2.
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Maximum'] = 0.5
 
     k+=1
     js['Distributions'].append({})
@@ -104,8 +104,8 @@ class Model( ModelBase ):
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for td'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 20
-    js['Distributions'][k]['Maximum'] = 30.
+    js['Distributions'][k]['Minimum'] = 0.
+    js['Distributions'][k]['Maximum'] = 80.
 
     k+=1
     js['Distributions'].append({})

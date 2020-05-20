@@ -7,6 +7,7 @@ import korali
 
 sys.path.append('../../')
 from epidemics.data.files.canton_population import CANTON_LIST, CANTON_LIST_SHORT
+import argparse
 
 '''
     Hierearchical setup for SIR models with negative binomial
@@ -116,11 +117,19 @@ def run_phase_2(phase_1_path,phase_2_path):
 
 if __name__ == "__main__":  
 
-    model = 'sir_altone_nbin'
-    # cantons = ['ZH','BE','VD','GE']
-    cantons = CANTON_LIST
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--regions', '-r', default='cantons', help='Model type')
 
-    phase_1_path = ['data/'+model+'/phase_1_results/'+canton+'/'+model+'/_korali_samples/' for canton in cantons]
+    args = parser.parse_args()
+
+    model = args.model
+    if args.regions == 'cantons':
+        regions = CANTON_LIST
+    elif args.regions == 'cantons_short':
+        regions = CANTON_LIST_SHORT
+
+    phase_1_path = ['data/'+model+'/phase_1_results/'+region+'/'+model+'/_korali_samples/' for region in regions]
     phase_2_path = 'data/'+model +'/phase_2_results/_korali_samples' 
 
     run_phase_2(phase_1_path,phase_2_path)
