@@ -108,9 +108,9 @@ class Model( ModelBase ):
     eps = 1e-32
     y[y < eps] = eps
  
-
     if(self.sampler == 'mTMCMC'):
-        sys.error("mTMCMC not yet available for nbin")
+        print("[Epidemics] mTMCMC not yet available for nbin")
+        sys.exit(0)
 
     s['Reference Evaluations'] = list(y)
     s['Dispersion'] = ( p[-1] * y ).tolist()

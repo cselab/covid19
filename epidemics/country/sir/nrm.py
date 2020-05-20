@@ -97,7 +97,7 @@ class Model( ModelBase ):
     eps = 1e-32
     y[y < eps] = eps
     
-    # Get gradients here 
+    # Transform gradients
     if(self.sampler == 'mTMCMC'):
         sgrad    = []
         diffgrad = []

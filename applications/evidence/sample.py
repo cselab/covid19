@@ -42,6 +42,6 @@ a.sample( args.nSamples )
 
 a.propagate()
 
-a.save()
+# a.save() currently not working with mTMCMC results 
 
 a.plot_intervals()
