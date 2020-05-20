@@ -29,7 +29,7 @@ for c in range(cantons):
         all_data[c,d] = IR[c_i][d] - IR[c_i][d-1]
 np.save("canton_daily_cases.npy",all_data)
 
-
+'''
 data = cases.get_data_of_all_cantons()
 all_data = np.zeros((cantons,days))
 for c in range(cantons):
@@ -39,3 +39,4 @@ for c in range(cantons):
     print(IR[c_i][:])
     print("====================")
 np.save("canton_daily_removed.npy",all_data)
+'''
