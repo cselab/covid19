@@ -1,21 +1,17 @@
-#!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   27/3/2020
-# Email:  garampat@ethz.ch
-
-import requests
-import io
 import os
 import numpy as np
-from scipy.integrate import solve_ivp
 
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
+from epidemics.data.combined import RegionalData
 from epidemics.tools.tools import prepare_folder, save_file
 
+import libepidemics #cpp backend
+
+class Object(object):
+        pass
 
 class ModelBase( EpidemicsBase ):
 
@@ -36,41 +32,46 @@ class ModelBase( EpidemicsBase ):
     self.propagationData = {}
 
 
-
-
   def save_data_path( self ):
-    return ( self.dataFolder, self.country, self.modelName )
-
-
-
-  # beta, gamma, delta, t_a
-  def sir_rhs( self, t, y, N, p ):
-    S, I = y
-
-    R0 = p[0]
-    gamma = p[1]
-
-    if( t<p[3] ):
-        beta = R0*gamma
-    # elif t > 40:
-    #     beta = R0*gamma*p[2]*1.5
+    if hasattr(self, 'property'):
+      return ( self.dataFolder, self.country, self.modelName )
     else:
-        beta = R0*gamma*p[2]
-
-    c1 = beta * S * I / N
-    c2 = gamma * I
-    dSdt = -c1
-    dIdt =  c1 - c2
-    return dSdt, dIdt
+      return ( self.dataFolder, self.country )
 
 
+  def solve_ode( self, y0, T, t_eval, N, p ):
+    
+    sir       = libepidemics.country.sir
+    data      = libepidemics.country.ModelData(N=N)
+    cppsolver = sir.Solver(data)
 
+    params = sir.Parameters(beta=p[0], gamma=p[1])
+    
+    s0, i0 = y0
+    y0cpp   = (s0, i0, 0.0)
+    initial = sir.State(y0cpp)
+    
+    cpp_res = cppsolver.solve_ad(params, initial, t_eval=t_eval, dt = 0.01)
+    
+    yS      = np.zeros(len(cpp_res))
+    gradmu  = []
+    gradsig = []
 
-  def solve_ode( self, y0, T, N, p ):
-    sol = solve_ivp( self.sir_rhs, t_span=[0, T], y0=y0, args=(N, p), dense_output=True)
+    for idx,entry in enumerate(cpp_res):
+        yS[idx] = entry.S().val()
+        gradmu.append(np.array([ entry.S().d(0), entry.S().d(1), 0.0 ])) 
+        gradsig.append(np.array([ 0.0, 0.0, 1.0 ]))
+
+    # Fix bad values
+    yS[np.isnan(yS)] = 0
+    
+    # Create Solution Object
+    sol = Object()
+    sol.y       = [yS]
+    sol.gradMu  = gradmu
+    sol.gradSig = gradsig
+ 
     return sol
-
-
 
 
   def plot_intervals( self, ns=10):
@@ -88,11 +89,12 @@ class ModelBase( EpidemicsBase ):
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected (data)', color='black')
+    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
 
     #----------------------------------------------------------------------------------------------------------------------------------
+
     ax[-1].set_xlabel('time in days')
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
@@ -108,15 +110,12 @@ class ModelBase( EpidemicsBase ):
 
     fig = self.new_figure()
 
-    ax  = fig.subplots( 2 )
+    ax  = fig.subplots( 1 )
 
     if self.parameters[0]['Name'] == 'R0':
-      R0 = self.parameters[0]['Values']
+      ax.hist( self.parameters[0]['Values'], bins=40, density=1)
     else:
-      R0 = self.parameters[0]['Values']/self.parameters[1]['Values']
-
-    ax[0].hist( R0, 40, density=1)
-    ax[1].hist( R0*self.parameters[2]['Values'], 40, density=1)
+      ax.hist( self.parameters[0]['Values']/self.parameters[1]['Values'], bins=40, density=1)
 
     file = os.path.join(self.saveInfo['figures'],'R0.png');
     fig.savefig(file)

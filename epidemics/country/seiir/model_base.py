@@ -1,26 +1,19 @@
-#!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   31/3/2020
-# Email:  garampat@ethz.ch
-
-import requests
-import pandas as pd
-import io
 import os
 import numpy as np
-from scipy.integrate import solve_ivp
 
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from epidemics.tools.tools import prepare_folder, save_file
-from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
+from epidemics.data.combined import RegionalData
+from epidemics.tools.tools import prepare_folder, save_file
 
+import libepidemics #cpp backend
 
+class Object(object):
+        pass
 
 class ModelBase( EpidemicsBase ):
-
 
   def __init__( self, **kwargs ):
 
@@ -32,16 +25,11 @@ class ModelBase( EpidemicsBase ):
     self.logPlot        = kwargs.pop('logPlot', False)
     self.nValidation    = kwargs.pop('nValidation', 0)
     self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
-    self.preprocess     = kwargs.pop('preprocess', False)
 
     super().__init__( **kwargs )
 
     self.regionalData = RegionalData( self.country )
     self.propagationData = {}
-
-
-
-
 
   def process_data( self ):
 
@@ -49,12 +37,7 @@ class ModelBase( EpidemicsBase ):
     t = self.regionalData.time
     N = self.regionalData.populationSize
 
-    i0 = 0
-
-    if i0==0:
-      Ir0 = y[0]
-    else:
-      Ir0 = y[i0]-y[i0-1]
+    Ir0 = y[0]
 
     S0  = N - Ir0
     E0  = 0
@@ -62,11 +45,11 @@ class ModelBase( EpidemicsBase ):
     y0  = S0, E0, Ir0, Iu0
 
     if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[i0+1:]
-      self.data['Model']['y-data'] = np.diff(y[i0:])
+      self.data['Model']['x-data'] = t[1:]
+      self.data['Model']['y-data'] = np.diff(y[0:])
     else:
-      self.data['Model']['x-data'] = t[i0+1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[i0:-self.nValidation] )
+      self.data['Model']['x-data'] = t[1:-self.nValidation]
+      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
       self.data['Validation']['x-data'] = t[-self.nValidation:]
       self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
 
@@ -75,43 +58,45 @@ class ModelBase( EpidemicsBase ):
     self.data['Model']['Standard Deviation Model'] = self.stdModel
 
     T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(i0,T,int(T+1))
+    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
 
+  def solve_ode( self, y0, T, t_eval, N, p ):
 
+    seiir     = libepidemics.country.seiir
+    data      = libepidemics.country.ModelData(N=N)
+    cppsolver = seiir.Solver(data)
 
-  #       0    1     2   3  4    5     6
-  # p = [ R0, mu, alpha, Z, D, delta, td ]
-  def seiir_rhs( self, t, y, N, p ):
-    S, E, Ir, Iu = y
+    params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
+ 
+    s0, e0, ir0, iu0 = y0
+    y0cpp   = (s0, e0, ir0, iu0, 0.0)
+    
+    initial = seiir.State(y0cpp)
+ 
+    cpp_res = cppsolver.solve_ad(params, initial, t_eval=t_eval, dt = 0.01)
+  
+    yS      = np.zeros(len(cpp_res))
+    gradmu  = []
+    gradsig = []
 
-    beta = p[0]*p[4]
-
-    if t>p[6] :
-      beta = p[0]*p[5]
-
-    c1 = beta * S * Ir / N
-    c2 = p[1] * beta * S * Iu / N
-    c3 = p[2] / p[3] * E
-    c4 = (1.-p[2]) / p[3] * E
-
-
-    dSdt  = - c1 - c2
-    dEdt  =   c1 + c2 - E/p[3]
-    dIrdt =   c3 - Ir/p[4]
-    dIudt =   c4 - Iu/p[4]
-    return dSdt, dEdt, dIrdt, dIudt
-
-
-
-
-  def solve_ode( self, y0, T, N, p ):
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, T], y0=y0, args=(N, p), dense_output=True)
+    for idx,entry in enumerate(cpp_res):
+        yS[idx] = entry.S().val()
+        gradmu.append(np.array([ entry.S().d(0), entry.S().d(1), entry.S().d(2), entry.S().d(3), entry.S().d(4), 0.0 ])) 
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+ 
+    # Fix bad values
+    yS[np.isnan(yS)] = 0
+ 
+    # Create Solution Object
+    sol = Object()
+    sol.y       = [yS]
+    sol.gradMu  = gradmu
+    sol.gradSig = gradsig
+ 
     return sol
-
-
 
 
   def plot_intervals( self, ns=10):

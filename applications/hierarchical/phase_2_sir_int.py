@@ -7,6 +7,7 @@ import korali
 
 sys.path.append('../../')
 from epidemics.data.files.canton_population import CANTON_LIST, CANTON_LIST_SHORT
+import argparse
 
 '''
     Hierearchical setup for SIR models with negative binomial
@@ -87,38 +88,38 @@ def run_phase_2(phase_1_path,phase_2_path):
 
     e["Distributions"][5]["Name"] = "Uniform 0" # R0 mean
     e["Distributions"][5]["Type"] = "Univariate/Uniform"
-    e["Distributions"][5]["Minimum"] = 0.8
+    e["Distributions"][5]["Minimum"] = 0.5
     e["Distributions"][5]["Maximum"] = 1.5
 
     e["Distributions"][6]["Name"] = "Uniform 1" # R0 std
     e["Distributions"][6]["Type"] = "Univariate/Uniform"
     e["Distributions"][6]["Minimum"] = 0.0
-    e["Distributions"][6]["Maximum"] = 0.8
+    e["Distributions"][6]["Maximum"] = 1
 
     e["Distributions"][7]["Name"] = "Uniform 2" # gamma mean
     e["Distributions"][7]["Type"] = "Univariate/Uniform"
     e["Distributions"][7]["Minimum"] = 0.0
-    e["Distributions"][7]["Maximum"] = 4
+    e["Distributions"][7]["Maximum"] = 0.5
 
     e["Distributions"][8]["Name"] = "Uniform 3" # gamma std
     e["Distributions"][8]["Type"] = "Univariate/Uniform"
     e["Distributions"][8]["Minimum"] = 0.0
-    e["Distributions"][8]["Maximum"] = 2.0
+    e["Distributions"][8]["Maximum"] = 0.1
 
     e["Distributions"][9]["Name"] = "Uniform 4" # delta mean
     e["Distributions"][9]["Type"] = "Univariate/Uniform"
-    e["Distributions"][9]["Minimum"] = 0.5
-    e["Distributions"][9]["Maximum"] = 1.5
+    e["Distributions"][9]["Minimum"] = 0.0
+    e["Distributions"][9]["Maximum"] = 1.0
 
     e["Distributions"][10]["Name"] = "Uniform 5" # delta std
     e["Distributions"][10]["Type"] = "Univariate/Uniform"
     e["Distributions"][10]["Minimum"] = 0.0
-    e["Distributions"][10]["Maximum"] = 0.8
+    e["Distributions"][10]["Maximum"] = 0.5
 
     e["Distributions"][11]["Name"] = "Uniform 6" # td mean
     e["Distributions"][11]["Type"] = "Univariate/Uniform"
-    e["Distributions"][11]["Minimum"] = 20
-    e["Distributions"][11]["Maximum"] = 30
+    e["Distributions"][11]["Minimum"] = 15.
+    e["Distributions"][11]["Maximum"] = 30.
 
     e["Distributions"][12]["Name"] = "Uniform 7" # td std
     e["Distributions"][12]["Type"] = "Univariate/Uniform"
@@ -127,13 +128,13 @@ def run_phase_2(phase_1_path,phase_2_path):
 
     e["Distributions"][13]["Name"] = "Uniform 8" # [r] mean
     e["Distributions"][13]["Type"] = "Univariate/Uniform"
-    e["Distributions"][13]["Minimum"] = 1.0
-    e["Distributions"][13]["Maximum"] = 5.0
+    e["Distributions"][13]["Minimum"] = 2.0
+    e["Distributions"][13]["Maximum"] = 10.0
 
     e["Distributions"][14]["Name"] = "Uniform 9" # [r] std
     e["Distributions"][14]["Type"] = "Univariate/Uniform"
     e["Distributions"][14]["Minimum"] = 0.0
-    e["Distributions"][14]["Maximum"] = 2.5
+    e["Distributions"][14]["Maximum"] = 5.
 
     # ---------------------------------------------------------------------------- #
     # ---------------------------------- Solver ---------------------------------- #
@@ -156,14 +157,24 @@ def run_phase_2(phase_1_path,phase_2_path):
 
 if __name__ == "__main__":  
 
-    model = 'sir_int.nbin'
-    #cantons = ['ZH','BE','VD','GE']
-    cantons = CANTON_LIST
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--regions', '-r', default='cantons', help='Model type')
+    parser.add_argument('--dir', '-dir', default='./data/', help='Model type')
 
-    phase_1_path = ['data/'+model+'/phase_1_results/'+canton+'/'+model+'/_korali_samples/' for canton in cantons]
-    phase_2_path = 'data/'+model +'/phase_2_results/_korali_samples' 
+    args = parser.parse_args()
+
+    model = args.model
+    if args.regions == 'cantons':
+        regions = CANTON_LIST
+    elif args.regions == 'cantons_short':
+        regions = CANTON_LIST_SHORT
+
+    phase_1_path = [args.dir+model+'/phase_1_results/'+region+'/'+model+'/_korali_samples/' for region in regions]
+    phase_2_path = args.dir+model +'/phase_2_results/_korali_samples' 
 
     run_phase_2(phase_1_path,phase_2_path)
+
 
 
 

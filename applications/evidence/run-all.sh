@@ -13,7 +13,7 @@ declare -a arr=(
 for i in "${arr[@]}"
 do
 
-   ./sample.py --silentPlot -nt 12 -ns 2000 -cm "$i"
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 2000 -cm "$i"
 
    folder="data/switzerland/$i/"
 

@@ -22,6 +22,7 @@ last row of data is `2020-05-18`
 * [ ] learn how to draw neighboring countries with arbitrary colors using geopandas
 * [ ] make a style for plots of daily and total infected compared to data
 * [ ] confidence 90%
+* [ ] scatter plot of intervention time and growth factor
 
 Geographical distribution of the effect
 of interventions of the ongoing pandemic

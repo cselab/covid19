@@ -17,6 +17,7 @@ class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
+    print("INIT WRONG")
 
     self.modelName        = 'sir.tnrm'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
@@ -36,9 +37,9 @@ class Model( ModelBase ):
 
 
   def process_data( self ):
-
-    y = self.regionalData.infected
-    t = self.regionalData.time
+    Tend = 63
+    y = self.regionalData.infected[0:Tend]
+    t = self.regionalData.time[0:Tend]
     N = self.regionalData.populationSize
     I0 = y[0]
     S0 = N - I0
@@ -105,20 +106,17 @@ class Model( ModelBase ):
 
 
   def computational_model( self, s ):
+    print("MODEL WRONG")
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend='numpy')    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     # Get gradients here 
     y = solver.to_list(y)
-
-    if self.backend == 'torch':
-        y = solver.check_zeros(y,1e-9)
-
 
     s['Reference Evaluations'] = y
     s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
