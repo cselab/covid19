@@ -23,6 +23,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_cantons.seiin_interventions.generated.cpp
     ${CODE_DIR}/bindings/_country.generated.cpp
     ${CODE_DIR}/bindings/_country.sir.generated.cpp
+    ${CODE_DIR}/bindings/_country.sir_int.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir.generated.cpp
 )
 
