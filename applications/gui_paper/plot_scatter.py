@@ -5,15 +5,19 @@ import json
 import os
 from glob import glob
 import re
+import numpy as np
 
 # XXX path to folder with output from `request_country.py`
 datafolder = "."
 
+
 def get_folder(country):
     return os.path.join(datafolder, country.replace(' ', ''))
 
+
 def get_foldername(country):
     return country.replace(' ', '')
+
 
 # folder name to parameter
 f_R0 = dict()
@@ -40,6 +44,7 @@ for path in glob(os.path.join(datafolder, "*", "intervals.json")):
     f_lambda_int[folder] = beta_int - gamma
     f_infected[folder] = js['y-data'][-1]
 
+
 def Col(dictx, dicty):
     x = []
     y = []
@@ -49,6 +54,8 @@ def Col(dictx, dicty):
             y.append(dicty[k])
     return x, y
 
+
+'''
 fig, [ax, ax2] = plt.subplots(2)
 ax.set_title(r"$\lambda*=\beta - \gamma$ before intervention")
 ax.scatter(*Col(f_lambda, f_infected))
@@ -62,17 +69,43 @@ ax2.set_ylabel("infected")
 
 fig.tight_layout()
 fig.savefig("scatter.pdf")
+'''
 
-fig, [ax1, ax2] = plt.subplots(2)
+displayname = {
+    "RussianFederation": "Russia",
+    "UnitedKingdom": "UK",
+    "BosniaandHerzegovina": "BiH",
+    "NorthMacedonia": "North Macedonia",
+}
 
-for f,ax in zip([f_R0, f_R0_int],[ax1,ax2]):
-    ax.set_title(r"$R_0$ {:} intervention".format("before" if f == f_R0 else "after"))
-    ax.set_ylabel(r"${I_\mathrm{total}}^{0.25}$")
+fig, axes = plt.subplots(1, figsize=(9, 6))
+axes = [axes, axes]
+
+color = dict()
+
+for f, ax in zip([f_R0, f_R0_int], axes):
+    before = (f == f_R0)
     ax.axvline(x=1, color='black', linestyle=':')
-    #ax.scatter(*Col(f, f_infected))
-    for c in f:
-        xy = f[c], (f_infected[c]) ** 0.25
-        ax.scatter(*xy)
-        ax.annotate(c, xy=xy, textcoords='data', fontsize=5)
+    i = 0
+    cc = np.array(list(f_R0.keys()))
+    vv = np.array(list(f_R0.values()))
+    arg = np.argsort(vv)
+    ax.get_yaxis().set_visible(False)
+    for i, a in enumerate(arg):
+        c = cc[a]
+        xy = f[c], i
+        p = ax.scatter(*xy, s=16, c=color.get(c, None))
+        color[c] = p.get_facecolor()
+        ax.annotate(displayname.get(c, c),
+                    xy=xy,
+                    fontsize=5,
+                    xytext=(4, 0),
+                    textcoords='offset points',
+                    va='center')
+    ax.set_xlim(0, 3)
+    ax.text(0.03 if before else 0.55,
+            1.01,
+            r"$R_0$ {:} intervention".format("before" if before else "after"),
+            transform=ax.transAxes, fontsize=15)
 fig.tight_layout()
 fig.savefig("scatter_R0.pdf")
