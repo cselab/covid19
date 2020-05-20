@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eu
+
+for f in */intervals.json ; do
+  d=${f%/*}
+  echo $d
+  outfile=$d/total.pdf
+  if [ -f "$outfile" ] ; then
+    echo "skip existing '$outfile'"
+    continue
+  fi
+  ./plot_effective_growth.py "$f" --output_dir "$d" --title "$d"
+  python -m korali.plotter --dir $d/_korali_samples/  --output $d/samples.png > /dev/null || true
+  echo "$d/samples.png"
+done
