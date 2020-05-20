@@ -102,8 +102,6 @@ class Model( ModelBase ):
     return js
 
 
-
-
   def computational_model( self, s ):
     p = s['Parameters']
     t  = self.data['Model']['x-data']
@@ -111,17 +109,13 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend=self.backend)    
+    sol = solver.solve_ode(self.sir_rhs,T=t[-1],y0=y0,args=(N,p),t_eval = tt,backend='numpy')    
     y = -(sol.y[0][1:]-sol.y[0][:-1])
     # Get gradients here 
     y = solver.to_list(y)
 
-    if self.backend == 'torch':
-        y = solver.check_zeros(y,1e-9)
-
     s['Reference Evaluations'] = y
     s['Dispersion'] = len(y)*[p[-1]]
-
 
 
   def computational_model_propagate( self, s ):
