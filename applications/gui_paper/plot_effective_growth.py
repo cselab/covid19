@@ -4,6 +4,7 @@ import json
 import numpy as np
 import argparse
 import os
+import glob
 from datetime import datetime
 
 import matplotlib
@@ -32,10 +33,9 @@ parser.add_argument('--title', type=str, default="", help="Title for the figure"
 parser.add_argument('--output_dir',default=".", help="Directory for output images.")
 args = parser.parse_args()
 
-dirFiles = os.listdir(args.dataDir+'_korali_samples/')
-
-intervalFile = args.dataDir + '/intervals.json'
-samplesFile = args.dataDir + '_korali_samples/' + dirFiles[-1]
+intervalFile = os.path.join(args.dataDir, 'intervals.json')
+samplesFile = sorted(
+    glob.glob(os.path.join(args.dataDir, '_korali_samples', '*.json')))[-1]
 
 with open(intervalFile) as f:
     d = json.load(f)
