@@ -20,6 +20,7 @@ class Model( ModelBase ):
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
+ 
   def process_data( self ):
     y = self.regionalData.infected
     t = self.regionalData.time
@@ -44,7 +45,6 @@ class Model( ModelBase ):
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
 
 
 

@@ -1,5 +1,3 @@
-import requests
-import io
 import os
 import numpy as np
 

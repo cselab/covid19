@@ -8,9 +8,8 @@ class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
-    print("INIT")
 
-    self.modelName        = 'country.sir.tnrm'
+    self.modelName        = 'country.seiir.tnrm'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
@@ -23,37 +22,9 @@ class Model( ModelBase ):
       return ( self.dataFolder, self.country, self.modelName )
 
 
-  def process_data( self ):
-    print("PROCESS DATA")
-    y = self.regionalData.infected
-    t = self.regionalData.time
-    N = self.regionalData.populationSize
-    I0 = y[0]
-    S0 = N - I0
-    y0 = S0, I0
-
-    if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:] )
-    else:
-      self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
-      self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
-
-    self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
-
-    T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
-
-    save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
-
   def get_variables_and_distributions( self ):
 
-    print("VAR AND DIST")
-    p = ['beta','gamma','Sigma']
+    p = ['beta', 'mu', 'alpha', 'Z', 'D', 'Sigma']
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
@@ -74,24 +45,46 @@ class Model( ModelBase ):
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for gamma'
+    js['Distributions'][k]['Name'] = 'Prior for mu'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 0.1
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for alpha'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0.
+    js['Distributions'][k]['Maximum'] = 0.1
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for Z'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 40
+
+    k+=1
+    js['Distributions'].append({})
+    js['Distributions'][k]['Name'] = 'Prior for D'
+    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+    js['Distributions'][k]['Minimum'] = 2000
+    js['Distributions'][k]['Maximum'] = 4000
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for Sigma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Maximum'] = 20
+
+ 
 
     return js
 
 
   def computational_model( self, s ):
 
-    print("COMP MODEL")
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
@@ -144,7 +137,7 @@ class Model( ModelBase ):
     js['Variables'] = []
 
     js['Variables'].append({})
-    js['Variables'][0]['Name']   = 'Daily Incidence'
+    js['Variables'][0]['Name'] = 'Daily Reported Incidence'
     js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])
