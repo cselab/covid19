@@ -10,7 +10,7 @@ for f in */intervals.json ; do
     echo "skip existing '$outfile'"
     continue
   fi
-  ./plot_effective_growth.py "$f" --output_dir "$d" --title "$d"
+  ./plot_effective_growth.py "$d" --output_dir "$d" --title "$d"
   python -m korali.plotter --dir $d/_korali_samples/  --output $d/samples.png > /dev/null || true
   echo "$d/samples.png"
 done
