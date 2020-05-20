@@ -22,8 +22,7 @@ def get_foldername(country):
 # folder name to parameter
 f_R0 = dict()
 f_R0_int = dict()
-f_lambda = dict()
-f_lambda_int = dict()
+f_tact = dict()
 f_infected = dict()
 
 folders = []
@@ -40,8 +39,7 @@ for path in glob(os.path.join(datafolder, "*", "intervals.json")):
     folders.append(folder)
     f_R0[folder] = p['R0']
     f_R0_int[folder] = p['R0'] * kbeta
-    f_lambda[folder] = beta - gamma
-    f_lambda_int[folder] = beta_int - gamma
+    f_tact[folder] = p['tact']
     f_infected[folder] = js['y-data'][-1]
 
 
@@ -63,8 +61,7 @@ displayname = {
     "CzechRepublic": "Czechia",
 }
 
-fig, axes = plt.subplots(1, figsize=(9, 6))
-axes = [axes, axes]
+fig, axes = plt.subplots(2, figsize=(9, 6))
 
 color = dict()
 
@@ -72,13 +69,8 @@ for f, ax in zip([f_R0, f_R0_int], axes):
     before = (f == f_R0)
     ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
     i = 0
-    cc = np.array(list(f_R0.keys()))
-    vv = np.array(list(f_R0.values()))
-    arg = np.argsort(vv)
-    ax.get_yaxis().set_visible(False)
-    for i, a in enumerate(arg):
-        c = cc[a]
-        xy = f[c], i
+    for c in f:
+        xy = f[c], f_tact[c]
         p = ax.scatter(*xy, s=16, c=color.get(c, None))
         color[c] = p.get_facecolor()
         ax.annotate(displayname.get(c, c),
@@ -92,5 +84,6 @@ for f, ax in zip([f_R0, f_R0_int], axes):
             1.01,
             r"$R_0$ {:} intervention".format("before" if before else "after"),
             transform=ax.transAxes, fontsize=15)
+    ax.set_ylabel('intervention time')
 fig.tight_layout()
-fig.savefig("scatter_R0.pdf")
+fig.savefig("scatter_tact.pdf")

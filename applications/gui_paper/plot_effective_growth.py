@@ -62,7 +62,7 @@ def days_to_delta(t):
     return (t * 24 * 3600).astype('timedelta64[s]')
 
 
-day0 = np.datetime64('2020-05-17') - days_to_delta(max(xdata))
+day0 = np.datetime64('2020-05-18') - days_to_delta(max(xdata))
 days = day0 + days_to_delta(t)
 
 daysdata = day0 + days_to_delta(xdata)
