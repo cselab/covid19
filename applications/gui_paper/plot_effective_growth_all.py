@@ -90,15 +90,15 @@ def plot_effective_growth(data_path,output_dir):
 
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--dataFolder', '-df', default='data/', help='Which phases to plor.')
+    parser.add_argument('--dataFolder', '-df', default='data/', help='Which phases to plot.')
 
     args = parser.parse_args()
 
     folders = [folder for folder in os.listdir(args.dataFolder)]
-    
+
     # plot_posterior(args.dataFolder,EUROPEAN_COUNTRIES)
 
     for country in EUROPEAN_COUNTRIES:
@@ -113,5 +113,3 @@ if __name__ == "__main__":
             call(['cp', folder_path+'/figures/total.pdf', args.dataFolder+'/_figures/'+country+'.pdf'])
         except:
             print('Country not available {}'.format(country))
-
-

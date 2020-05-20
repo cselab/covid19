@@ -55,7 +55,9 @@ add_library(
 set_property(TARGET libepidemics_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_options(libepidemics_core PUBLIC ${CUSTOM_CXXFLAGS})
 target_include_directories(libepidemics_core PUBLIC ${SRC_DIR})
-target_link_libraries(libepidemics_core PUBLIC Boost::headers)
+# Backwards-compatible alias to Boost::headers.
+target_link_libraries(libepidemics_core PUBLIC Boost::boost)
+
 add_library(libepidemics::core ALIAS libepidemics_core)
 
 pybind11_add_module(
