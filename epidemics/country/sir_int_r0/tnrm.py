@@ -2,22 +2,25 @@ import numpy as np
 from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
 
+
 class Model( ModelBase ):
+
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.sir_int.nrm'
-    self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Normal Likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'country.sir_int_r0.tnrm'
+    self.modelDescription = 'Fit SIR with interventions on Daily Infected Data with Positive Normal Likelihood'
+    self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
     self.process_data()
 
+
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
-
+ 
   def process_data( self ):
     y = self.regionalData.infected
     t = self.regionalData.time
@@ -44,10 +47,10 @@ class Model( ModelBase ):
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
 
+
   def get_variables_and_distributions( self ):
 
-    p = ['beta','gamma', 'tact', 'dtact', 'kbeta', 'Sigma']
-    
+    p = ['R0','gamma', 'tact', 'dtact', 'kbeta', 'Sigma']
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
@@ -58,34 +61,34 @@ class Model( ModelBase ):
       js['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
 
     self.nParameters = len(p)
- 
+
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Minimum'] = 0.5
+    js['Distributions'][k]['Maximum'] = 5.0
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 50.
+    js['Distributions'][k]['Minimum'] = 0.0
+    js['Distributions'][k]['Maximum'] = 1.0
  
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for tact'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 80.
+    js['Distributions'][k]['Maximum'] = 100.
  
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for dtact'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.0
-    js['Distributions'][k]['Maximum'] = 10.0
+    js['Distributions'][k]['Maximum'] = 21.0
 
     k+=1
     js['Distributions'].append({})
@@ -93,6 +96,8 @@ class Model( ModelBase ):
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.0
     js['Distributions'][k]['Maximum'] = 1.0
+
+
 
     k+=1
     js['Distributions'].append({})
@@ -102,6 +107,8 @@ class Model( ModelBase ):
     js['Distributions'][k]['Maximum'] = 100.
 
     return js
+
+
 
 
   def computational_model( self, s ):

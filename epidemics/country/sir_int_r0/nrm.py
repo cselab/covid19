@@ -6,8 +6,8 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.sir_int.nrm'
-    self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Normal Likelihood'
+    self.modelName        = 'country.sir_int_r0.nrm'
+    self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Normal'
 
     super().__init__( **kwargs )
@@ -45,8 +45,7 @@ class Model( ModelBase ):
 
 
   def get_variables_and_distributions( self ):
-
-    p = ['beta','gamma', 'tact', 'dtact', 'kbeta', 'Sigma']
+    p = ['R0','gamma', 'tact', 'dtact', 'kbeta', 'Sigma']
     
     js = {}
     js['Variables']=[]
@@ -61,10 +60,10 @@ class Model( ModelBase ):
  
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Minimum'] = 0.5
+    js['Distributions'][k]['Maximum'] = 5.0
 
     k+=1
     js['Distributions'].append({})

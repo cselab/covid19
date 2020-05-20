@@ -1,24 +1,31 @@
+import os
+import sys
+
 import numpy as np
-from epidemics.tools.tools import prepare_folder, save_file
+
+from epidemics.tools.tools import save_file
 from .model_base import ModelBase
 
 class Model( ModelBase ):
 
+
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.sir_int.nrm'
-    self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Normal Likelihood'
-    self.likelihoodModel  = 'Normal'
+    self.modelName        = 'country.sir_int_r0.nbin'
+    self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
+    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
     self.process_data()
+
 
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
 
   def process_data( self ):
+
     y = self.regionalData.infected
     t = self.regionalData.time
     N = self.regionalData.populationSize
@@ -28,7 +35,7 @@ class Model( ModelBase ):
 
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:] )
+      self.data['Model']['y-data'] = np.diff( y[0:])
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
       self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
@@ -45,9 +52,9 @@ class Model( ModelBase ):
 
 
   def get_variables_and_distributions( self ):
+ 
+    p = ['R0','gamma', 'tact', 'dtact', 'kbeta', '[r]']
 
-    p = ['beta','gamma', 'tact', 'dtact', 'kbeta', 'Sigma']
-    
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
@@ -61,10 +68,10 @@ class Model( ModelBase ):
  
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
+    js['Distributions'][k]['Name'] = 'Prior for R0'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 10.
+    js['Distributions'][k]['Minimum'] = 0.5
+    js['Distributions'][k]['Maximum'] = 5
 
     k+=1
     js['Distributions'].append({})
@@ -96,10 +103,10 @@ class Model( ModelBase ):
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for Sigma'
+    js['Distributions'][k]['Name'] = 'Prior for [r]'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 100.
+    js['Distributions'][k]['Maximum'] = 10.
 
     return js
 
@@ -112,30 +119,21 @@ class Model( ModelBase ):
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-
+    y = -np.diff(sol.y[0])
+    
     # get incidents
     y = -np.diff(sol.y[0])
      
     eps = 1e-32
     y[y < eps] = eps
-    
-    # Transform gradients
+ 
     if(self.sampler == 'mTMCMC'):
-        sgrad    = []
-        diffgrad = []
-        for idx in range(len(y)):
-            tmp = -(sol.gradMu[idx+1]-sol.gradMu[idx])
-            diffgrad.append(list(tmp))
-            
-            tmp = tmp*p[-1]
-            tmp[-1] = y[idx]*sol.gradSig[idx][-1]
-            sgrad.append(list(tmp))
-
-        s['Gradient Mean'] = diffgrad
-        s['Gradient Standard Deviation'] = sgrad
+        print("[Epidemics] mTMCMC not yet available for nbin")
+        sys.exit(0)
 
     s['Reference Evaluations'] = list(y)
-    s['Standard Deviation'] = ( p[-1] * y ).tolist()
+    s['Dispersion'] = ( p[-1] * y ).tolist()
+
 
 
   def computational_model_propagate( self, s ):
@@ -152,7 +150,7 @@ class Model( ModelBase ):
 
     eps = 1e-32
     y[y < eps] = eps
-    
+ 
     js = {}
     js['Variables'] = []
 
@@ -163,5 +161,6 @@ class Model( ModelBase ):
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    js['Standard Deviation'] = ( p[-1] * y ).tolist()
+    js['Dispersion'] = (len(y)) * [p[-1]]
+
     s['Saved Results'] = js
