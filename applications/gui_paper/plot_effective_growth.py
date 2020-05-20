@@ -31,6 +31,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('dataDir', help="Path to 'intervals.json' and '_korali_samples'.")
 parser.add_argument('--title', type=str, default="", help="Title for the figure")
 parser.add_argument('--output_dir',default=".", help="Directory for output images.")
+parser.add_argument('--dehning2020_dir',
+                    help="Extracted data from Dehning et al. (Germany)")
 args = parser.parse_args()
 
 intervalFile = os.path.join(args.dataDir, 'intervals.json')
@@ -43,9 +45,15 @@ with open(intervalFile) as f:
 with open(samplesFile) as f:
     samples = json.load(f)
 
+dehning = None
+if args.dehning2020_dir:
+    import load_dehning2020 as dg_germany
+    dehning = dg_germany.load(args.dehning2020_dir)
 
 fig = plt.figure(figsize=(6, 9))
-ax, ax2, ax3 = fig.subplots(3)
+# ax = fig.subplots(3)
+ax = fig.subplots(3, sharex=True)
+ax1, ax2, ax3 = ax
 
 xdata = np.array(d['x-data']).astype(float)
 
@@ -69,7 +77,7 @@ daysdata = day0 + days_to_delta(xdata)
 
 lambdaeff = np.zeros_like(t)
 myFmt = mdates.DateFormatter('%b %d')
-ax.xaxis.set_major_formatter(myFmt)
+ax1.xaxis.set_major_formatter(myFmt)
 ax2.xaxis.set_major_formatter(myFmt)
 ax3.xaxis.set_major_formatter(myFmt)
 
@@ -84,22 +92,21 @@ Ns = R0.shape[0]
 
 lambdaeff = np.zeros((Nt,Ns))
 for i in range(Nt):
-  for j in range(Ns):
-    beta =  R0[j]* intervention_trans(1., kbeta[j], t[i], tact[j], dtact * 0.5) * gamma
-    lambdaeff[i,j] = beta - gamma
+    for j in range(Ns):
+        beta =  R0[j]* intervention_trans(1., kbeta[j], t[i], tact[j], dtact * 0.5) * gamma
+        lambdaeff[i,j] = beta - gamma
 
 
 mean = np.mean(lambdaeff,axis=1)
-ax.plot(days, mean)
+ax1.plot(days, mean)
 
 median = np.quantile(lambdaeff, 0.5, axis=1)
 q1 = np.quantile(lambdaeff, 0.05, axis=1)
 q2 = np.quantile(lambdaeff, 0.95, axis=1)
-ax.fill_between(days, q1, q2, alpha=0.5)
+ax1.fill_between(days, q1, q2, alpha=0.5)
 
-
-ax.axhline(y=0, color='black', linestyle=':')
-ax.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
+ax1.axhline(y=0, color='black', linestyle=':')
+ax1.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
 
 ydata = np.array(d['y-data']).astype(float)
 
@@ -126,10 +133,15 @@ ax3.set_xlim(left=days.min())
 ax3.set_ylim(bottom=0)
 
 if args.title:
-    ax.set_title(args.title)
+    ax1.set_title(args.title)
+
+if dehning:
+    for a, d in zip(ax, dehning.values()):
+        a.plot(d.days, d.values, marker='x', ms=4, linestyle='none', c='g')
 
 os.makedirs(args.output_dir, exist_ok=True)
 p = os.path.join(args.output_dir, "total.pdf")
 print(p)
 fig.tight_layout()
 fig.savefig(p)
+
