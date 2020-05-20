@@ -3,7 +3,10 @@
 import geopandas as gpd
 import pandas as pd
 import geoplot
+import matplotlib
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
 import json
 import os
 from glob import glob
@@ -31,49 +34,20 @@ def get_geocountry(country):
     return alias.get(country, country)
 
 
-countries = {
-    "Russian Federation",
-    "Ukraine",
-    "France",
-    "Spain",
-    "Sweden",
-    "Norway",
-    "Germany",
-    "Finland",
-    "Poland",
-    "Italy",
-    "United Kingdom",
-    "Romania",
-    "Belarus",
-    "Kazakhstan",
-    "Greece",
-    "Bulgaria",
-    "Iceland",
-    "Hungary",
-    "Portugal",
-    "Austria",
-    "Czech Republic",
-    "Serbia",
-    "Ireland",
-    "Lithuania",
-    "Latvia",
-    "Croatia",
-    "Bosnia and Herzegovina",
-    "Slovakia",
-    "Estonia",
-    "Denmark",
-    "Switzerland",
-    "Netherlands",
-}
-
-
 def geocountry_to_folder(gc):
     return gc.replace(' ', '')
 
 
-geocountries = map(get_geocountry, countries)
+# http://naciscdn.org/naturalearth/packages/natural_earth_vector.zip
+path = "50m_cultural/ne_50m_admin_0_countries.shp"
+if os.path.isfile(path):
+    print("Loading highres map '{:}'".format(path))
+    world = gpd.read_file(path)
+    world['name'] = world['NAME_EN']
+else:
+    print("Highres map not found in '{:}'".format(path))
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 
-world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 world = world.to_crs(epsg=3395)
 
 df_folder = world.name.copy()
@@ -87,6 +61,7 @@ for i, gc in world.name.iteritems():
         "UnitedStatesofAmerica": "UnitedStates",
         "BosniaandHerz.": "BosniaandHerzegovina",
         "Czechia": "CzechRepublic",
+        "Macedonia": "NorthMacedonia",
     }
     folder = geocountry_to_folder(gc)
     df_folder[i] = alias.get(folder, folder)
@@ -95,8 +70,7 @@ world.insert(len(world.columns), 'folder', df_folder)
 
 # folder name to parameter
 f_R0 = dict()
-f_lambda = dict()
-f_lambda2 = dict()
+f_R0_int = dict()
 
 folders = []
 for path in glob(os.path.join(datafolder, "*", "intervals.json")):
@@ -106,52 +80,88 @@ for path in glob(os.path.join(datafolder, "*", "intervals.json")):
         js = json.loads(f.read())
     p = js['mean_params']
     gamma = p['gamma']
-    beta = p['R0'] * gamma
-    beta2 = beta * p['kbeta']
+    kbeta = p['kbeta']
     folders.append(folder)
     f_R0[folder] = p['R0']
-    f_lambda[folder] = beta - gamma
-    f_lambda2[folder] = beta2 - gamma
+    f_R0_int[folder] = p['R0'] * kbeta
 
 shapes = world[world['folder'].isin(folders)]
 
-#print("Missing folders:")
+#print("Folders missing on the map:")
 #print('\n'.join(f for f in folders if f not in shapes.folder.values))
 
 df_R0 = pd.DataFrame(f_R0.items(), columns=['folder', 'R0'])
-df_lambda = pd.DataFrame(f_lambda.items(), columns=['folder', 'lambda'])
-df_lambda2 = pd.DataFrame(f_lambda2.items(), columns=['folder', 'lambda2'])
+df_R0_int = pd.DataFrame(f_R0_int.items(), columns=['folder', 'R0_int'])
 
 shapes = shapes.merge(df_R0, on='folder')
-shapes = shapes.merge(df_lambda, on='folder')
-shapes = shapes.merge(df_lambda2, on='folder')
+shapes = shapes.merge(df_R0_int, on='folder')
 
-#print("Found folders:")
+#print("Countries on the map:")
+#print('\n'.join(world.name.values))
+
+#print("Matched folders:")
 #print('\n'.join(shapes.folder.values))
 
-fig, [ax, ax2] = plt.subplots(2)
-ax.set_axis_off()
-ax2.set_axis_off()
+fig, [ax, ax2] = plt.subplots(1,2,figsize=(9,5.5))
+#ax.set_axis_off()
+#ax2.set_axis_off()
+ax.get_xaxis().set_visible(False)
+ax.get_yaxis().set_visible(False)
+ax2.get_xaxis().set_visible(False)
+ax2.get_yaxis().set_visible(False)
 
-ax.set_title(r"$\lambda*=\beta - \gamma$ before intervention")
-shapes.plot(column='lambda',
+switzerland = shapes[shapes.name == "Switzerland"]
+bb = switzerland.total_bounds
+ext = [5e6, 5e6]
+shift = [1.4e6, 2e6]
+xlim = [bb[0] - ext[0] + shift[0], bb[2] + ext[0] + shift[0]]
+ylim = [bb[1] - ext[1] + shift[1], bb[3] + ext[1] + shift[1]]
+
+class Norm(mcolors.Normalize):
+    def __init__(self, vmin=None, vmax=None, vcenter=None, clip=False):
+        self.vcenter = vcenter
+        mcolors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        x, y = [self.vmin, self.vcenter, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+
+norm = Norm(vmin=0.5, vmax=2.5, vcenter=1)
+cmap = plt.get_cmap('coolwarm')
+
+ax.set_title(r"$R_0$ after intervention", fontsize=15)
+shapes.plot(column='R0_int',
             ax=ax,
             edgecolor='black',
             lw=0.1,
-            cmap=plt.get_cmap('coolwarm'),
+            norm=norm,
+            cmap=cmap,
             vmin=0,
-            vmax=0.3,
-            legend=True)
+            vmax=3)
 
-ax2.set_title(r"$\lambda*=\beta - \gamma$ after intervention")
-shapes.plot(column='lambda2',
+ax.set_xlim(*xlim)
+ax.set_ylim(*ylim)
+
+ax2.set_title(r"$R_0$ before intervention", fontsize=15)
+shapes.plot(column='R0',
             ax=ax2,
             edgecolor='black',
             lw=0.1,
-            cmap=plt.get_cmap('coolwarm'),
-            vmin=-0.1,
-            vmax=0.05,
-            legend=True)
+            norm=norm,
+            cmap=cmap,
+            vmin=0,
+            vmax=3)
 
-plt.tight_layout()
-plt.savefig("map.pdf")
+ax2.set_xlim(*xlim)
+ax2.set_ylim(*ylim)
+
+
+fig.subplots_adjust(top=1,bottom=0.05, left=0.025, right=0.975, wspace=0.05)
+cbar_ax = fig.add_axes([0.025, 0.07, 0.95, 0.05])
+sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+fig.colorbar(sm, cax=cbar_ax, cmap=cmap,norm=norm,orientation='horizontal',
+        ticks=[0.5, 1, 1.5, 2, 2.5])
+
+#fig.tight_layout()
+fig.savefig("map.pdf")
