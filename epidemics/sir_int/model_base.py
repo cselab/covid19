@@ -52,8 +52,8 @@ class ModelBase( EpidemicsBase ):
 
     if( t<p[3] ):
         beta = R0*gamma
-    elif t > 40:
-        beta = R0*gamma*p[2]*1.5
+    # elif t > 40:
+    #     beta = R0*gamma*p[2]*1.5
     else:
         beta = R0*gamma*p[2]
 
