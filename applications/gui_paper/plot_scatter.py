@@ -76,6 +76,7 @@ displayname = {
     "UnitedKingdom": "UK",
     "BosniaandHerzegovina": "BiH",
     "NorthMacedonia": "North Macedonia",
+    "CzechRepublic": "Czechia",
 }
 
 fig, axes = plt.subplots(1, figsize=(9, 6))
@@ -85,7 +86,7 @@ color = dict()
 
 for f, ax in zip([f_R0, f_R0_int], axes):
     before = (f == f_R0)
-    ax.axvline(x=1, color='black', linestyle=':')
+    ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
     i = 0
     cc = np.array(list(f_R0.keys()))
     vv = np.array(list(f_R0.values()))
@@ -98,12 +99,12 @@ for f, ax in zip([f_R0, f_R0_int], axes):
         color[c] = p.get_facecolor()
         ax.annotate(displayname.get(c, c),
                     xy=xy,
-                    fontsize=5,
+                    fontsize=7,
                     xytext=(4, 0),
                     textcoords='offset points',
                     va='center')
-    ax.set_xlim(0, 3)
-    ax.text(0.03 if before else 0.55,
+    ax.set_xlim(-0.05, 3.05)
+    ax.text(0.03 if not before else 0.55,
             1.01,
             r"$R_0$ {:} intervention".format("before" if before else "after"),
             transform=ax.transAxes, fontsize=15)
