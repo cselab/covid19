@@ -24,6 +24,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.generated.cpp
     ${CODE_DIR}/bindings/_country.sir.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_int.generated.cpp
+    ${CODE_DIR}/bindings/_country.sir_int_r0.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir.generated.cpp
 )
 

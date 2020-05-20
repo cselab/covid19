@@ -88,7 +88,7 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for dtact'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.0
-    js['Distributions'][k]['Maximum'] = 21.0
+    js['Distributions'][k]['Maximum'] = 30.0
 
     k+=1
     js['Distributions'].append({})
@@ -101,7 +101,7 @@ class Model( ModelBase ):
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for Sigma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Minimum'] = 1e-6
     js['Distributions'][k]['Maximum'] = 100.
 
     return js

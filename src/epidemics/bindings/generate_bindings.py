@@ -101,6 +101,7 @@ def generate_canton(*models):
 def main():
     generate_country_model('sir', 'S I R', 'beta gamma')
     generate_country_model('sir_int', 'S I R', 'beta gamma tact dtact kbeta')
+    generate_country_model('sir_int_r0', 'S I R', 'r0 gamma tact dtact kbeta')
     generate_country_model('seiir', 'S E Ir Iu R', 'beta mu alpha Z D')
     generate_canton_model('sei_c', 'S E I', 'beta nu Z D tact kbeta')
     generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
