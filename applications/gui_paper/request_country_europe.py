@@ -55,7 +55,7 @@ countries = {
 country_to_idx = {row['country']:idx for idx,row in enumerate(js)}
 
 for country in countries:
-    assert country in country_to_idx % "Error: unknown country '{}'".format(country)
+    assert country in country_to_idx , "Error: unknown country '{}'".format(country)
 
 for country in countries:
     idx = country_to_idx[country]
