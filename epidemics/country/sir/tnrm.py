@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
@@ -10,7 +8,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir.tnrm'
+    self.modelName        = 'country.sir.tnrm'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
@@ -19,20 +17,12 @@ class Model( ModelBase ):
     self.process_data()
 
 
-
-
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
-
-
-
   def process_data( self ):
-    Tend = 63
-    y = self.regionalData.infected[0:Tend]
-    t = self.regionalData.time[0:Tend]
-    #y = self.regionalData.infected
-    #t = self.regionalData.time
+    y = self.regionalData.infected
+    t = self.regionalData.time
     N = self.regionalData.populationSize
     I0 = y[0]
     S0 = N - I0
@@ -154,8 +144,8 @@ class Model( ModelBase ):
     js['Variables'][0]['Name']   = 'Daily Incidence'
     js['Variables'][0]['Values'] = list(y)
 
-    js['Number of Variables'] = 3
+    js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
-    s['Standard Deviation'] = ( p[-1] * y ).tolist()
+    js['Standard Deviation'] = ( p[-1] * y ).tolist()
     s['Saved Results'] = js

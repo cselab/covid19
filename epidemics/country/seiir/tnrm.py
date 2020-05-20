@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   27/3/2020
-# Email:  garampat@ethz.ch
-
-import os
-
-import matplotlib.pyplot as plt
-plt.ioff()
-
-from scipy.integrate import solve_ivp
 import numpy as np
 
 from epidemics.tools.tools import prepare_folder, save_file
@@ -19,9 +8,10 @@ class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
+    print("INIT")
 
-    self.modelName        = 'seiir.tnrm'
-    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Positive Normal likelihood'
+    self.modelName        = 'country.sir.tnrm'
+    self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
@@ -29,17 +19,41 @@ class Model( ModelBase ):
     self.process_data()
 
 
-
-
   def save_data_path( self ):
       return ( self.dataFolder, self.country, self.modelName )
 
 
+  def process_data( self ):
+    print("PROCESS DATA")
+    y = self.regionalData.infected
+    t = self.regionalData.time
+    N = self.regionalData.populationSize
+    I0 = y[0]
+    S0 = N - I0
+    y0 = S0, I0
+
+    if self.nValidation == 0:
+      self.data['Model']['x-data'] = t[1:]
+      self.data['Model']['y-data'] = np.diff( y[0:] )
+    else:
+      self.data['Model']['x-data'] = t[1:-self.nValidation]
+      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
+      self.data['Validation']['x-data'] = t[-self.nValidation:]
+      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
+
+    self.data['Model']['Initial Condition'] = y0
+    self.data['Model']['Population Size'] = self.regionalData.populationSize
+
+    T = np.ceil( t[-1] + self.futureDays )
+    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
+
+    save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
 
   def get_variables_and_distributions( self ):
-    p = [ 'beta', 'mu', 'alpha', 'Z', 'D', '[Sigma]' ]
 
+    print("VAR AND DIST")
+    p = ['beta','gamma','Sigma']
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
@@ -56,63 +70,59 @@ class Model( ModelBase ):
     js['Distributions'][k]['Name'] = 'Prior for beta'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 10
+    js['Distributions'][k]['Maximum'] = 100.
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for mu'
+    js['Distributions'][k]['Name'] = 'Prior for gamma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0
-    js['Distributions'][k]['Maximum'] = 0.1
+    js['Distributions'][k]['Minimum'] = 0.1
+    js['Distributions'][k]['Maximum'] = 100.
 
     k+=1
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for alpha'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.
-    js['Distributions'][k]['Maximum'] = 0.1
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for Z'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0
-    js['Distributions'][k]['Maximum'] = 40
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for D'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 2000
-    js['Distributions'][k]['Maximum'] = 4000
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for [Sigma]'
+    js['Distributions'][k]['Name'] = 'Prior for Sigma'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 20
+    js['Distributions'][k]['Maximum'] = 100.
 
     return js
 
 
-
-
   def computational_model( self, s ):
-    p  = s['Parameters']
+
+    print("COMP MODEL")
+    p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
-    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
+    # get incidents
+    y = -np.diff(sol.y[0])
+     
+    eps = 1e-32
+    y[y < eps] = eps
+    
+    # Get gradients here 
+    if(self.sampler == 'mTMCMC'):
+        sgrad    = []
+        diffgrad = []
+        for idx in range(len(y)):
+            tmp = -(sol.gradMu[idx+1]-sol.gradMu[idx])
+            diffgrad.append(list(tmp))
+            
+            tmp = tmp*p[-1]
+            tmp[-1] = y[idx]*sol.gradSig[idx][-1]
+            sgrad.append(list(tmp))
 
-    s['Reference Evaluations'] = y.tolist()
-    s['Standard Deviation'] = ( p[-1] * np.maximum(np.abs(y),1e-4) ).tolist()
+        s['Gradient Mean'] = diffgrad
+        s['Gradient Standard Deviation'] = sgrad
 
-
+    s['Reference Evaluations'] = list(y)
+    s['Standard Deviation'] = ( p[-1] * y ).tolist()
 
 
   def computational_model_propagate( self, s ):
@@ -121,23 +131,25 @@ class Model( ModelBase ):
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
+    tt = [t[0]-1] + t.tolist()
+    sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
+    
+    y = -np.diff(sol.y[0])
+    y = np.append(0, y)
 
-    y   = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
-    std = ( p[-1] * np.maximum(np.abs(y),1e-4) )
-
-    y   = [float(y0[2])] + y.tolist()
-    std = [1e-5] + std.tolist()
-
+    eps = 1e-32
+    y[y < eps] = eps
+    
     js = {}
-    js['Variables'] = [{}]
+    js['Variables'] = []
 
-    js['Variables'][0]['Name'] = 'Daily Reported Incidence'
-    js['Variables'][0]['Values'] = y
+    js['Variables'].append({})
+    js['Variables'][0]['Name']   = 'Daily Incidence'
+    js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = len(js['Variables'][0]['Values'])
+    js['Length of Variables'] = len(t)
 
-    js['Standard Deviation'] = std
+    js['Standard Deviation'] = ( p[-1] * y ).tolist()
 
     s['Saved Results'] = js

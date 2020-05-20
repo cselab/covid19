@@ -17,6 +17,7 @@ class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
+    print("INIT WRONG")
 
     self.modelName        = 'sir.tnrm'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Positive Normal Likelihood'
@@ -105,6 +106,7 @@ class Model( ModelBase ):
 
 
   def computational_model( self, s ):
+    print("MODEL WRONG")
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']

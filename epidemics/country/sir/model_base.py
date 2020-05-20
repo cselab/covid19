@@ -66,7 +66,7 @@ class ModelBase( EpidemicsBase ):
 
     # Fix bad values
     yS[np.isnan(yS)] = 0
- 
+    
     # Create Solution Object
     sol = Object()
     sol.y       = [yS]

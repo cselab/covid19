@@ -11,7 +11,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'sir.nbin'
+    self.modelName        = 'country.sir.nbin'
     self.modelDescription = 'Fit SIR on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
@@ -139,7 +139,7 @@ class Model( ModelBase ):
     js['Variables'][0]['Name']   = 'Daily Incidence'
     js['Variables'][0]['Values'] = list(y)
 
-    js['Number of Variables'] = 3
+    js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
     js['Dispersion'] = (len(y)) * [p[-1]]
