@@ -17,7 +17,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'seiir.nbin'
+    self.modelName        = 'country.seiir.nbin'
     self.modelDescription = 'Fit SEIIR on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
@@ -35,7 +35,7 @@ class Model( ModelBase ):
 
 
   def get_variables_and_distributions( self ):
-    p = [ 'R0', 'mu', 'alpha', 'Z', 'D', '[r]' ]
+    p = [ 'beta', 'mu', 'alpha', 'Z', 'D', '[r]' ]
 
     js = {}
     js['Variables']=[]
@@ -50,97 +50,96 @@ class Model( ModelBase ):
 
     k=0
     js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for R0'
+    js['Distributions'][k]['Name'] = 'Prior for beta'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 2
+    js['Distributions'][k]['Maximum'] = 100.
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for mu'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
     js['Distributions'][k]['Minimum'] = 0
-    js['Distributions'][k]['Maximum'] = 0.25
+    js['Distributions'][k]['Maximum'] = 0.1
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for alpha'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Minimum'] = 0.
     js['Distributions'][k]['Maximum'] = 0.1
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for Z'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 20
-    js['Distributions'][k]['Maximum'] = 40
+    js['Distributions'][k]['Minimum'] = 0
+    js['Distributions'][k]['Maximum'] = 50
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for D'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 2500
-    js['Distributions'][k]['Maximum'] = 3000
+    js['Distributions'][k]['Minimum'] = 1000
+    js['Distributions'][k]['Maximum'] = 8000
 
     k+=1
     js['Distributions'].append({})
     js['Distributions'][k]['Name'] = 'Prior for [r]'
     js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.01
+    js['Distributions'][k]['Minimum'] = 0.001
     js['Distributions'][k]['Maximum'] = 10
 
     return js
 
 
-
-
   def computational_model( self, s ):
-    p  = s['Parameters']
-    p[0] = p[0]*5
-    p[2] = 0.1+p[2]*0.9
-    p[3] = 0.1+p[3]*9.9
-    p[4] = 2+p[4]*3
-    p[5] = 0.01+p[5]*9.99
+ 
+    p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=tt )
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
-    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
-    y = y.tolist()
+    # get incidents
+    y = -np.diff(sol.y[0])
+     
+    eps = 1e-32
+    y[y < eps] = eps
+  
+    if(self.sampler == 'mTMCMC'):
+        print("[Epidemics] mTMCMC not yet available for nbin")
+        sys.exit(0)
 
-    s['Reference Evaluations'] = y
-    s['Dispersion'] = len(y)*[p[-1]]
-
-
-
+    s['Reference Evaluations'] = list(y)
+    s['Dispersion'] = ( p[-1] * y ).tolist()
 
   def computational_model_propagate( self, s ):
     p = s['Parameters']
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
+ 
+    tt = [t[0]-1] + t.tolist()
+    sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
+    
+    y = -np.diff(sol.y[0])
+    y = np.append(0, y)
 
-    sol = solve_ivp( self.seiir_rhs, t_span=[0, t[-1]], y0=y0, args=(N, p), t_eval=t )
-
-    y = - p[2] * ( np.diff(sol.y[0]) + np.diff(sol.y[1]) )
-    y = [float(y0[2])] + y.tolist()
-
-    disp = len(y)*[p[-1]];
-    disp[0] = 0
-
+    eps = 1e-32
+    y[y < eps] = eps
+ 
     js = {}
     js['Variables'] = [{}]
 
     js['Variables'][0]['Name'] = 'Daily Reported Incidence'
-    js['Variables'][0]['Values'] = y
+    js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = len(js['Variables'][0]['Values'])
+    js['Length of Variables'] = len(t)
 
-    js['Dispersion'] = len(y)*[p[-1]]
+    js['Dispersion'] = ( p[-1] * y ).tolist()
 
     s['Saved Results'] = js
