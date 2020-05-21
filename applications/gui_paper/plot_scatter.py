@@ -7,6 +7,8 @@ from glob import glob
 import re
 import numpy as np
 
+import countries
+
 # XXX path to folder with output from `request_country.py`
 datafolder = "."
 
@@ -55,14 +57,6 @@ def Col(dictx, dicty):
     return x, y
 
 
-displayname = {
-    "RussianFederation": "Russia",
-    "UnitedKingdom": "UK",
-    "BosniaandHerzegovina": "BiH",
-    "NorthMacedonia": "North Macedonia",
-    "CzechRepublic": "Czechia",
-}
-
 fig, axes = plt.subplots(1, figsize=(9, 6))
 axes = [axes, axes]
 
@@ -88,7 +82,7 @@ for f, ax in zip([f_R0, f_R0_int], axes):
         xy = f[c], i
         p = ax.scatter(*xy, s=16, c=color.get(c, None))
         color[c] = p.get_facecolor()
-        ax.annotate(displayname.get(c, c),
+        ax.annotate(countries.LONG_NAME.get(c, c),
                     xy=xy,
                     fontsize=7,
                     xytext=(4, 0),
