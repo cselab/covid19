@@ -27,7 +27,7 @@ f_lambda_int = dict()
 f_infected = dict()
 
 folders = []
-for path in glob(os.path.join(datafolder, "*", "intervals.json")):
+for path in sorted(glob(os.path.join(datafolder, "*", "intervals.json"))):
     folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
                         path)[0]
     with open(path) as f:
@@ -66,7 +66,14 @@ displayname = {
 fig, axes = plt.subplots(1, figsize=(9, 6))
 axes = [axes, axes]
 
-color = dict()
+def Color(i):
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+    return colors[i % len(colors)]
+
+color = {
+        c:Color(i) for i,c in enumerate(sorted(f_R0))
+        }
 
 for f, ax in zip([f_R0, f_R0_int], axes):
     before = (f == f_R0)

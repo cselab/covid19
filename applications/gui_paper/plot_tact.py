@@ -26,7 +26,7 @@ f_tact = dict()
 f_infected = dict()
 
 folders = []
-for path in glob(os.path.join(datafolder, "*", "intervals.json")):
+for path in sorted(glob(os.path.join(datafolder, "*", "intervals.json"))):
     folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
                         path)[0]
     with open(path) as f:
@@ -63,11 +63,18 @@ displayname = {
 
 fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
-color = dict()
+def Color(i):
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+    return colors[i % len(colors)]
+
+color = {
+        c:Color(i) for i,c in enumerate(sorted(f_R0))
+        }
 
 for f, ax in zip([f_R0_int, f_R0], axes):
     before = (f == f_R0)
-    #ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
+    ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
     i = 0
     for c in f:
         xy = f[c], f_tact[c]
