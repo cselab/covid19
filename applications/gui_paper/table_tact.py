@@ -28,6 +28,7 @@ def folder_to_country(folder):
         "BosniaandHerzegovina": "Bosnia and Herzegovina",
         "NorthMacedonia": "North Macedonia",
         "CzechRepublic": "Czechia",
+        "SanMarino": "San Marino",
     }
     return displayname.get(folder, folder)
 
@@ -57,8 +58,11 @@ for path in glob(os.path.join(datafolder, "*", "intervals.json")):
     f_tact_day[folder] = day0 + days_to_delta(p['tact'])
 
 
-for c in sorted(folders):
-    ts = pd.to_datetime(str(f_tact_day[c]))
-    #day = ts.strftime('%Y.%m.%d')
-    day = ts.strftime('%B %d')
-    print("{:},{:}".format(folder_to_country(c), day))
+with open("tact.csv", 'w') as f:
+    f.write("country,date\n")
+    for c in sorted(folders):
+        ts = pd.to_datetime(str(f_tact_day[c]))
+        #day = ts.strftime('%Y.%m.%d')
+        #day = ts.strftime('%B %d')
+        day = ts.strftime('%Y-%m-%d')
+        f.write("{:},{:}\n".format(folder_to_country(c), day))

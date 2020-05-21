@@ -61,29 +61,31 @@ displayname = {
     "CzechRepublic": "Czechia",
 }
 
-fig, axes = plt.subplots(2, figsize=(9, 6))
+fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
 color = dict()
 
-for f, ax in zip([f_R0, f_R0_int], axes):
+for f, ax in zip([f_R0_int, f_R0], axes):
     before = (f == f_R0)
-    ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
+    #ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
     i = 0
     for c in f:
         xy = f[c], f_tact[c]
         p = ax.scatter(*xy, s=16, c=color.get(c, None))
         color[c] = p.get_facecolor()
+        '''
         ax.annotate(displayname.get(c, c),
                     xy=xy,
                     fontsize=7,
                     xytext=(4, 0),
                     textcoords='offset points',
                     va='center')
-    ax.set_xlim(-0.05, 3.05)
-    ax.text(0.03 if not before else 0.55,
-            1.01,
+                    '''
+    ax.set_ylim(0, 70)
+    ax.text(0.2 if not before else 0.2,
+            1.03,
             r"$R_0$ {:} intervention".format("before" if before else "after"),
             transform=ax.transAxes, fontsize=15)
-    ax.set_ylabel('intervention time')
+    ax.set_ylabel('days from first cases to intervention')
 fig.tight_layout()
 fig.savefig("scatter_tact.pdf")
