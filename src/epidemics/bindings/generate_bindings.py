@@ -13,7 +13,7 @@ NO_EDIT_NOTE = f"""
 EXPORT_PARAMETERS_TEMPLATE = jinja2.Template('''
 template <typename T>
 static auto exportParameters(py::module &m, const char *name) {
-    return py::class_<Parameters<T>>(m, name)
+    auto pyParams = py::class_<Parameters<T>>(m, name)
         .def(py::init<{{ (['T'] * PARAMS|length) | join(', ') }}>(),
         {%- for param in PARAMS %}
              "{{param}}"_a{% if not loop.last %},{% endif %}
@@ -31,7 +31,8 @@ static auto exportParameters(py::module &m, const char *name) {
                     default: throw py::index_error(std::to_string(index));
                 }
             });
-    ;
+    pyParams.attr("NUM_PARAMETERS") = {{PARAMS|length}};
+    return pyParams;
 }
 ''')
 

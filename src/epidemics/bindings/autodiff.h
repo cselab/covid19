@@ -33,7 +33,10 @@ py::handle exportAutoDiff(py::module &m) {
         })
         .def("val", py::overload_cast<>(&AD::val, py::const_), "Get value.")
         .def("d", py::overload_cast<int>(&AD::d, py::const_), "i"_a,
-             "Get the derivative with respect to the ith variable.");
+             "Get the derivative with respect to the ith variable.")
+        .def("d", [](const AD &ad) {
+                return std::vector<T>(ad.dBegin(), ad.dEnd());
+        }, "Return a list of all derivatives.");
 
     py::implicitly_convertible<long long, AD>();
     py::implicitly_convertible<T, AD>();

@@ -35,6 +35,8 @@ def gen_canton_model_data(K, days):
 
 class TestCaseEx(TestCase):
     def assertRelative(self, a, b, tolerance):
+        if a == b:  # In the case both are 0.
+            return
         relative = abs((a - b) / abs(a))
         if relative > tolerance:
             self.fail(f"assertRelative failed: |{a} - {b}| relative "
