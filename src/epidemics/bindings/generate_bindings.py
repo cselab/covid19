@@ -66,8 +66,9 @@ def _generate_model(template, name, state, params):
     code = NO_EDIT_NOTE + template.render(
             EXPORT_PARAMETERS=params_code, **kwargs)
 
-    # Make differentiation between generated and template code easier.
-    code = '/**/' + code.replace('\n', '\n/**/')
+    # Disable because it breaks CMake's dependency checking.
+    # # Make differentiation between generated and template code easier.
+    # code = '/**/' + code.replace('\n', '\n/**/')
     return code
 
 
