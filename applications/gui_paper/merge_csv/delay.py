@@ -13,14 +13,16 @@ out = merged.copy()
 
 print(len(merged))
 
-out['delay'] = len(out)*[0]
+out['delay'] = len(out)*['']
 
 for i in range(len(out)):
-  date = merged['date']
-  exact = merged['exactDate']
-  if not exact.empty:
+  date = merged['date'][i]
+  exact = merged['exactDate'][i]
+  if exact and exact != 'nan':
       date = pd.to_datetime(date)
       exact = pd.to_datetime(exact)
-      out['delay'] = (date - exact).dt.days
+      delay = date - exact
+      if not pd.isna(delay):
+          out['delay'][i] = "{:+d}".format(int(delay.days + 0.5))
 
 out.to_csv('delay.csv')
