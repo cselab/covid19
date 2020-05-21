@@ -14,7 +14,7 @@ inf  = pd.read_csv('tact.csv')
 print(len(real))
 print(len(inf))
 
-inf['Exact date'] = len(inf)*['']
+inf['exactDate'] = len(inf)*['']
 
 for i in range(len(inf)):
   country = inf['country'][i]
@@ -24,7 +24,7 @@ for i in range(len(inf)):
 
   if not x.empty:
     d = x['date'][0].split('[')[0]
-    inf['Exact date'][i] = d
+    inf['exactDate'][i] = d
     # print(i,country,d)
 
 print(inf)
