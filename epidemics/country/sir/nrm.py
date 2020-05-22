@@ -1,6 +1,5 @@
 import numpy as np
 
-from epidemics.tools.tools import prepare_folder, save_file
 from .model_base import ModelBase
 
 class Model( ModelBase ):

@@ -17,7 +17,11 @@ class Model( ModelBase ):
   def get_variables_and_distributions( self ):
  
     self.nParameters = 3
-    js = self.get_uniform_priors(('beta', 0.1, 100), ('gamma', 0.1, 150), ('[Sigma]', 0.01, 100))
+    js = self.get_uniform_priors(
+            ('beta', 0.1, 100), 
+            ('gamma', 0.1, 150), 
+            ('[Sigma]', 0.01, 100)
+            )
     
     return js
 

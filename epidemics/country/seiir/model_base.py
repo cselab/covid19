@@ -1,13 +1,13 @@
 import numpy as np
 
-from epidemics.epidemics import EpidemicsBase
+from epidemics.country.country import EpidemicsCountry
 
 import libepidemics #cpp backend
 
 class Object(object):
         pass
 
-class ModelBase( EpidemicsBase ):
+class ModelBase( EpidemicsCountry ):
 
   def __init__( self, **kwargs ):
 
