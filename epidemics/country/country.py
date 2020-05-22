@@ -81,7 +81,10 @@ class EpidemicsCountry( EpidemicsBase ):
     prepare_folder( os.path.dirname(file) )
     fig.savefig(file)
 
-    plt.show()
+    if (self.display): 
+        plt.show()
+    else: 
+        print("[Epidemics] Cant show figure, '$DISPLAY' not set..")
 
     plt.close(fig)
 
@@ -92,16 +95,22 @@ class EpidemicsCountry( EpidemicsBase ):
 
     ax  = fig.subplots( 1 )
 
+    found = False
     if self.parameters[0]['Name'] == 'R0':
+      found = True
       ax.hist( self.parameters[0]['Values'], bins=40, density=1)
-    else:
+    elif (self.parameters[0]['Name'] == 'beta' and self.parameters[1]['Name'] == 'gamma') :
+      found = True
       ax.hist( self.parameters[0]['Values']/self.parameters[1]['Values'], bins=40, density=1)
+    else:
+        print("[Epidemics] Cant plot R0, R0 nor (beta, gamma) not found in variables.")
 
-    file = os.path.join(self.saveInfo['figures'],'R0.png');
-    fig.savefig(file)
-
-    plt.show()
+    if (found == True):
+        file = os.path.join(self.saveInfo['figures'],'R0.png');
+        fig.savefig(file)
+        if (self.display): 
+            plt.show()
+        else:
+            print("[Epidemics] Cant show figure, '$DISPLAY' not set..")
 
     plt.close(fig)
-
-

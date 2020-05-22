@@ -26,6 +26,7 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
+    self.display     = os.environ['HOME']
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
