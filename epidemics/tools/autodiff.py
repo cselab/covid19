@@ -71,7 +71,7 @@ def country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
 
     def extend_to_L(array):
         l = len(array)
-        return array if l == array else list(array) + [0] * (L - l)
+        return array if l == L else list(array) + [0] * (L - l)
 
     results = np.full((len(t_eval), len(y0)), -1.0)
     results_der = np.full((len(t_eval), len(y0), K), -1.0)
