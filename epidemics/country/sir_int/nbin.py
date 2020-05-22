@@ -17,100 +17,19 @@ class Model( ModelBase ):
 
     super().__init__( **kwargs )
 
-    self.process_data()
-
-
-  def save_data_path( self ):
-      return ( self.dataFolder, self.country, self.modelName )
-
-
-  def process_data( self ):
-
-    y = self.regionalData.infected
-    t = self.regionalData.time
-    N = self.regionalData.populationSize
-    I0 = y[0]
-    S0 = N - I0
-    y0 = S0, I0
-
-    if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:])
-    else:
-      self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
-      self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
-
-    self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
-
-    T = np.ceil( t[-1] + self.futureDays )
-    self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
-
-    save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
-
   def get_variables_and_distributions( self ):
-
-    p = ['beta','gamma', 'tact', 'dtact', 'kbeta', '[r]']
-
-    js = {}
-    js['Variables']=[]
-    js['Distributions']=[]
-
-    for k,x in enumerate(p):
-      js['Variables'].append({})
-      js['Variables'][k]['Name'] = x
-      js['Variables'][k]['Prior Distribution'] = 'Prior for ' + x
-
-    self.nParameters = len(p)
  
-    k=0
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for beta'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.1
-    js['Distributions'][k]['Maximum'] = 10.
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for gamma'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 50.
- 
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for tact'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 1.
-    js['Distributions'][k]['Maximum'] = 80.
- 
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for dtact'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.0
-    js['Distributions'][k]['Maximum'] = 10.0
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for kbeta'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.0
-    js['Distributions'][k]['Maximum'] = 1.0
-
-    k+=1
-    js['Distributions'].append({})
-    js['Distributions'][k]['Name'] = 'Prior for [r]'
-    js['Distributions'][k]['Type'] = 'Univariate/Uniform'
-    js['Distributions'][k]['Minimum'] = 0.01
-    js['Distributions'][k]['Maximum'] = 10.
-
+    self.nParameters = 6
+    js = self.get_uniform_priors(
+            ('beta', 0.1, 10), 
+            ('gamma', 1, 50), 
+            ('tact', 1, 80),
+            ('dtact', 0.0, 30),
+            ('kbeta', 0.1, 10),
+            ('[r]', 0.01, 100),
+            )
+    
     return js
-
-
 
 
   def computational_model( self, s ):
