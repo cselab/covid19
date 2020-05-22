@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   27/3/2020
-# Email:  garampat@ethz.ch
-
 import numpy as np
 import korali
 
@@ -120,6 +115,28 @@ class EpidemicsBase:
     prepare_folder( folder )
     relativeSaveFolder = os.path.relpath(folder, './')
     self.e['File Output']['Path'] = relativeSaveFolder
+
+
+  def get_uniform_priors( self, *triples ) :
+    
+    js = {}
+    js['Variables']=[]
+    js['Distributions']=[]
+
+    k = 0
+    for (varname, lowerbound, upperbound) in triples:
+      js['Variables'].append({})
+      js['Variables'][k]['Name'] = varname
+      js['Variables'][k]['Prior Distribution'] = 'Prior for ' + varname
+
+      js['Distributions'].append({})
+      js['Distributions'][k]['Name'] = 'Prior for ' + varname
+      js['Distributions'][k]['Type'] = 'Univariate/Uniform'
+      js['Distributions'][k]['Minimum'] = lowerbound
+      js['Distributions'][k]['Maximum'] = upperbound
+      k += 1
+
+    return js
 
 
 
