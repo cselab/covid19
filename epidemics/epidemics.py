@@ -6,6 +6,7 @@ import os
 import pickle
 import sys
 import time
+import random
 
 import matplotlib.pyplot as plt
 plt.ioff()
@@ -25,8 +26,6 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
-
-    self.iterations_per_day = kwargs.pop('it_per_day',10)
 
     if kwargs:
         sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
@@ -152,7 +151,7 @@ class EpidemicsBase:
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 1.0
+    self.e['Solver']['Target Coefficient Of Variation'] = 0.5
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
@@ -183,8 +182,6 @@ class EpidemicsBase:
     self.has_been_called['sample'] = True
     self.has_been_called['propagate'] = False
     print('[Epidemics] Done copying variables.')
-
-
 
 
   def optimize( self, maxGenerations):
@@ -230,53 +227,6 @@ class EpidemicsBase:
     self.has_been_called['optimize'] = True
     self.has_been_called['propagate'] = False
     print('[Epidemics] Done copying variables.')
-
-
-
-
-  def least_squares( self, maxGenerations):
-
-    self.nSamples = 1
-    self.maxGenerations = maxGenerations
-
-    self.e = korali.Experiment()
-
-    self.e['Problem']['Type'] = 'Optimization/Stochastic'
-    y = list(map(float, self.data['Model']['y-data']))
-    self.e['Problem']['Objective Function'] = lambda p: self.sum_of_squares_errors(p,y)
-
-    self.e["Solver"]["Type"] = "CMAES"
-    self.e["Solver"]["Population Size"] = 48
-    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
-
-    js = self.get_variables_and_distributions()
-    self.set_variables_and_distributions(js)
-
-    self.set_korali_output_files( self.saveInfo['korali samples'] )
-
-    if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
-    else: self.e['Console Output']['Verbosity'] = 'Detailed'
-
-    self.e['File Output']['Frequency'] = 10
-    self.e["Store Sample Information"] = True
-
-    k = korali.Engine()
-    k['Conduit']['Type'] = 'Concurrent'
-    k['Conduit']['Concurrent Jobs'] = self.nThreads
-
-    k.run(self.e)
-
-    return self.e['Results']['Best Sample']['Parameters']
-
-
-  def sum_of_squares_errors(self,s,y):
-
-    self.computational_model( s )
-
-    dif = np.asarray(y) - np.asarray(s['Reference Evaluations'])
-
-    s['F(x)'] = -np.sum(dif*dif) / len(y)
 
 
   def set_variables_and_distributions( self, js ):
@@ -331,7 +281,7 @@ class EpidemicsBase:
       print('[Epidemics] Loaded')
 
 
-  def propagate( self ):
+  def propagate( self, nPropagate = 1000 ):
 
     if not self.has_been_called['sample'] and not self.has_been_called['optimize'] :
       sys.exit('[Epidemics] [Error] Sample or Optimize before propagation')
@@ -358,7 +308,8 @@ class EpidemicsBase:
 
     k.run(self.e)
 
-    Ns = self.nSamples
+    propagate_idx = random.sample(range(self.nSamples), nPropagate)
+
     Nv = self.e['Samples'][0]['Saved Results']['Number of Variables']
     Nt = self.e['Samples'][0]['Saved Results']['Length of Variables']
     varNames = []
@@ -368,9 +319,9 @@ class EpidemicsBase:
     print('[Epidemics] Copy variables from Korali to Epidemics...')
     self.propagatedVariables = {}
     for i,x in enumerate(varNames):
-      self.propagatedVariables[x] = np.zeros((Ns,Nt))
-      for k in range(Ns):
-        self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][k]['Saved Results']['Variables'][i]['Values'] )
+      self.propagatedVariables[x] = np.zeros((nPropagate,Nt))
+      for k, idx in enumerate(propagate_idx):
+        self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][idx]['Saved Results']['Variables'][i]['Values'] )
 
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
       varName = 'Standard Deviation'
@@ -379,8 +330,8 @@ class EpidemicsBase:
     else:
       sys.exit('\n[Epidemics] Likelihood not found in propagate.\n')
 
-    self.propagatedVariables[varName] = np.zeros((Ns,Nt))
-    for k in range(Ns):
+    self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
+    for k in range(nPropagate):
       self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
 
     print('[Epidemics] Done copying variables.')
@@ -403,10 +354,10 @@ class EpidemicsBase:
 
   def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
 
-    Ns = self.propagatedVariables[varName].shape[0]
+    Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
 
-    samples = np.zeros((Ns*ns,Nt))
+    samples = np.zeros((Np*ns,Nt))
 
     print(f"[Epidemics] Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
 
