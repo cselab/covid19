@@ -23,7 +23,7 @@ def country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
     y0_dev must have an equal number of columns.
 
     Example:
-        # Typical approach to computing derivatives wrt parameters:
+        # Before. computing derivatives wrt parameters only.
         params = model.Parameters(beta=10, gamma=20, delta=30)
         y0 = (100000, 2, 1, 3)
         results = solver.solve_ad(params=params, y0=y0, t_eval=t_eval)
@@ -31,7 +31,7 @@ def country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
             print(result.S().val())
             print(result.S().d(0))
 
-        # Compute custom derivatives wrt 5 different things: 3 parameters, y0[1] and y2[2].
+        # After. Compute custom derivatives wrt 5 different variables: 3 parameters, y0[1] and y2[2].
         params = (10, 20, 30)
         # OR
         params = model.Parameters(beta=10, gamma=20, delta=30)
@@ -47,7 +47,6 @@ def country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
             [0, 0, 0, 0, 1],
             [0, 0, 0, 0, 0],
         )
-
         out, out_ad = country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval=t_eval)
         assert out.shape    == (len(t_eval), 4)
         assert out_ad.shape == (len(t_eval), 4, 5)
