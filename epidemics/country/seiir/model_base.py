@@ -21,8 +21,8 @@ class ModelBase( EpidemicsCountry ):
 
     params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
  
-    s0, e0, ir0, iu0 = y0
-    y0cpp   = (s0, e0, ir0, iu0, 0.0)
+    s0, ir0 = y0
+    y0cpp   = (s0, 0.0, ir0, 0.0, 0.0) # S E Ir Iu  R
     
     initial = seiir.State(y0cpp)
  

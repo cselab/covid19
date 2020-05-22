@@ -1,3 +1,5 @@
+import numpy as np
+
 from epidemics.country.country import EpidemicsCountry
 
 import libepidemics #cpp backend

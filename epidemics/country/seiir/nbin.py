@@ -23,7 +23,7 @@ class Model( ModelBase ):
             ('alpha', 0., 0.1),
             ('Z', 0, 50), 
             ('D', 1000, 8000), 
-            ('[r]', 0.001, 10), 
+            ('[r]', 0.001, 10)
             )
     
     return js
@@ -37,7 +37,7 @@ class Model( ModelBase ):
     N  = self.data['Model']['Population Size']
 
     tt = [t[0]-1] + t.tolist()
-    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt, N=N, p=p)
 
     # get incidents
     y = -np.diff(sol.y[0])
@@ -71,7 +71,7 @@ class Model( ModelBase ):
     js = {}
     js['Variables'] = [{}]
 
-    js['Variables'][0]['Name'] = 'Daily Reported Incidence'
+    js['Variables'][0]['Name'] = 'Daily Incidence'
     js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])

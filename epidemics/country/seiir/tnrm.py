@@ -82,7 +82,7 @@ class Model( ModelBase ):
     js['Variables'] = []
 
     js['Variables'].append({})
-    js['Variables'][0]['Name'] = 'Daily Reported Incidence'
+    js['Variables'][0]['Name'] = 'Daily Incidence'
     js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])

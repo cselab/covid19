@@ -1,9 +1,5 @@
-import os
-import sys
-
 import numpy as np
 
-from epidemics.tools.tools import save_file
 from .model_base import ModelBase
 
 class Model( ModelBase ):
@@ -16,6 +12,7 @@ class Model( ModelBase ):
     self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
+
 
   def get_variables_and_distributions( self ):
  
@@ -54,7 +51,6 @@ class Model( ModelBase ):
 
     s['Reference Evaluations'] = list(y)
     s['Dispersion'] = ( p[-1] * y ).tolist()
-
 
 
   def computational_model_propagate( self, s ):
