@@ -14,7 +14,7 @@ datafolder = "."
 
 LAST_DAY = "2020-05-18"
 
-csv = "data/delay.csv"
+csv = "merge_csv/delay.csv"
 csv = pd.read_csv(csv)
 
 print(len(csv))

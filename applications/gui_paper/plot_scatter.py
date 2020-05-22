@@ -88,7 +88,7 @@ for f, ax in zip([f_R0, f_R0_int], axes):
                     xytext=(4, 0),
                     textcoords='offset points',
                     va='center')
-    ax.set_xlim(-0.05, 3.05)
+    ax.set_xlim(-0.05, 3.5)
     ax.text(0.03 if not before else 0.55,
             1.01,
             r"$R_0$ {:} intervention".format("before" if before else "after"),

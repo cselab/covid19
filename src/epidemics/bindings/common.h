@@ -13,8 +13,10 @@ using ADType = AutoDiff<double, Parameters<double>::numParameters>;
 
 IntegratorSettings integratorSettingsFromKwargs(py::kwargs kwargs);
 
+/// Attributes common to both non-AD and AD variants.
 template <typename Solver, typename State, typename Parameters, typename PySolver>
-void exportSolverSolve(
+void exportSolverCommon(
+        py::module &m,
         PySolver &pySolver,
         const char *name)
 {
@@ -30,7 +32,8 @@ void exportSolverSolve(
                 SignalRAII breakRAII;
                 return solver.solve(params, std::move(state), tEval,
                                     integratorSettingsFromKwargs(kwargs));
-            }, "parameters"_a, "initial_state"_a, "t_eval"_a);
+            }, "params"_a, "y0"_a, "t_eval"_a);
+    pySolver.attr("model") = m;
 }
 
 /// Export a model Solver. Returns the Solver class handler.
@@ -44,8 +47,8 @@ auto exportSolver(py::module &m) {
 
     auto solver = py::class_<Solver>(m, "Solver")
         .def(py::init<ModelData>(), "model_data"_a);
-    exportSolverSolve<Solver, State<double>, Parameters<double>>(solver, "solve");
-    exportSolverSolve<Solver, State<AD>, Parameters<AD>>(solver, "solve_ad");
+    exportSolverCommon<Solver, State<double>, Parameters<double>>(m, solver, "solve");
+    exportSolverCommon<Solver, State<AD>, Parameters<AD>>(m, solver, "solve_ad");
     return solver;
 }
 
@@ -56,7 +59,14 @@ static auto exportGenericState(py::module &m, const char *name) {
         .def(py::init<typename State::RawState>())
         .def("tolist", [](const State &state) {
             return state.raw();
-        }, "Convert to a Python list of elements.");
+        }, "Convert to a Python list of elements.")
+        .def("__call__", [](const State &state, size_t index) {
+            if (index < state.raw().size())
+                return state.raw()[index];
+            throw std::out_of_range(std::to_string(index));
+        }, "Get state variables by index. We don't use __getitem__, because "
+           "it would break the implicit cast from AD states to non-AD states.")
+        .def("__len__", &State::size, "Get the total number of state variables.");
 }
 
 }  // namespace epidemics

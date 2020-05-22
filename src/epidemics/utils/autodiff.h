@@ -52,6 +52,12 @@ struct AutoDiff {
     const T &d(int i) const { return v_[1 + i]; }
     T &d(int i) { return v_[1 + i]; }
 
+    // NOTE: If we had a span<> here, we could just have `span<T> d();`.
+    const T *dBegin() const noexcept { return v_ + 1; }
+    const T *dEnd() const noexcept { return v_ + N + 1; }
+    T *dBegin() noexcept { return v_ + 1; }
+    T *dEnd() noexcept { return v_ + N + 1; }
+
     AutoDiff operator-() const {
         AutoDiff result;
         result.val() = -val();

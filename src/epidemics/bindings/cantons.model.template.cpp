@@ -48,8 +48,9 @@ void exportAll(py::module &top, py::module &m) {
     py::implicitly_convertible<Parameters<double>, Parameters<AD>>();
     py::implicitly_convertible<State<double>, State<AD>>();
 
-    m.attr("ElementAD") = exportAutoDiff<AD>(top);
-    exportSolver<Solver, ModelData, State, Parameters>(m);
+    m.attr("AD") = exportAutoDiff<AD>(top);
+    exportSolver<Solver, ModelData, State, Parameters>(m)
+        .def("state_size", &Solver::stateSize, "Return the number of state variables.");
 }
 
 }  // namespace {{NAME}}

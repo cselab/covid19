@@ -5,11 +5,11 @@ import numpy as np
 
 from common import TestCaseEx
 
-def solve_sir(beta, gamma, y0, t_eval, *, N):
+def solve_sir(params, y0, t_eval, *, N):
     """Solve the SIR equation with derivatives manually.
 
     Arguments:
-        beta, gamma: model parameters
+        params: a tuple (beta, gamma)
         y0: (S0, I0, R0) initial condition at t=0
         t_eval: A list of times `t` to return the values of the ODE at.
         N: population, model data
@@ -18,6 +18,7 @@ def solve_sir(beta, gamma, y0, t_eval, *, N):
         A list of 9-tuples (S, I, R, dS/dbeta, dI/dbeta, dR/dbeta, dS/dgamma, dI/dgamma, dR/dgamma),
         one tuple for each element of t_eval.
     """
+    beta, gamma = params
     def rhs(t, y):
         S, I, R, dSdbeta, dIdbeta, dRdbeta, dSdgamma, dIdgamma, dRdgamma = y
 
@@ -60,7 +61,7 @@ class TestCountrySIR(TestCaseEx):
         y0 = (1e5, 1., 200.)  # S, I, R.
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial = sir.State(y0)
-        py_result = solve_sir(params.beta, params.gamma, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_sir(params, y0=y0, t_eval=t_eval, N=data.N)
         cpp_result_noad = solver.solve   (params, initial, t_eval=t_eval, dt=0.1)
         cpp_result_ad   = solver.solve_ad(params, initial, t_eval=t_eval, dt=0.1)
 

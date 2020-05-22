@@ -5,14 +5,15 @@ import numpy as np
 
 from common import TestCaseEx
 
-def solve_sir(beta, gamma, tact, dtact, kbeta, y0, t_eval, *, N):
+def solve_sir(params, y0, t_eval, *, N):
     """Solve the SIR equation with interventions.
 
     Arguments:
 
     Returns:
-    
+
     """
+    beta, gamma, tact, dtact, kbeta = params
     def rhs(t, y):
         S, I, R = y
 
@@ -52,7 +53,7 @@ class TestCountrySIR(TestCaseEx):
         y0 = (1e5, 1., 200.)  # S, I, R.
         t_eval    = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial   = sir_int.State(y0)
-        py_result = solve_sir(params.beta, params.gamma, params.tact, params.dtact, params.kbeta, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_sir(params, y0=y0, t_eval=t_eval, N=data.N)
         cpp_result_noad = solver.solve   (params, initial, t_eval=t_eval, dt=0.01)
         cpp_result_ad   = solver.solve_ad(params, initial, t_eval=t_eval, dt=0.01)
 
