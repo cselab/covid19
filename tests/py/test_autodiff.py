@@ -3,10 +3,10 @@ from common import TestCaseEx
 import libepidemics
 from libepidemics.country import sir
 
-from epidemics.tools.autodiff import compute_custom_derivatives
+from epidemics.tools.autodiff import country_custom_derivatives
 
 class TestAutoDiff(TestCaseEx):
-    def test_compute_custom_derivatives(self):
+    def test_country_custom_derivatives(self):
         from test_country_sir import solve_sir
 
         # We test derivatives wrt [nothing, beta, gamma, S0, I0, R0, beta+gamma+S0+I0+R0].
@@ -28,7 +28,7 @@ class TestAutoDiff(TestCaseEx):
         solver = sir.Solver(data)
 
         py_results = solve_sir(params, y0, t_eval=t_eval, N=N)
-        cpp_results, cpp_der_results = compute_custom_derivatives(
+        cpp_results, cpp_der_results = country_custom_derivatives(
                 solver, params, y0, params_derivatives, y0_derivatives, t_eval=t_eval, dt=0.1)
 
         self.assertEqual(cpp_results.shape,     (len(t_eval), solver.state_size()))

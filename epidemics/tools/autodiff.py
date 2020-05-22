@@ -1,6 +1,6 @@
 import numpy as np
 
-def compute_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, **kwargs):
+def country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, **kwargs):
     """Solve the ODE by customizing which derivatives are computed.
 
     This function can be used to compute derivatives with respect to initial conditions.
@@ -48,7 +48,7 @@ def compute_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
             [0, 0, 0, 0, 0],
         )
 
-        out, out_ad = compute_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval=t_eval)
+        out, out_ad = country_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval=t_eval)
         assert out.shape    == (len(t_eval), 4)
         assert out_ad.shape == (len(t_eval), 4, 5)
     """
