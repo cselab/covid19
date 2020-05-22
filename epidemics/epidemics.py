@@ -56,7 +56,6 @@ class EpidemicsBase:
 
     self.nParameters = 0
     self.parameters = []
-    self.bestParameters = []
 
     self.propagatedVariables = {}
     self.standardDeviation = []
@@ -139,9 +138,6 @@ class EpidemicsBase:
     return js
 
 
-
-
-
   def sample( self, nSamples=1000 ):
 
     self.e = korali.Experiment()
@@ -154,8 +150,9 @@ class EpidemicsBase:
     self.e['Problem']['Computational Model'] = self.computational_model
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
+    self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
+    self.e['Solver']['Target Coefficient Of Variation'] = 1.0
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
@@ -163,8 +160,6 @@ class EpidemicsBase:
     self.set_korali_output_files( self.saveInfo['korali samples'] )
     self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
-
-    self.e["Store Sample Information"] = True
 
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
@@ -184,22 +179,6 @@ class EpidemicsBase:
       self.parameters.append({})
       self.parameters[j]['Name'] = self.e['Variables'][0]['Name']
       self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
-
-
-    logP = []
-    for k in range(self.nSamples):
-      logP.append( self.e['Samples'][k]['logPosterior'] )
-    ind = np.argmax(np.asarray(logP))
-
-    self.bestParameters = {}
-    self.bestParameters['Reference Evaluations'] = self.e['Samples'][0]['Reference Evaluations']
-    self.bestParameters['Sample Index'] = ind
-    if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
-      self.bestParameters['Standard Deviation'] = self.e['Samples'][0]['Standard Deviation']
-    elif( self.likelihoodModel=='Negative Binomial' ):
-      self.bestParameters['Dispersion'] = self.e['Samples'][0]['Dispersion']
-    else:
-      sys.exit('\n[Epidemics] Likelihood not found in sample.\n')
 
     self.has_been_called['sample'] = True
     self.has_been_called['propagate'] = False
@@ -233,7 +212,6 @@ class EpidemicsBase:
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
 
     self.e['File Output']['Frequency'] = 10
-    self.e["Store Sample Information"] = True
 
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
