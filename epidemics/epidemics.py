@@ -8,6 +8,8 @@ import sys
 import time
 import random
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
@@ -148,12 +150,13 @@ class EpidemicsBase:
     self.e['Problem']['Likelihood Model'] = self.likelihoodModel
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
+    
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = 0.2
-
+    self.e['Solver']['Termination Criteria']['Max Generations'] = 50
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
