@@ -4,10 +4,10 @@
 
 using namespace epidemics;
 
-template <typename T, int N>
+template <typename T, size_t N>
 void assertEqAD(AutoDiff<T, N> a, AutoDiff<T, N> b) {
     ASSERT_EQ(a.val(), b.val());
-    for (int i = 0; i < N; ++i)
+    for (size_t i = 0; i < N; ++i)
         ASSERT_EQ(a.d(i), b.d(i));
 }
 
