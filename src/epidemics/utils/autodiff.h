@@ -34,6 +34,7 @@ struct ADDynamicStorage
     size_t N() const noexcept { return v_.size() - 1; }
 
 protected:
+    // TODO: A custom container with T* v_ and size_t N.
     std::vector<T> v_;
 };
 
@@ -84,11 +85,19 @@ struct AutoDiffBase : Storage
         return b;
     }
     friend Derived operator+(Derived a, const Derived &b) {
-        assert(a.N() == b.N());
-        a.val() += b.val();
-        for (size_t i = 0; i < a.N(); ++i)
-            a.d(i) += b.d(i);
+        a += b;
         return a;
+    }
+    Derived &operator+=(T b) {
+        val() += b;
+        return derived();
+    }
+    Derived &operator+=(const Derived &b) {
+        assert(a.N() == b.N());
+        val() += b.val();
+        for (size_t i = 0; i < this->N(); ++i)
+            d(i) += b.d(i);
+        return derived();
     }
 
     // Binary operator -.
@@ -103,38 +112,52 @@ struct AutoDiffBase : Storage
         return b;
     }
     friend Derived operator-(Derived a, const Derived &b) {
-        assert(a.N() == b.N());
-        a.val() -= b.val();
-        for (size_t i = 0; i < a.N(); ++i)
-            a.d(i) -= b.d(i);
+        a -= b;
         return a;
+    }
+    Derived &operator-=(T b) {
+        val() -= b;
+        return derived();
+    }
+    Derived &operator-=(const Derived &b) {
+        assert(a.N() == b.N());
+        val() -= b.val();
+        for (size_t i = 0; i < this->N(); ++i)
+            d(i) -= b.d(i);
+        return derived();
     }
 
     // Binary operator *.
     friend Derived operator*(Derived a, T b) {
-        a.val() *= b;
-        for (size_t i = 0; i < a.N(); ++i)
-            a.d(i) *= b;
+        a *= b;
         return a;
     }
     friend Derived operator*(T a, Derived b) {
-        b.val() *= a;
-        for (size_t i = 0; i < b.N(); ++i)
-            b.d(i) *= a;
+        b *= a;
         return b;
     }
     friend Derived operator*(Derived a, const Derived &b) {
-        assert(a.N() == b.N());
-        T aval = a.val();
-        a.val() *= b.val();
-        for (size_t i = 0; i < a.N(); ++i)
-            a.d(i) = aval * b.d(i) + a.d(i) * b.val();
+        a *= b;
         return a;
+    }
+    Derived &operator*=(T b) {
+        val() *= b;
+        for (size_t i = 0; i < this->N(); ++i)
+            d(i) *= b;
+        return derived();
+    }
+    Derived &operator*=(const Derived &b) {
+        assert(a.N() == b.N());
+        for (size_t i = 0; i < this->N(); ++i)
+            d(i) = val() * b.d(i) + d(i) * b.val();
+        val() *= b.val();
+        return derived();
     }
 
     // Binary operator /.
     friend Derived operator/(Derived a, T b) {
-        return std::move(a) * inverse(b);
+        a /= b;
+        return a;
     }
     friend Derived operator/(T a, Derived b) {
         T inv_b0 = inverse(b.val());
@@ -146,57 +169,19 @@ struct AutoDiffBase : Storage
         return b;
     }
     friend Derived operator/(Derived a, const Derived &b) {
-        T inv_b0 = inverse(b.val());
-
-        assert(a.N() == b.N());
-        a.val() *= inv_b0;
-        for (size_t i = 0; i < a.N(); ++i)
-            a.d(i) = (a.d(i) - a.val() * b.d(i)) * inv_b0;
+        a /= b;
         return a;
     }
-
-    // Assignment-modify operators.
-    Derived &operator+=(T b) {
-        val() += b;
-        return derived();
-    }
-    Derived &operator+=(const Derived &b) {
-        val() += b.val();
-        for (size_t i = 0; i < this->N(); ++i)
-            d(i) += b.d(i);
-        return derived();
-    }
-    Derived &operator-=(T b) {
-        val() -= b;
-        return derived();
-    }
-    Derived &operator-=(const Derived &b) {
-        val() -= b.val();
-        for (size_t i = 0; i < this->N(); ++i)
-            d(i) -= b.d(i);
-        return derived();
-    }
-    Derived &operator*=(T b) {
-        val() *= b;
-        for (size_t i = 0; i < this->N(); ++i)
-            d(i) *= b;
-        return derived();
-    }
-    Derived &operator*=(const Derived &b) {
-        for (size_t i = 0; i < this->N(); ++i)
-            d(i) = val() * b.d(i) + d(i) * b.val();
-        val() *= b.val();
-        return derived();
-    }
     Derived &operator/=(T b) {
-        return (*this *= inverse(b));
+        return *this *= inverse(b);
     }
     Derived &operator/=(const Derived &b) {
-        /* TODO */
-        *this = (*this / b);
+        T inv_b0 = inverse(b.val());
+        val() *= inv_b0;
+        for (size_t i = 0; i < this->N(); ++i)
+            d(i) = (d(i) - val() * b.d(i)) * inv_b0;
         return derived();
     }
-
     Derived inv() const {
         Derived result = derived();
         result.val() = inverse(result.val());
