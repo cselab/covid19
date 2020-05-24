@@ -12,6 +12,8 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 
+ALPHA = 0.3
+
 
 def linear_trans(u0, u1, t, tc, teps):
     """
@@ -101,9 +103,9 @@ mean = np.mean(lambdaeff,axis=1)
 ax1.plot(days, mean)
 
 median = np.quantile(lambdaeff, 0.5, axis=1)
-q1 = np.quantile(lambdaeff, 0.05, axis=1)
-q2 = np.quantile(lambdaeff, 0.95, axis=1)
-ax1.fill_between(days, q1, q2, alpha=0.5)
+q1 = np.quantile(lambdaeff, 0.1, axis=1)
+q2 = np.quantile(lambdaeff, 0.9, axis=1)
+ax1.fill_between(days, q1, q2, alpha=ALPHA)
 
 ax1.axhline(y=0, color='black', linestyle=':')
 ax1.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
@@ -112,10 +114,16 @@ ydata = np.array(d['y-data']).astype(float)
 
 mean = d['Daily Infected']['Mean']
 median = d['Daily Infected']['Median']
-low = d['Daily Infected']['Intervals'][0]['Low Interval']
-high = d['Daily Infected']['Intervals'][0]['High Interval']
-ax2.plot(days, median)
-ax2.fill_between(days, low, high, alpha=0.5)
+line, = ax2.plot(days, mean)
+for v in d['Daily Infected']['Intervals']:
+    perc = v['Percentage']
+    if perc < 0.7:
+        continue
+    low = v['Low Interval']
+    high = v['High Interval']
+    ax2.fill_between(days, low, high, alpha=ALPHA,
+            color=line.get_color())
+
 ax2.scatter(daysdata, np.diff(ydata, prepend=0), c='black', s=4)
 ax2.set_ylabel('Daily new reported')
 ax2.set_xlim(left=days.min())
@@ -123,10 +131,16 @@ ax2.set_ylim(bottom=0)
 
 mean = d['Total Infected']['Mean']
 median = d['Total Infected']['Median']
-low = d['Total Infected']['Intervals'][0]['Low Interval']
-high = d['Total Infected']['Intervals'][0]['High Interval']
-ax3.plot(days, median)
-ax3.fill_between(days, low, high, alpha=0.5)
+line, = ax3.plot(days, mean)
+for v in d['Total Infected']['Intervals']:
+    perc = v['Percentage']
+    if perc < 0.7:
+        continue
+    low = v['Low Interval']
+    high = v['High Interval']
+    ax3.fill_between(days, low, high, alpha=ALPHA,
+            color=line.get_color())
+
 ax3.scatter(daysdata, ydata, c='black', s=4)
 ax3.set_ylabel('Total new reported')
 ax3.set_xlim(left=days.min())
