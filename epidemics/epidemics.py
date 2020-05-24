@@ -110,9 +110,10 @@ class EpidemicsBase:
 
 
 
-  def set_korali_output_files( self, folder):
+  def set_korali_output_files( self, folder, frequency = 1 ):
 
     self.e['File Output']['Enabled'] = True
+    self.e['File Output']['Frequency'] = frequency
     prepare_folder( folder )
     relativeSaveFolder = os.path.relpath(folder, './')
     self.e['File Output']['Path'] = relativeSaveFolder
@@ -155,12 +156,12 @@ class EpidemicsBase:
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.2
+    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
     self.e['Solver']['Termination Criteria']['Max Generations'] = 50
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'] )
+    self.set_korali_output_files( self.saveInfo['korali samples'], 100 )
     self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -208,11 +209,9 @@ class EpidemicsBase:
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'] )
+    self.set_korali_output_files( self.saveInfo['korali samples'], 20 )
 
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
-
-    self.e['File Output']['Frequency'] = 10
 
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
@@ -302,7 +301,7 @@ class EpidemicsBase:
 
     self.e['Solver']['Type'] = 'Executor'
 
-    self.set_korali_output_files(self.saveInfo['korali propagation'])
+    self.set_korali_output_files( self.saveInfo['korali propagation'] )
 
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
