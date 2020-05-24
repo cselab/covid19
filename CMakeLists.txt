@@ -7,6 +7,7 @@ set(CODE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src/epidemics")
 set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Use -std=c++14, not -std=gnu++14.
 add_subdirectory(${EXTERN_DIR}/pybind11 sir_pybind11)
 
 include(GoogleTest)
