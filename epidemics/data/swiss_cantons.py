@@ -10,6 +10,7 @@ from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR, DATA_FILES_DIR
 from epidemics.data.cases import get_region_cases
 from epidemics.data.population import get_region_population
 from epidemics.tools.cache import cache, cache_to_file
+from epidemics.tools.date import date_fromisoformat
 from epidemics.tools.io import download_and_save, extract_zip
 import epidemics.data.swiss_municipalities as swiss_mun
 import numpy as np
@@ -181,7 +182,7 @@ def get_external_Iu(start_date, num_days):
         https://www.swissinfo.ch/eng/coronavirus_switzerland-extends-border-controls-to-all-schengen-states/45642706
     """
     if not isinstance(start_date, datetime.date):
-        start_date = datetime.date.fromisoformat(start_date)
+        start_date = date_fromisoformat(start_date)
 
     # Foreign region keys.
     FR = 'france'
@@ -230,7 +231,7 @@ def get_external_Iu(start_date, num_days):
         AU: '2020-03-25',
         IT: '2020-03-17',
     }
-    BORDERS_CLOSING_DATE = {key: datetime.date.fromisoformat(date) for key, date in BORDERS_CLOSING_DATE.items()}
+    BORDERS_CLOSING_DATE = {key: date_fromisoformat(date) for key, date in BORDERS_CLOSING_DATE.items()}
 
     # Also, we use data on whole countries as an approximation to the data of
     # regions at the Swiss border. To fix this, instead of using FR/GE/AU/IT

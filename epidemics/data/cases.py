@@ -3,6 +3,7 @@ from epidemics.data.files.canton_population import CANTON_POPULATION
 
 from epidemics.data.regions import region_to_key
 from epidemics.tools.cache import cache
+from epidemics.tools.date import date_fromisoformat
 from epidemics.tools.io import download_and_save
 
 from collections import namedtuple
@@ -60,7 +61,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
     header, *rows = data.split('\n')
 
     # First column is a date.
-    start_date = datetime.date.fromisoformat(rows[0].split(',', 1)[0])
+    start_date = date_fromisoformat(rows[0].split(',', 1)[0])
     days_cells = [row.split(',')[1:] for row in rows[:-days_to_remove]]
     _, *regions = header.split(',')
 
@@ -127,7 +128,7 @@ def get_field_data_all_cantons(field,cache_duration=1e9):
     date = []
     for day in rows[1:]:  # Skip the header.
         cells = day.split(',')[1:-1]  # Skip "Date" and "CH".
-        date.append(datetime.date.fromisoformat(day.split(',')[0]))
+        date.append(date_fromisoformat(day.split(',')[0]))
         assert len(cells) == len(cantons), (len(cells), len(cantons))
         for canton, cell in zip(cantons, cells):
             data[canton].append(float(cell or 'nan'))
