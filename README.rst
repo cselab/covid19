@@ -50,7 +50,7 @@ Code formatting
 ===============
 
 Python
-------
+~~~~~~
 
 Install `yapf <https://github.com/google/yapf>`_.
 
@@ -71,7 +71,7 @@ Format all python files recursively in a directory in-place
     yapf -ir DIR
 
 C++
----
+~~~
 
 Install ``clang-format`` as part of `clang` using your package manager
 or download a
