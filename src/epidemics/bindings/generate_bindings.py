@@ -30,7 +30,8 @@ static auto exportParameters(py::module &m, const char *name) {
             {%- endfor %}
                     default: throw py::index_error(std::to_string(index));
                 }
-            });
+            })
+        .def("__len__", [](const Parameters<T> &) { return {{PARAMS|length}}; });
     pyParams.attr("NUM_PARAMETERS") = {{PARAMS|length}};
     return pyParams;
 }

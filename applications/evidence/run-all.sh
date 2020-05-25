@@ -1,19 +1,19 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir.nbin"
-"sir.nrm"
-"sir.tnrm"
-"sir_int.nbin"
-"sir_int.nrm"
-"sir_int.tnrm"
+"country.sir.nbin"
+"country.sir.nrm"
+"country.sir.tnrm"
+"country.sir_int.nbin"
+"country.sir_int.nrm"
+"country.sir_int.tnrm"
 )
 
 
 for i in "${arr[@]}"
 do
 
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 2000 -cm "$i"
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 2000 -np 2000 -cm "$i"
 
    folder="data/switzerland/$i/"
 

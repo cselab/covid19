@@ -59,6 +59,8 @@ public:
         modelData_{std::move(modelData)}
     { }
 
+    const ModelData &modelData() const noexcept { return modelData_; }
+
     size_t stateSize() const noexcept {
         return State<double>::kVarsPerRegion * modelData_.numRegions;
     }

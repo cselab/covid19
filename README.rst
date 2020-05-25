@@ -28,7 +28,7 @@ From the repository root folder do:
 
     pip3 install jinja2
     git submodule update --init --recursive
-    mkdir -p
+    mkdir -p build
     cd build
     cmake ..
     make
@@ -45,6 +45,43 @@ To run the tests, run the following command (from the repository root):
 
 To run only Python tests, run ``cd tests/py && ./run.sh``.
 To run only C++ tests, run ``cd build && ./libepidemics_unittests``.
+
+Code formatting
+===============
+
+Python
+~~~~~~
+
+Install `yapf <https://github.com/google/yapf>`_.
+
+.. code-block::
+
+    pip3 install yapf
+
+Format a file in-place
+
+.. code-block::
+
+    yapf -i FILE
+
+Format all python files recursively in a directory in-place
+
+.. code-block::
+
+    yapf -ir DIR
+
+C++
+~~~
+
+Install ``clang-format`` as part of `clang` using your package manager
+or download a
+`static build <http://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-sles11.3.tar.xz>`_
+
+Format a file in-place
+
+.. code-block::
+
+    clang-format -i FILE
 
 
 Troubleshooting

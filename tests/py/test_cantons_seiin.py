@@ -74,12 +74,12 @@ class TestCantonsSEIIN(TestCaseEx):
         params = seiin.Parameters(beta=0.3, mu=0.7, alpha=0.03, Z=4.0, D=5.0, theta=0.789)
 
         # S..., E..., Ir..., Iu..., N....
-        y0 = (1.0e6, 0.9e6, 0.8e6, 1, 2, 3, 5, 6, 7, 0, 1, 2, 1000000, 2000000, 3000000)
+        y0 = (1.0e6, 0.9e6, 0.8e6, 1, 2, 3, 5, 6, 7, 0, 1, 2, 3000000, 2000000, 1000000)
         t_eval = [0., 0.3, 0.6, 1.]
         py_result = solve_seiin(params, y0=y0, t_eval=t_eval, data=data)
         y0 = seiin.State(y0)
-        cpp_result_noad = solver.solve   (params, y0, t_eval=t_eval, dt=0.1)
-        cpp_result_ad   = solver.solve_ad(params, y0, t_eval=t_eval, dt=0.1)
+        cpp_result_noad = solver.solve          (params, y0, t_eval=t_eval, dt=0.1)
+        cpp_result_ad   = solver.solve_params_ad(params, y0, t_eval=t_eval, dt=0.1)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
         for py, noad, ad in zip(py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):

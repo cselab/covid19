@@ -49,15 +49,17 @@ displayname = {
     "CzechRepublic": "Czechia",
 }
 
-folder_to_display = {v:k for k,v in displayname.items()}
+folder_to_display = {v: k for k, v in displayname.items()}
 folder_to_display.update({
     "United Kingdom": "UnitedKingdom",
     "Bosnia and Herzegovina": "BosniaandHerzegovina",
     "San Marino": "SanMarino",
-            })
+})
+
 
 def display_to_folder(c):
     return folder_to_display.get(c, c)
+
 
 fig, ax = plt.subplots(1, 1, figsize=(5, 5.3))
 
@@ -76,6 +78,7 @@ def GlobColors():
                             path)[0]
         color[folder] = Color(i)
     return color
+
 
 #color = {c: Color(i) for i, c in enumerate(sorted(csv['country']))}
 color = GlobColors()

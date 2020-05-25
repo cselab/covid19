@@ -28,6 +28,8 @@ class OSP:
 
     assert nMeasure == 1 #probably nMeasure > 1 does not work yet 
 
+    self.current_day = -1
+
   
   #############################################################################################
   def EvaluateUtility(self,space_time):
@@ -73,11 +75,6 @@ class OSP:
               return 
            else:
               return retval
-
-        
-           
-
-
 
     M = self.nMeasure
     N = len(time)
@@ -226,31 +223,92 @@ class OSP:
     
     return t_sensors,x_sensors
 
-  '''
-  ##########################################
-  def computePosterior(self):
-  ##########################################  
-    time = np.load("result_time.npy")
-    space = np.load("result_space.npy")
-    posterior = np.zeros((self.Ntheta,self.Ntheta))
-   
+
+
+  #############################################################################################
+  def EvaluateUtility1(self,argument):
+  #############################################################################################
+    space = []
+    time  = []
+    if self.korali:
+      st = argument["Parameters"]
+      n  = len(st) 
+      for i in range(n):
+          space.append(int(st[-(i+1)])) #space.append(int(st[i]))
+          time.append(self.current_day)
+    else:
+      n =  len(argument) 
+      for i in range(n):
+        space.append(argument[i])
+        time.append(self.current_day)
+
+    n = len(space)
+
+    for i in range(n-1):
+        if space[n-1] == space[i]:
+           #argument["F(x)"] = -666
+           #print("!!",i,space,argument["F(x)"])
+           #return 
+
+           st = []
+           for j in range(n-1):
+               st.append(space[j])
+
+           self.korali = False
+           retval = self.EvaluateUtility1(st)
+           self.korali = True
+           if self.korali:
+              argument["F(x)"] = retval
+              return 
+           else:
+              return retval
+
     M = self.nMeasure
-    N = self.nSensors
+    N = len(time)
     F = np.zeros((self.Ntheta,  M*N ))
- 
+    for s in range(0,N):
+      F[:,s*M:(s+1)*M] = self.data[:,time[s], self.nMeasure*space[s] : self.nMeasure*(space[s]+1) ] 
+
+    #Estimate covariance matrix as a function of the sensor locations (time and space)
     T1,T2 = np.meshgrid(time ,time )
     X1,X2 = np.meshgrid(space,space)
-    block = self.sigma * self.sigma * np.exp( -self.distance(T1,X1,T2,X2) )      
-    cov = np.kron(np.eye(self.nMeasure,dtype=int), block)
- 
+    block = np.exp( -self.distance(T1,X1,T2,X2) ) 
+    cov   = np.kron(np.eye(self.nMeasure), block)
+
+    sigma_mean = np.zeros(N)
+    for i in range(N):
+      sigma_mean[i] = self.sigma_mean[time[i]]
+    
+    #compute utility
+    retval = 0.0
     for theta in range(0,self.Ntheta):
-      for s in range(0,self.nSensors):
-        F[theta][s*M:(s+1)*M] = self.data[theta][time[s]][ self.nMeasure*space[s] : self.nMeasure*(space[s]+1) ] 
 
-    for i in range(0,self.Ntheta):
-      mean = F[i][:]
-      for j in range(0,self.Ntheta):
-        posterior[i,j] = sp.multivariate_normal.pdf(F[j][:] ,mean, cov)
+      mean = F[theta][:]
+      sig  = sigma_mean * np.eye(N)
+      rv   = sp.multivariate_normal(np.zeros(n), sig*cov*sig,allow_singular=True)
+      y    = np.random.multivariate_normal(mean, sig*cov*sig, self.Ny)  
+      s1   = np.mean(rv.logpdf(y-mean))    
+      
+      #this is a faster way to avoid a second for loop over Ntheta
+      m1,m2 = np.meshgrid(y[:,0],F[:,0] )
+      m1 = m1.reshape((m1.shape[0]*m1.shape[1],1))
+      m2 = m2.reshape((m2.shape[0]*m2.shape[1],1))
+      for ns in range(1,n):
+        m1_tmp,m2_tmp = np.meshgrid(y[:,ns],F[:,ns] )
+        m1_tmp = m1_tmp.reshape(m1_tmp.shape[0]*m1_tmp.shape[1],1)
+        m2_tmp = m2_tmp.reshape(m2_tmp.shape[0]*m2_tmp.shape[1],1)
+        m1=np.concatenate( (m1,m1_tmp), axis= 1 )
+        m2=np.concatenate( (m2,m2_tmp), axis= 1 )
+      Pdf_inner = np.empty((self.Ntheta*self.Ny))
+      Pdf_inner = rv.pdf(m1-m2)
+      Pdf_inner = Pdf_inner.reshape((self.Ntheta,self.Ny))
 
-    return posterior      
-    '''
+      s2 = np.mean ( np.log( np.mean( Pdf_inner,axis=0) ) )
+      retval += (s1-s2)
+
+    retval /= self.Ntheta
+    if self.korali:
+      #print(space,retval)
+      argument["F(x)"] = retval
+    else:
+      return retval
