@@ -9,6 +9,7 @@ presets = "./countries.json"
 with open(presets) as f:
     js = json.loads(f.read())
 
+
 def filter_few(confirmed, population):
     i = 0
     for i, c in enumerate(confirmed):
@@ -71,10 +72,11 @@ countries = {
     "Vatican City",
 }
 
-country_to_idx = {row['country']:idx for idx,row in enumerate(js)}
+country_to_idx = {row['country']: idx for idx, row in enumerate(js)}
 
 for country in countries:
-    assert country in country_to_idx , "Error: unknown country '{}'".format(country)
+    assert country in country_to_idx, "Error: unknown country '{}'".format(
+        country)
 
 for country in country_to_idx.keys():
     idx = country_to_idx[country]

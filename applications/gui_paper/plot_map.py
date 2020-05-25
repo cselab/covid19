@@ -102,7 +102,7 @@ shapes = shapes.merge(df_R0_int, on='folder')
 #print("Matched folders:")
 #print('\n'.join(shapes.folder.values))
 
-fig, [ax, ax2] = plt.subplots(1,2,figsize=(9,5.5))
+fig, [ax, ax2] = plt.subplots(1, 2, figsize=(9, 5.5))
 #ax.set_axis_off()
 #ax2.set_axis_off()
 ax.get_xaxis().set_visible(False)
@@ -117,6 +117,7 @@ shift = [1.4e6, 2e6]
 xlim = [bb[0] - ext[0] + shift[0], bb[2] + ext[0] + shift[0]]
 ylim = [bb[1] - ext[1] + shift[1], bb[3] + ext[1] + shift[1]]
 
+
 class Norm(mcolors.Normalize):
     def __init__(self, vmin=None, vmax=None, vcenter=None, clip=False):
         self.vcenter = vcenter
@@ -125,6 +126,7 @@ class Norm(mcolors.Normalize):
     def __call__(self, value, clip=None):
         x, y = [self.vmin, self.vcenter, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y))
+
 
 norm = Norm(vmin=0.5, vmax=2.5, vcenter=1)
 cmap = plt.get_cmap('coolwarm')
@@ -155,13 +157,16 @@ shapes.plot(column='R0',
 ax2.set_xlim(*xlim)
 ax2.set_ylim(*ylim)
 
-
-fig.subplots_adjust(top=1,bottom=0.05, left=0.025, right=0.975, wspace=0.05)
+fig.subplots_adjust(top=1, bottom=0.05, left=0.025, right=0.975, wspace=0.05)
 cbar_ax = fig.add_axes([0.025, 0.07, 0.95, 0.05])
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
-fig.colorbar(sm, cax=cbar_ax, cmap=cmap,norm=norm,orientation='horizontal',
-        ticks=[0.5, 1, 1.5, 2, 2.5])
+fig.colorbar(sm,
+             cax=cbar_ax,
+             cmap=cmap,
+             norm=norm,
+             orientation='horizontal',
+             ticks=[0.5, 1, 1.5, 2, 2.5])
 
 #fig.tight_layout()
 fig.savefig("map.pdf")

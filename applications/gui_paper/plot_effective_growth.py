@@ -30,9 +30,15 @@ intervention_trans = linear_trans
 import matplotlib.dates as mdates
 
 parser = argparse.ArgumentParser()
-parser.add_argument('dataDir', help="Path to 'intervals.json' and '_korali_samples'.")
-parser.add_argument('--title', type=str, default="", help="Title for the figure")
-parser.add_argument('--output_dir',default=".", help="Directory for output images.")
+parser.add_argument('dataDir',
+                    help="Path to 'intervals.json' and '_korali_samples'.")
+parser.add_argument('--title',
+                    type=str,
+                    default="",
+                    help="Title for the figure")
+parser.add_argument('--output_dir',
+                    default=".",
+                    help="Directory for output images.")
 parser.add_argument('--dehning2020_dir',
                     help="Extracted data from Dehning et al. (Germany)")
 args = parser.parse_args()
@@ -83,23 +89,22 @@ ax1.xaxis.set_major_formatter(myFmt)
 ax2.xaxis.set_major_formatter(myFmt)
 ax3.xaxis.set_major_formatter(myFmt)
 
-
-db    = np.array(samples['Results']['Sample Database']);
-R0    = db[:,0]
-tact  = db[:,1]
-kbeta = db[:,2]
+db = np.array(samples['Results']['Sample Database'])
+R0 = db[:, 0]
+tact = db[:, 1]
+kbeta = db[:, 2]
 
 Nt = len(t)
 Ns = R0.shape[0]
 
-lambdaeff = np.zeros((Nt,Ns))
+lambdaeff = np.zeros((Nt, Ns))
 for i in range(Nt):
     for j in range(Ns):
-        beta =  R0[j]* intervention_trans(1., kbeta[j], t[i], tact[j], dtact * 0.5) * gamma
-        lambdaeff[i,j] = beta - gamma
+        beta = R0[j] * intervention_trans(1., kbeta[j], t[i], tact[j],
+                                          dtact * 0.5) * gamma
+        lambdaeff[i, j] = beta - gamma
 
-
-mean = np.mean(lambdaeff,axis=1)
+mean = np.mean(lambdaeff, axis=1)
 ax1.plot(days, mean)
 
 median = np.quantile(lambdaeff, 0.5, axis=1)
@@ -121,8 +126,7 @@ for v in d['Daily Infected']['Intervals']:
         continue
     low = v['Low Interval']
     high = v['High Interval']
-    ax2.fill_between(days, low, high, alpha=ALPHA,
-            color=line.get_color())
+    ax2.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
 ax2.scatter(daysdata, np.diff(ydata, prepend=0), c='black', s=4)
 ax2.set_ylabel('Daily new reported')
@@ -138,8 +142,7 @@ for v in d['Total Infected']['Intervals']:
         continue
     low = v['Low Interval']
     high = v['High Interval']
-    ax3.fill_between(days, low, high, alpha=ALPHA,
-            color=line.get_color())
+    ax3.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
 ax3.scatter(daysdata, ydata, c='black', s=4)
 ax3.set_ylabel('Total new reported')
@@ -158,4 +161,3 @@ p = os.path.join(args.output_dir, "total.pdf")
 print(p)
 fig.tight_layout()
 fig.savefig(p)
-

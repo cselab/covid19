@@ -64,14 +64,14 @@ def Col(dictx, dicty):
 
 fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
+
 def Color(i):
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
     return colors[i % len(colors)]
 
-color = {
-        c:Color(i) for i,c in enumerate(sorted(f_R0))
-        }
+
+color = {c: Color(i) for i, c in enumerate(sorted(f_R0))}
 
 for f, ax in zip([f_R0_int, f_R0], axes):
     before = (f == f_R0)
@@ -93,7 +93,8 @@ for f, ax in zip([f_R0_int, f_R0], axes):
     ax.text(0.2 if not before else 0.2,
             1.03,
             r"$R_0$ {:} intervention".format("before" if before else "after"),
-            transform=ax.transAxes, fontsize=15)
+            transform=ax.transAxes,
+            fontsize=15)
     ax.set_ylabel('days from first cases to intervention')
 fig.tight_layout()
 fig.savefig("scatter_tact.pdf")

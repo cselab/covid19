@@ -14,8 +14,10 @@ datafolder = "."
 
 LAST_DAY = "2020-05-18"
 
+
 def get_folder(country):
     return os.path.join(datafolder, country.replace(' ', ''))
+
 
 def get_foldername(country):
     return country.replace(' ', '')
@@ -32,13 +34,16 @@ def folder_to_country(folder):
     }
     return displayname.get(folder, folder)
 
+
 # folder name to parameter
 f_tact = dict()
 f_tact_day = dict()
-f_day0 = dict()   # day of the first row of `x-data`
+f_day0 = dict()  # day of the first row of `x-data`
+
 
 def days_to_delta(t):
     return np.timedelta64(int(t + 0.5), 'D')
+
 
 folders = []
 for path in glob(os.path.join(datafolder, "*", "intervals.json")):
@@ -56,7 +61,6 @@ for path in glob(os.path.join(datafolder, "*", "intervals.json")):
     f_tact[folder] = p['tact']
     f_day0[folder] = day0
     f_tact_day[folder] = day0 + days_to_delta(p['tact'])
-
 
 with open("tact.csv", 'w') as f:
     f.write("country,date\n")
