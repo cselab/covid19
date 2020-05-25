@@ -12,6 +12,20 @@ import shutil
 import sys
 from scipy.stats import truncnorm
 
+LOGPREFIX = '[Epidemics] '
+
+def printlog(msg, prefix=LOGPREFIX, end='\n', flush=False):
+    out = sys.stdout
+    out.write(f"{prefix}{msg}{end}")
+    if flush:
+        out.flush()
+
+def abort(msg, code=1, prefix=LOGPREFIX):
+    out = sys.stdout
+    out.write(f"{LOGPREFIX}{msg}")
+    out.flush()
+    exit(code)
+
 def flatten(matrix):
     """
     >>> flatten([[10, 20, 30], [40, 50]])

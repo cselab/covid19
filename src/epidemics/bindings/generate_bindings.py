@@ -13,7 +13,7 @@ NO_EDIT_NOTE = f"""
 EXPORT_PARAMETERS_TEMPLATE = jinja2.Template('''
 template <typename T>
 static auto exportParameters(py::module &m, const char *name) {
-    return py::class_<Parameters<T>>(m, name)
+    auto pyParams = py::class_<Parameters<T>>(m, name)
         .def(py::init<{{ (['T'] * PARAMS|length) | join(', ') }}>(),
         {%- for param in PARAMS %}
              "{{param}}"_a{% if not loop.last %},{% endif %}
@@ -30,8 +30,10 @@ static auto exportParameters(py::module &m, const char *name) {
             {%- endfor %}
                     default: throw py::index_error(std::to_string(index));
                 }
-            });
-    ;
+            })
+        .def("__len__", [](const Parameters<T> &) { return {{PARAMS|length}}; });
+    pyParams.attr("NUM_PARAMETERS") = {{PARAMS|length}};
+    return pyParams;
 }
 ''')
 
@@ -66,8 +68,9 @@ def _generate_model(template, name, state, params):
     code = NO_EDIT_NOTE + template.render(
             EXPORT_PARAMETERS=params_code, **kwargs)
 
-    # Make differentiation between generated and template code easier.
-    code = '/**/' + code.replace('\n', '\n/**/')
+    # Disable because it breaks CMake's dependency checking.
+    # # Make differentiation between generated and template code easier.
+    # code = '/**/' + code.replace('\n', '\n/**/')
     return code
 
 
@@ -101,12 +104,13 @@ def generate_canton(*models):
 def main():
     generate_country_model('sir', 'S I R', 'beta gamma')
     generate_country_model('sir_int', 'S I R', 'beta gamma tact dtact kbeta')
+    generate_country_model('sir_int_r0', 'S I R', 'r0 gamma tact dtact kbeta')
     generate_country_model('seiir', 'S E Ir Iu R', 'beta mu alpha Z D')
     generate_canton_model('sei_c', 'S E I', 'beta nu Z D tact kbeta')
     generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
     generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
     generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3')
-    generate_country('sir', 'sir_int', 'seiir')
+    generate_country('sir', 'sir_int', 'sir_int_r0', 'seiir')
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 

@@ -37,6 +37,8 @@ struct StateBase {
     const RawState &raw() const & { return v_; }
     RawState raw() && { return std::move(v_); }
 
+    constexpr size_t size() noexcept { return v_.size(); }
+
 protected:
     size_t numRegions_;
     RawState v_;
@@ -56,6 +58,12 @@ public:
     SolverBase(ModelData modelData) :
         modelData_{std::move(modelData)}
     { }
+
+    const ModelData &modelData() const noexcept { return modelData_; }
+
+    size_t stateSize() const noexcept {
+        return State<double>::kVarsPerRegion * modelData_.numRegions;
+    }
 
     double M(int from, int to) const {
         return modelData_.Mij[from * modelData_.numRegions + to];

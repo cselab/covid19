@@ -6,6 +6,9 @@ geneated by
 
 last row of data is `2020-05-18`
 
+**FIXME: After updating `countries.json` change the date of the last row in
+`table_tact.py` and `plot_effective_growth.py`**
+
 
 # `request_country.py`
 
@@ -26,3 +29,10 @@ last row of data is `2020-05-18`
 
 Geographical distribution of the effect
 of interventions of the ongoing pandemic
+
+
+# Data sources
+
+* Interventions
+
+  <https://www.acaps.org/covid19-government-measures-dataset>

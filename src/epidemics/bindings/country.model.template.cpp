@@ -23,11 +23,12 @@ static auto exportState(py::module &m, const char *name) {
 }
 
 void exportAll(py::module &top, py::module &m) {
-    using AD = ADType<Parameters>;
+    using StaticAD = StaticADType<Parameters>;
+    using DynamicAD = DynamicAutoDiff<double>;
     exportParameters<double>(m, "Parameters");
-    exportParameters<AD>(m, "ParametersAD")
+    exportParameters<StaticAD>(m, "ParametersStaticAD")
         .def(py::init([](const Parameters<double> &params) {
-            return Parameters<AD>{
+            return Parameters<StaticAD>{
                     {% for field in PARAMS %}
                         {%- set outer_loop = loop -%}
                         make_ad(params.{{field}}
@@ -36,18 +37,28 @@ void exportAll(py::module &top, py::module &m) {
                         {%- endfor -%}),
                     {% endfor %}
             };
-        }), "params"_a, "Create an AD parameters struct from non-ad parameters.");
+        }), "params"_a, "Create a StaticAD parameters struct from non-ad parameters.");
+    exportParameters<DynamicAD>(m, "ParametersDynamicAD")
+        .def(py::init([](const Parameters<double> &) -> Parameters<DynamicAD> {
+            // TODO: Is this even necessary?
+            throw std::invalid_argument("Parameters -> ParametersDynamicAD not yet implemented.");
+        }), "params"_a, "Create a DynamicAD parameters struct from non-ad parameters.");
 
     exportState<double>(m, "State");
-    exportState<AD>(m, "StateAD")
-        .def(py::init(&convertScalarStateToAD<State, AD>), "state"_a,
-             "Convert scalar state to AD state");
+    exportState<StaticAD>(m, "StateStaticAD")
+        .def(py::init(&convertScalarStateToAD<State, StaticAD>), "state"_a,
+             "Convert scalar state to StaticAD state");
+    exportState<DynamicAD>(m, "StateDynamicAD");
 
-    py::implicitly_convertible<Parameters<double>, Parameters<AD>>();
-    py::implicitly_convertible<State<double>, State<AD>>();
+    py::implicitly_convertible<Parameters<double>, Parameters<StaticAD>>();
+    py::implicitly_convertible<State<double>, State<StaticAD>>();
 
-    m.attr("ElementAD") = exportAutoDiff<AD>(top);
-    exportSolver<Solver, ModelData, State, Parameters>(m);
+    m.attr("StaticAD") = exportStaticAutoDiff<StaticAD>(top, "StaticAD_double_");
+    m.attr("DynamicAD") = exportDynamicAutoDiff<DynamicAD>(top, "DynamicAD_double_");
+    exportSolver<Solver, ModelData, State, Parameters>(m)
+        .def("state_size", [](const Solver &) noexcept {
+            return State<double>::size();
+        }, "Return the number of state variables.");
 }
 
 }  // namespace {{NAME}}

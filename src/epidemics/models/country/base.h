@@ -32,8 +32,8 @@ struct StateBase {
     explicit StateBase() { }
     explicit StateBase(RawState state) : v_{std::move(state)} { }
 
-    const RawState &raw() const { return v_; }
-    RawState& raw() { return v_; }
+    const RawState &raw() const noexcept { return v_; }
+    RawState& raw() noexcept { return v_; }
 
     static constexpr size_t size() noexcept { return N; }
 
@@ -53,6 +53,8 @@ template <typename Derived,
 class SolverBase {
 public:
     SolverBase(ModelData data) : data_{std::move(data)} { }
+
+    const ModelData &modelData() const noexcept { return data_; }
 
     template <typename T>
     std::vector<State<T>> solve(

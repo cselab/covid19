@@ -54,8 +54,8 @@ class TestCountrySEIIR(TestCaseEx):
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial = seiir.State(y0)
         py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=data.N)
-        cpp_result_noad = solver.solve   (params, initial, t_eval=t_eval, dt=0.1)
-        cpp_result_ad   = solver.solve_ad(params, initial, t_eval=t_eval, dt=0.1)
+        cpp_result_noad = solver.solve          (params, initial, t_eval=t_eval, dt=0.1)
+        cpp_result_ad   = solver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.1)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
         for t, py, noad, ad in zip(t_eval[1:], py_result[1:], cpp_result_noad[1:], cpp_result_ad[1:]):
