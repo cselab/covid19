@@ -46,6 +46,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> & __restrict__ x,
              State<T> & __restrict__ dxdt) const
     {
+        const T ZERO = 0 * p.beta;
         int day = static_cast<int>(t);
         for (size_t i = 0; i < modelData_.numRegions; ++i) {
             double extComIu = modelData_.getExternalCommutersIu(day, i);
@@ -57,7 +58,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             T dE = A + B - E_Z;
             T dIr = p.alpha * E_Z - x.Ir(i) / p.D;
             T dIu = E_Z - p.alpha * E_Z - x.Iu(i) / p.D;
-            T dN = 0;
+            T dN = ZERO;
 
             T inv = 1 / (x.N(i) - x.Ir(i));
             // NOTE: nonzero_Mij will not work if non-zero elements do not on symmetric places.

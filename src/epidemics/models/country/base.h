@@ -54,6 +54,8 @@ class SolverBase {
 public:
     SolverBase(ModelData data) : data_{std::move(data)} { }
 
+    const ModelData &modelData() const noexcept { return data_; }
+
     template <typename T>
     std::vector<State<T>> solve(
             const Parameters<T> &parameters,

@@ -20,10 +20,24 @@ auto inverse(T x) {
 template <typename T, size_t N_>
 struct ADStaticStorage
 {
-    static constexpr size_t N() { return N_; }
+    static constexpr size_t N() noexcept { return N_; }
 
 protected:
+    static constexpr void checkSize() noexcept { }
     static constexpr void checkSize(const ADStaticStorage &) noexcept { }
+
+    T &get(size_t index) {
+        assert(index <= N_);
+        return v_[index];
+    }
+    const T &get(size_t index) const {
+        assert(index <= N_);
+        return v_[index];
+    }
+    T *data() noexcept { return v_.data(); }
+    const T *data() const noexcept { return v_.data(); }
+
+private:
     std::array<T, 1 + N_> v_;
 };
 
@@ -31,14 +45,34 @@ template <typename T>
 struct ADDynamicStorage
 {
     ADDynamicStorage(std::vector<T> v) : v_(std::move(v)) { }
+    ADDynamicStorage(T value, const std::vector<T> &d) : v_(d.size() + 1) {
+        v_[0] = value;
+        for (size_t i = 0; i < d.size(); ++i)
+            v_[1 + i] = d[i];
+    }
 
     size_t N() const noexcept { return v_.size() - 1; }
-    void checkSize(const ADDynamicStorage &other) {
+protected:
+    void checkSize() const {
+        assert(!v_.empty());
+    }
+    void checkSize(const ADDynamicStorage &other) const {
         (void)other;
         assert(v_.size() == other.v_.size());
     }
 
-protected:
+    T &get(size_t index) {
+        assert(index < v_.size());
+        return v_[index];
+    }
+    const T &get(size_t index) const {
+        assert(index < v_.size());
+        return v_[index];
+    }
+    T *data() noexcept { return v_.data(); }
+    const T *data() const noexcept { return v_.data(); }
+
+private:
     // TODO: A custom container with T* v_ and size_t N.
     std::vector<T> v_;
 };
@@ -55,28 +89,29 @@ struct AutoDiffBase : Storage
     }
 
     /// Return the non-derivative value.
-    const T &val() const { return this->v_[0]; }
-    T &val() { return this->v_[0]; }
+    const T &val() const { return this->get(0); }
+    T &val() { return this->get(0); }
 
     /// Return the first derivative wrt the ith variable.
-    const T &d(int i) const { return this->v_[1 + i]; }
-    T &d(int i) { return this->v_[1 + i]; }
+    const T &d(int i) const { return this->get(1 + i); }
+    T &d(int i) { return this->get(1 + i); }
 
     // NOTE: If we had a span<> here, we could just have `span<T> d();`.
-    const T *dBegin() const noexcept { return this->v_.data() + 1; }
-    const T *dEnd() const noexcept { return this->v_.data() + this->N() + 1; }
-    T *dBegin() noexcept { return this->v_.data() + 1; }
-    T *dEnd() noexcept { return this->v_.data() + this->N() + 1; }
+    const T *dBegin() const noexcept { return this->data() + 1; }
+    const T *dEnd() const noexcept { return this->data() + this->N() + 1; }
+    T *dBegin() noexcept { return this->data() + 1; }
+    T *dEnd() noexcept { return this->data() + this->N() + 1; }
 
     // Unary operators.
     Derived operator+() const {
         return derived();
     }
     Derived operator-() const {
-        Derived result = derived();
-        result.val() = -result.val();
-        for (size_t i = 0; i < result.N(); ++i)
-            result.d(i) = -result.d(i);
+        this->checkSize();
+        Derived result(size_tag{}, this->N());
+        result.val() = -val();
+        for (size_t i = 0; i < this->N(); ++i)
+            result.d(i) = -d(i);
         return result;
     }
 
@@ -233,9 +268,9 @@ struct AutoDiff : AutoDiffBase<AutoDiff<T, N_>, T, ADStaticStorage<T, N_>>
 {
 private:
     using Base = AutoDiffBase<AutoDiff<T, N_>, T, ADStaticStorage<T, N_>>;
-    using size_tag = typename Base::size_tag;
 
 public:
+    using size_tag = typename Base::size_tag;
     static constexpr size_t kNumVariables = N_;
 
     AutoDiff() : AutoDiff(T{}) { }
@@ -262,11 +297,19 @@ struct DynamicAutoDiff : AutoDiffBase<DynamicAutoDiff<T>, T, ADDynamicStorage<T>
 {
 private:
     using Base = AutoDiffBase<DynamicAutoDiff<T>, T, ADDynamicStorage<T>>;
-    using size_tag = typename Base::size_tag;
 
 public:
-    DynamicAutoDiff(size_tag, size_t N) : Base(std::vector<T>(N)) { }
+    using size_tag = typename Base::size_tag;
+
+    DynamicAutoDiff(size_tag, size_t N) : Base(std::vector<T>(1 + N)) { }
     DynamicAutoDiff(std::vector<T> v) : Base(std::move(v)) { }
+    DynamicAutoDiff(T value, const std::vector<T> &d) : Base(value, d) { }
+
+    // Cannot construct a DynamicAutoDiff without num of derivatives.
+    DynamicAutoDiff(T value) = delete;
+
+    // NOTE: This is dangerous to use, we have it because of boost!
+    DynamicAutoDiff() : Base(std::vector<T>{}) { }
 };
 
 template <typename T, typename ...Args>

@@ -26,7 +26,7 @@ class ModelBase( EpidemicsCountry ):
     
     initial = seiir.State(y0cpp)
  
-    cpp_res = cppsolver.solve_ad(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
   
     yS      = np.zeros(len(cpp_res))
     gradmu  = []
