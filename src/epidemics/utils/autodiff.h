@@ -23,6 +23,7 @@ struct ADStaticStorage
     static constexpr size_t N() { return N_; }
 
 protected:
+    static constexpr void checkSize(const ADStaticStorage &) noexcept { }
     std::array<T, 1 + N_> v_;
 };
 
@@ -32,6 +33,10 @@ struct ADDynamicStorage
     ADDynamicStorage(std::vector<T> v) : v_(std::move(v)) { }
 
     size_t N() const noexcept { return v_.size() - 1; }
+    void checkSize(const ADDynamicStorage &other) {
+        (void)other;
+        assert(v_.size() == other.v_.size());
+    }
 
 protected:
     // TODO: A custom container with T* v_ and size_t N.
@@ -93,7 +98,7 @@ struct AutoDiffBase : Storage
         return derived();
     }
     Derived &operator+=(const Derived &b) {
-        assert(a.N() == b.N());
+        this->checkSize(b);
         val() += b.val();
         for (size_t i = 0; i < this->N(); ++i)
             d(i) += b.d(i);
@@ -120,7 +125,7 @@ struct AutoDiffBase : Storage
         return derived();
     }
     Derived &operator-=(const Derived &b) {
-        assert(a.N() == b.N());
+        this->checkSize(b);
         val() -= b.val();
         for (size_t i = 0; i < this->N(); ++i)
             d(i) -= b.d(i);
@@ -147,7 +152,7 @@ struct AutoDiffBase : Storage
         return derived();
     }
     Derived &operator*=(const Derived &b) {
-        assert(a.N() == b.N());
+        this->checkSize(b);
         for (size_t i = 0; i < this->N(); ++i)
             d(i) = val() * b.d(i) + d(i) * b.val();
         val() *= b.val();
@@ -176,6 +181,7 @@ struct AutoDiffBase : Storage
         return *this *= inverse(b);
     }
     Derived &operator/=(const Derived &b) {
+        this->checkSize(b);
         T inv_b0 = inverse(b.val());
         val() *= inv_b0;
         for (size_t i = 0; i < this->N(); ++i)
