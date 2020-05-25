@@ -99,13 +99,13 @@ class TestAutoDiff(TestCaseEx):
         def compare(_static, _val, _der):
             """Compare value and derivatives for one canton, one day, one state variable."""
             try:
-                self.assertEqual(_static.val(), _val)
-                self.assertEqual(_static.d(0), _der[5])
-                self.assertEqual(_static.d(1), _der[4])
-                self.assertEqual(_static.d(2), _der[3])
-                self.assertEqual(_static.d(3), _der[2])
-                self.assertEqual(_static.d(4), _der[1])
-                self.assertEqual(_static.d(5), _der[0])
+                self.assertRelative(_static.val(), _val, tolerance=1e-12)
+                self.assertRelative(_static.d(0), _der[5], tolerance=1e-12)
+                self.assertRelative(_static.d(1), _der[4], tolerance=1e-12)
+                self.assertRelative(_static.d(2), _der[3], tolerance=1e-12)
+                self.assertRelative(_static.d(3), _der[2], tolerance=1e-12)
+                self.assertRelative(_static.d(4), _der[1], tolerance=1e-12)
+                self.assertRelative(_static.d(5), _der[0], tolerance=1e-12)
                 self.assertRelative(_der[6], sum(_der[0:6]), tolerance=1e-12)
             except:
                 print(f"static={_static}")
