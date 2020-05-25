@@ -28,7 +28,7 @@ From the repository root folder do:
 
     pip3 install jinja2
     git submodule update --init --recursive
-    mkdir -p
+    mkdir -p build
     cd build
     cmake ..
     make

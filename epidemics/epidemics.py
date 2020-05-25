@@ -105,6 +105,10 @@ class EpidemicsBase:
 
 
   def save_data_path( self ):
+    """
+    Returns `tuple`:
+    Directories to be joined to generate path for output data.
+    """
     return (self.dataFolder,)
 
 
