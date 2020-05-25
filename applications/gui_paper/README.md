@@ -6,9 +6,7 @@ geneated by
 
 last row of data is `2020-05-18`
 
-**FIXME: After updating `countries.json` change the date of the last row in
-`table_tact.py` and `plot_effective_growth.py`**
-
+**FIXME: After updating `countries.json` change `LAST_DAY` in `countries.py`**
 
 # `request_country.py`
 
