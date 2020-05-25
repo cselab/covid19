@@ -12,7 +12,11 @@ import pandas as pd
 # XXX path to folder with output from `request_country.py`
 datafolder = "."
 
-LAST_DAY = "2020-05-18"
+from countries import LAST_DAY
+
+def days_to_delta(t):
+    return np.timedelta64(int(t + 0.5), 'D')
+
 
 csv = "merge_csv/delay.csv"
 csv = pd.read_csv(csv)
@@ -80,16 +84,28 @@ def GlobColors():
     return color
 
 
+def StartDay():
+    start_day = dict()
+    for i, path in enumerate(
+            sorted(glob(os.path.join(datafolder, "*", "intervals.json")))):
+        folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
+                            path)[0]
+        with open(path) as f:
+            js = json.loads(f.read())
+        start_day[folder] = np.datetime64(LAST_DAY) - days_to_delta(
+            max(js['x-data']))
+    return start_day
+
+
 #color = {c: Color(i) for i, c in enumerate(sorted(csv['country']))}
 color = GlobColors()
+start_day = StartDay()
 
 for i in range(len(csv)):
     date = pd.to_datetime(csv['date'][i])
     exact = pd.to_datetime(csv['exactDate'][i])
 
 i = 0
-
-last_day = pd.to_datetime(LAST_DAY)
 
 yticks_y = []
 yticks_label = []
@@ -112,9 +128,28 @@ for i in range(len(csv)):
     yticks_y.append(y)
     yticks_label.append(c)
 
-    cl = color[display_to_folder(c)]
+    folder = display_to_folder(c)
+    cl = color[folder]
     fcl = 'none' if pd.isna(exact) else cl
-    p = ax.scatter(date, y, s=16, marker='o', facecolor=fcl, edgecolor=cl)
+
+    samples_path = os.path.join(folder, 'sample_params.dat')
+    if os.path.isfile(samples_path):
+        samples = np.genfromtxt(samples_path, names=True)
+        tact = samples['tact']
+        tact_mean = np.mean(tact)
+        tact_lo = np.quantile(tact, 0.10)
+        tact_hi = np.quantile(tact, 0.90)
+
+        d_mean = start_day[folder] + days_to_delta(tact_mean)
+        d_lo = start_day[folder] + days_to_delta(tact_lo)
+        d_hi = start_day[folder] + days_to_delta(tact_hi)
+        ax.scatter(d_mean, y, s=16, marker='o', facecolor=fcl, edgecolor=cl)
+        #ax.plot([d_lo, d_hi], [y, y], c=cl, lw=3, alpha=0.5, zorder=-10)
+        ax.plot([d_lo, d_hi], [y, y], c="black", lw=3, alpha=0.25, zorder=-10)
+        #ax.scatter(d_lo, y, s=16, c=cl, marker='|')
+        #ax.scatter(d_hi, y, s=16, c=cl, marker='|')
+    else:
+        ax.scatter(date, y, s=16, marker='o', facecolor=fcl, edgecolor=cl)
 
     if not pd.isna(exact):
         ax.scatter(exact, y, s=16, c=cl, marker='|')

@@ -12,8 +12,7 @@ import pandas as pd
 # XXX path to folder with output from `request_country.py`
 datafolder = "."
 
-LAST_DAY = "2020-05-18"
-
+from countries import LAST_DAY
 
 def get_folder(country):
     return os.path.join(datafolder, country.replace(' ', ''))

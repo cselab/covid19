@@ -232,7 +232,6 @@ struct AutoDiffBase : Storage
         return result;
     }
 
-    /* Too lazy to write other operators now... */
 #define EPIDEMICS_AD_CMD_OPERATOR(OP) \
     friend bool operator OP(const Derived &a, const Derived &b) { \
         return a.val() OP b.val(); \
