@@ -7,7 +7,7 @@ import itertools
 class OSP:
 
   #############################################################################################
-  def __init__(self, path, nSensors = 1, nMeasure = 1, Ntheta = 100, Ny = 100, korali = False):
+  def __init__(self, path, nSensors = 1, nMeasure = 1, Ntheta = 100, Ny = 100, korali = False,start_day = -1):
   #############################################################################################
     self.path     = path      # path to output.npy
     self.nSensors = nSensors  # how many sensors to place
@@ -30,6 +30,7 @@ class OSP:
 
     self.current_day = -1
     self.current_canton = -1
+    self.start_day = start_day
 
   
   #############################################################################################
@@ -318,7 +319,6 @@ class OSP:
   #############################################################################################
   def EvaluateUtility2(self,argument):
   #############################################################################################
-    np.random.seed(666)
     space = []
     time  = []
     if self.korali:
@@ -334,6 +334,10 @@ class OSP:
         space.append(self.current_canton)
 
     n = len(time)
+    for i in range(n):
+        if time[i] < self.start_day:
+          space_time["F(x)"] = 0.0
+          return
 
     for i in range(n-1):
         if time[n-1] == time[i]:
