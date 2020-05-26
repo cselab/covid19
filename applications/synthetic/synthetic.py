@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -48,6 +49,18 @@ def plot(cases):
     plt.show()
 
 
+def makefile(name, description, N, infected):
+    f = open(name, "a")
+    f.write(description)
+    f.write(os.linesep)
+    f.write(str(N))
+    f.write(os.linesep)
+    f.write(str(len(infected)))
+    f.write(os.linesep)
+    for i in infected:
+        f.write(str(i))
+        f.write(os.linesep)
+    f.close()
 
 if __name__ == "__main__":
 
@@ -77,9 +90,7 @@ if __name__ == "__main__":
     
     randcases1 = make_data_with_mul_nrm_noise(cases, 1)
     print("Plotting randomized solver output..")
-    plot(randcases)
+    plot(randcases1)
 
-    #randcases2 = make_data_with_mul_nrm_noise(cases, 2)
-    #randcases3 = make_data_with_mul_nrm_noise(cases, 3)
-
-
+    makefile("sir_int_r0_raw.txt", "Synthetic Raw", N, cases)
+    makefile("sir_int_r0_rndm.txt", "Synthetic Rnd1", N, cases)

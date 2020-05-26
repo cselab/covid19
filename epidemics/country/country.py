@@ -8,6 +8,7 @@ plt.ioff()
 
 from epidemics.epidemics import EpidemicsBase
 from epidemics.data.combined import RegionalData
+from epidemics.data.synthetic import SyntheticData
 from epidemics.tools.tools import save_file, prepare_folder
 
 class EpidemicsCountry( EpidemicsBase ):
@@ -21,10 +22,16 @@ class EpidemicsCountry( EpidemicsBase ):
     self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
+    self.synthetic    = kwargs.pop('synthetic', False)
+    
+    if(self.synthetic):
+        self.datafile     = kwargs.pop('dataFile')
+        self.regionalData = SyntheticData( self.datafile )
+    else:
+        self.regionalData = RegionalData( self.country,self.preprocess )
 
     super().__init__( **kwargs )
     
-    self.regionalData = RegionalData( self.country,self.preprocess)
     self.process_data()
  
   def save_data_path( self ):
@@ -34,6 +41,7 @@ class EpidemicsCountry( EpidemicsBase ):
     y = self.regionalData.infected
     t = self.regionalData.time
     N = self.regionalData.populationSize
+
     I0 = y[0]
     S0 = N - I0
     y0 = S0, I0
