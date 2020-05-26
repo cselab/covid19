@@ -336,7 +336,7 @@ class OSP:
     n = len(time)
     for i in range(n):
         if time[i] < self.start_day:
-          space_time["F(x)"] = 0.0
+          argument["F(x)"] = 0.0
           return
 
     for i in range(n-1):
