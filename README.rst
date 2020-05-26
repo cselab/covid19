@@ -33,6 +33,7 @@ From the repository root folder do:
     cmake ..
     make
 
+
 Tests
 =====
 
@@ -45,6 +46,18 @@ To run the tests, run the following command (from the repository root):
 
 To run only Python tests, run ``cd tests/py && ./run.sh``.
 To run only C++ tests, run ``cd build && ./libepidemics_unittests``.
+
+
+Debugging
+=========
+
+If the C++ code is crashing, try enabling the backward-cpp library for printing the stack trace:
+
+.. code-block:: bash
+
+    cmake -DENABLE_BACKWARD_CPP=ON ..
+    make
+
 
 Code formatting
 ===============
