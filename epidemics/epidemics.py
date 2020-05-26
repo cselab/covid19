@@ -13,7 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal
+from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
 class EpidemicsBase:
@@ -31,7 +31,7 @@ class EpidemicsBase:
     self.display     = os.environ['HOME']
 
     if kwargs:
-        sys.exit(f"\n[Epidemics] Unknown input arguments: {kwargs}\n")
+        abort(f"Unknown input arguments: {kwargs}")
 
     self.saveInfo ={
       'state': 'state.pickle',
@@ -84,6 +84,11 @@ class EpidemicsBase:
     with open(fileName, 'wb') as f:
       pickle.dump(self, f)
 
+  def load(fileName="state.pickle"):
+    """Load object pickled by `save()`"""
+    with open(fileName, 'rb') as f:
+      return pickle.load(f)
+
 
   def __getstate__(self):
     """Return the state for pickling."""
@@ -124,7 +129,7 @@ class EpidemicsBase:
 
 
   def get_uniform_priors( self, *triples ) :
-    
+
     js = {}
     js['Variables']=[]
     js['Distributions']=[]
@@ -155,7 +160,7 @@ class EpidemicsBase:
     self.e['Problem']['Likelihood Model'] = self.likelihoodModel
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
-    
+
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.1
@@ -393,7 +398,7 @@ class EpidemicsBase:
         try:
           x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         except:
-          print("Error p: {}".format(p)) 
+          print("Error p: {}".format(p))
         samples[:,k] = np.asarray(x).flatten()
 
     else:

@@ -4,7 +4,9 @@ from .model_base import ModelBase
 
 
 class Model(ModelBase):
-    def __init__(self, **kwargs):
+    def __init__(self, data=None, populationSize=None,
+            nSamples=None, nSamplesPropagation=None,
+            nPoints=None, **kwargs):
 
         self.modelName = 'country.sir_gui.nbin'
         self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
