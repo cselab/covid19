@@ -22,6 +22,15 @@ Project structure
 Compilation
 ===========
 
+Install the boost library by following
+`these instructions <https://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html>`_. In macOS you can run
+
+.. code-block:: bash
+
+  brew install boost
+
+
+
 From the repository root folder do:
 
 .. code-block:: bash
