@@ -28,7 +28,7 @@ intervention_trans = linear_trans
 import matplotlib.dates as mdates
 
 parser = argparse.ArgumentParser()
-parser.add_argument('dataDir', help="Path to 'intervals.json' and '_korali_samples'.")
+parser.add_argument('--dataDir', help="Path to 'intervals.json' and '_korali_samples'.")
 parser.add_argument('--title', type=str, default="", help="Title for the figure")
 parser.add_argument('--output_dir',default=".", help="Directory for output images.")
 parser.add_argument('--dehning2020_dir',

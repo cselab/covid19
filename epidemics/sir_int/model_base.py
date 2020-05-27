@@ -45,6 +45,11 @@ class ModelBase( EpidemicsBase ):
 
   # beta, gamma, delta, t_a
   def sir_rhs( self, t, y, N, p ):
+
+    factor = 0.5
+    t_start = 45
+    t_end = 55
+
     S, I = y
 
     R0 = p[0]
@@ -52,10 +57,15 @@ class ModelBase( EpidemicsBase ):
 
     if( t<p[3] ):
         beta = R0*gamma
-    # elif t > 40:
-    #     beta = R0*gamma*p[2]*1.5
-    else:
+
+    elif t>=p[3] and t< t_start:
         beta = R0*gamma*p[2]
+
+    elif t >= t_start and t< t_end:
+        frac = (t-t_start)/(t_end-t_start)
+        beta = R0*gamma*p[2]*(1+factor*frac)
+    else:
+        beta = R0*gamma*p[2]*(1+factor )
 
     c1 = beta * S * I / N
     c2 = gamma * I
@@ -85,6 +95,7 @@ class ModelBase( EpidemicsBase ):
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
+    ax[0].set_yscale('log')
 
     #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
@@ -94,7 +105,7 @@ class ModelBase( EpidemicsBase ):
 
     #----------------------------------------------------------------------------------------------------------------------------------
     ax[-1].set_xlabel('time in days')
-
+    ax[-1].set_yscale('log')
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )
     fig.savefig(file)
