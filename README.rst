@@ -22,16 +22,26 @@ Project structure
 Compilation
 ===========
 
+Install the boost library by following
+`these instructions <https://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html>`_. In macOS you can run
+
+.. code-block:: bash
+
+  brew install boost
+
+
+
 From the repository root folder do:
 
 .. code-block:: bash
 
     pip3 install jinja2
     git submodule update --init --recursive
-    mkdir -p
+    mkdir -p build
     cd build
     cmake ..
     make
+
 
 Tests
 =====
@@ -45,6 +55,55 @@ To run the tests, run the following command (from the repository root):
 
 To run only Python tests, run ``cd tests/py && ./run.sh``.
 To run only C++ tests, run ``cd build && ./libepidemics_unittests``.
+
+
+Debugging
+=========
+
+If the C++ code is crashing, try enabling the backward-cpp library for printing the stack trace:
+
+.. code-block:: bash
+
+    cmake -DENABLE_BACKWARD_CPP=ON ..
+    make
+
+
+Code formatting
+===============
+
+Python
+~~~~~~
+
+Install `yapf <https://github.com/google/yapf>`_.
+
+.. code-block::
+
+    pip3 install yapf
+
+Format a file in-place
+
+.. code-block::
+
+    yapf -i FILE
+
+Format all python files recursively in a directory in-place
+
+.. code-block::
+
+    yapf -ir DIR
+
+C++
+~~~
+
+Install ``clang-format`` as part of `clang` using your package manager
+or download a
+`static build <http://releases.llvm.org/9.0.0/clang+llvm-9.0.0-x86_64-linux-sles11.3.tar.xz>`_
+
+Format a file in-place
+
+.. code-block::
+
+    clang-format -i FILE
 
 
 Troubleshooting

@@ -9,6 +9,7 @@ presets = "./countries.json"
 with open(presets) as f:
     js = json.loads(f.read())
 
+
 def filter_few(confirmed, population):
     i = 0
     for i, c in enumerate(confirmed):
@@ -50,14 +51,34 @@ countries = {
     "Denmark",
     "Switzerland",
     "Netherlands",
+    "Moldova",
+    "Belgium",
+    "Armenia",
+    "Albania",
+    "North Macedonia",
+    "Turkey",
+    "Slovenia",
+    "Montenegro",
+    "Kosovo",
+    "Cyprus",
+    "Azerbaijan",
+    "Luxembourg",
+    "Georgia",
+    "Andorra",
+    "Malta",
+    "Liechtenstein",
+    "San Marino",
+    "Monaco",
+    "Vatican City",
 }
 
-country_to_idx = {row['country']:idx for idx,row in enumerate(js)}
+country_to_idx = {row['country']: idx for idx, row in enumerate(js)}
 
 for country in countries:
-    assert country in country_to_idx , "Error: unknown country '{}'".format(country)
+    assert country in country_to_idx, "Error: unknown country '{}'".format(
+        country)
 
-for country in countries:
+for country in country_to_idx.keys():
     idx = country_to_idx[country]
     row = js[idx]
     if country not in countries:
@@ -71,8 +92,11 @@ for country in countries:
         continue
     cmd = ["./main.py"] + \
             ["--dataFolder", outdir] + \
-            ["--nThreads", "8"] + \
+            ["--nThreads", "12"] + \
             ["--nSamples", "5000"] + \
+            ["--futureDays", "0"] + \
+            ["--validateData", "0"] + \
+            ["--percentages", "0.9", "0.5"] + \
             ["--populationSize", str(pop)] + \
             ["--data"] + list(map(str, data))
     print(cmd)

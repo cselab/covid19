@@ -15,8 +15,8 @@ class TestCantonsSEI_C(TestCaseEx):
         y0 = (10, 11, 12, 1, 2, 3, 5, 6, 7)  # (S..., E..., I...)
         t_eval = [0., 0.3, 0.6, 1., 1.5, 2., 3., 4.]
         y0 = sei_c.State(y0)
-        cpp_result_noad = solver.solve   (params, y0, t_eval=t_eval)
-        cpp_result_ad   = solver.solve_ad(params, y0, t_eval=t_eval)
+        cpp_result_noad = solver.solve          (params, y0, t_eval=t_eval)
+        cpp_result_ad   = solver.solve_params_ad(params, y0, t_eval=t_eval)
 
         # Skip t=0 because relative error is undefined. Removing t=0 from t_eval does not work.
         for noad, ad in zip(cpp_result_noad[1:], cpp_result_ad[1:]):

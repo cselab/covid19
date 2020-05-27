@@ -2,15 +2,23 @@
 
 set -eu
 
-name=$(basename $(pwd))
+name=predictions
 out=$name.pdf
 files=$(ls *.pdf | grep -v "$name" | xargs)
 cmd="pdfnup --nup 5x2 --outfile '$out' $files"
 echo "$cmd"
 eval "$cmd"
 
-out=$name.png
+name=samples
+out=samples.png
 files=$(ls *.png | grep -v "$name" | xargs)
-cmd="magick montage -label %f -density 300 -geometry +0 -tile 5x2 $files '$out' "
+cmd="convert $files -set filename:fname '%t' \
+-gravity North   -background LightGray  -splice 0x35 \
+-pointsize 30 -annotate +0+4 '%[filename:fname]' \
+miff:- | montage -background none -geometry +0+0 -tile 5x2 - $out"
+echo "$cmd"
+eval "$cmd"
+
+cmd="convert samples-*.png samples.pdf"
 echo "$cmd"
 eval "$cmd"

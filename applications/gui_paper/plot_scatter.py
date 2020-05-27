@@ -60,14 +60,14 @@ def Col(dictx, dicty):
 fig, axes = plt.subplots(1, figsize=(9, 6))
 axes = [axes, axes]
 
+
 def Color(i):
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
     return colors[i % len(colors)]
 
-color = {
-        c:Color(i) for i,c in enumerate(sorted(f_R0))
-        }
+
+color = {c: Color(i) for i, c in enumerate(sorted(f_R0))}
 
 for f, ax in zip([f_R0, f_R0_int], axes):
     before = (f == f_R0)
@@ -92,6 +92,7 @@ for f, ax in zip([f_R0, f_R0_int], axes):
     ax.text(0.03 if not before else 0.55,
             1.01,
             r"$R_0$ {:} intervention".format("before" if before else "after"),
-            transform=ax.transAxes, fontsize=15)
+            transform=ax.transAxes,
+            fontsize=15)
 fig.tight_layout()
 fig.savefig("scatter_R0.pdf")

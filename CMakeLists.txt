@@ -1,13 +1,20 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(COVID19 LANGUAGES CXX)
+
+option(ENABLE_BACKWARD_CPP "Whether or not to use backward-cpp, for automatically printing stack traces." OFF)
+
 set(EXTERN_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/extern")
 set(SRC_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(CODE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src/epidemics")
 set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 
 set(CMAKE_CXX_STANDARD 14)
-add_subdirectory(${EXTERN_DIR}/pybind11 sir_pybind11)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Use -std=c++14, not -std=gnu++14.
+add_subdirectory(${EXTERN_DIR}/pybind11 epidemics_pybind11)
+if(ENABLE_BACKWARD_CPP)
+    add_subdirectory(${EXTERN_DIR}/backward-cpp epidemics_backward_cpp)
+endif()
 
 include(GoogleTest)
 option(INSTALL_GTEST OFF)
@@ -50,6 +57,7 @@ add_library(
     # functions `Solver::solve`, so there's not that many files here.
     ${CODE_DIR}/models/cantons/data.cpp
     ${CODE_DIR}/utils/assert.cpp
+    ${CODE_DIR}/utils/backward.cpp
     ${CODE_DIR}/utils/signal.cpp
 )
 set_property(TARGET libepidemics_core PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -79,6 +87,13 @@ add_executable(
 
 target_link_libraries(libepidemics_unittests PRIVATE gtest gtest_main libepidemics::core)
 gtest_discover_tests(libepidemics_unittests)
+
+if(ENABLE_BACKWARD_CPP)
+    target_compile_definitions(libepidemics_core PUBLIC EPIDEMICS_ENABLE_BACKWARD_CPP)
+    add_backward(libepidemics_core)
+    add_backward(libepidemics)
+    add_backward(libepidemics_unittests)
+endif()
 
 # Make Release mode the default.
 if(NOT CMAKE_BUILD_TYPE)

@@ -3,6 +3,7 @@ import os
 import numpy as np
 import datetime as dt
 
+
 def load(path):
     dehning = {}
     dehning['effective'] = np.genfromtxt(os.path.join(path, '3a.csv'),
@@ -28,4 +29,3 @@ def load(path):
         dehning[k] = data
 
     return dehning
-

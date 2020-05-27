@@ -9,7 +9,7 @@ namespace epidemics {
 
 /// Shorthand for the autodiff type used for the given model.
 template <template <typename> class Parameters>
-using ADType = AutoDiff<double, Parameters<double>::numParameters>;
+using StaticADType = AutoDiff<double, Parameters<double>::numParameters>;
 
 IntegratorSettings integratorSettingsFromKwargs(py::kwargs kwargs);
 
@@ -43,12 +43,20 @@ template <typename Solver,
           template <typename> class Parameters>
 auto exportSolver(py::module &m) {
     using namespace py::literals;
-    using AD = ADType<Parameters>;
+    using StaticAD = StaticADType<Parameters>;
+    using DynamicAD = DynamicAutoDiff<double>;
 
     auto solver = py::class_<Solver>(m, "Solver")
-        .def(py::init<ModelData>(), "model_data"_a);
+        .def(py::init<ModelData>(), "model_data"_a)
+        .def_property_readonly("model_data", &Solver::modelData)
+        .def("solve_ad", [](const Solver &, py::args, py::kwargs) {
+            throw std::runtime_error("'solve_ad' has been renamed to 'solve_params_ad'");
+        });
     exportSolverCommon<Solver, State<double>, Parameters<double>>(m, solver, "solve");
-    exportSolverCommon<Solver, State<AD>, Parameters<AD>>(m, solver, "solve_ad");
+    exportSolverCommon<Solver, State<StaticAD>, Parameters<StaticAD>>(m, solver, "solve_params_ad");
+
+    // You shouldn't use _solve_custom_ad directly, use {country,cantons}_custom_derivatives instead.
+    exportSolverCommon<Solver, State<DynamicAD>, Parameters<DynamicAD>>(m, solver, "_solve_custom_ad");
     return solver;
 }
 

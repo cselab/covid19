@@ -18,6 +18,7 @@ def filter_few(confirmed, population):
             break
     return confirmed[i:]
 
+
 countries = [js_i['country'] for js_i in js]
 
 # countries_to_infer = ['Switzerland','France','Spain','Italy','Netherlands']
@@ -26,7 +27,7 @@ countries_to_infer = ['Switzerland']
 
 # Not avail Czech Republic
 
-js_infer = [js_i for js_i in js if js_i['country'] in countries_to_infer ]
+js_infer = [js_i for js_i in js if js_i['country'] in countries_to_infer]
 
 for row in js_infer:
     country = row["country"]
@@ -35,7 +36,7 @@ for row in js_infer:
 
     print('Processing {}'.format(country))
     data = filter_few(data, pop)
-    outdir = 'data/'+country.replace(' ', '')
+    outdir = 'data/' + country.replace(' ', '')
     cmd = ["./main.py"] + \
             ["--dataFolder", outdir] + \
             ["--populationSize", str(pop)] + \

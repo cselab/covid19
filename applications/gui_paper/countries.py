@@ -1,6 +1,9 @@
 import os
 import pandas as pd
 
+# Day of the last row in `countries.json`
+LAST_DAY = "2020-05-18"
+
 LONG_NAME = {
     "RussianFederation": "Russia",
     # "UnitedKingdom": "UK",
@@ -18,14 +21,16 @@ def manual():
     """Use this if you need more countries. NOT TESTED"""
     # curl -L https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.csv > country-iso-3166-1.csv
     # https://datahub.io/core/country-list
-    ISO = pd.read_csv(os.path.join(os.path.dirname(__file__), 'country-iso-3166-1.csv'))
+    ISO = pd.read_csv(
+        os.path.join(os.path.dirname(__file__), 'country-iso-3166-1.csv'))
 
     ABBREV2 = {
         ISO['name'][i].replace(' ', ''): ISO['alpha-2'][i]
         for i in range(len(ISO))
     }
     ABBREV2["CzechRepublic"] = ABBREV2["Czechia"]
-    ABBREV2["Kosovo"] = "XK"  # That's what wikipedia says. Kosovo has no ISO abbreviation.
+    ABBREV2[
+        "Kosovo"] = "XK"  # That's what wikipedia says. Kosovo has no ISO abbreviation.
     ABBREV2["Moldova"] = "MD"
     ABBREV2["UnitedKingdom"] = "UK"
     ABBREV2["VaticanCity"] = "VA"  # Hole See

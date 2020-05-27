@@ -41,6 +41,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> & __restrict__ x,
              State<T> & __restrict__ dxdt) const
     {
+        const T ZERO = 0 * p.beta;
         int day = static_cast<int>(t);
         T beta = p.beta;
         // FIXME: rhs should take `double day` (same in lambda `rhs`)
@@ -50,7 +51,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         }
         const double * __restrict__ invNi = modelData_.invNi.data();
         for (size_t i = 0; i < modelData_.numRegions; ++i) {
-            T sumIC_N = 0;
+            T sumIC_N = ZERO;
             for (size_t j = 0; j < modelData_.numRegions; ++j) {
                 sumIC_N += x.I(j) * this->C_plus_Ct(i, j) * invNi[j];
             }
