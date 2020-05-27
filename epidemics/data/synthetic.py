@@ -14,8 +14,10 @@ class SyntheticData:
 
     def read_synthetic_data(self, filename):
         f = open(filename,"r")
+        
         self.region = f.readline()
-        self.populationSize = float(f.readline())
+        self.populationSize = int(f.readline())
+        
         T = int(f.readline())
         self.infected = np.zeros(T)
         for idx in range(T):

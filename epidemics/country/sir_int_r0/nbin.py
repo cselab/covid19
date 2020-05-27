@@ -10,7 +10,7 @@ class Model( ModelBase ):
     self.modelName        = 'country.sir_int_r0.nbin'
     self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
-
+    
     super().__init__( **kwargs )
 
 
