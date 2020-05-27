@@ -42,8 +42,8 @@ a = model_class( **vars(x) )
 
 a.sample( args.nSamples )
 
-#a.propagate( args.nPropagation )
+a.propagate( args.nPropagation )
 
 # a.save() currently not working with mTMCMC results 
 
-#a.plot_intervals()
+a.plot_intervals()

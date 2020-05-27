@@ -35,7 +35,7 @@ def make_data_with_mul_nrm_noise(infected, sig = 1.0):
     # Add multiplicative noise, round to integers and remove negative values
     cstar = cases + cases*np.random.normal(0, sig, len(cases))
     cstar = np.round(cstar)
-    cstar[cstar < 0] = 0
+    cstar[cstar < 1] = 1
     Sstar = np.cumsum(cstar)
     return Sstar
 
