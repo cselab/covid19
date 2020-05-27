@@ -29,7 +29,11 @@ class EpidemicsBase:
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
     self.display     = os.environ['HOME']
-
+    self.synthetic   = kwargs.pop('synthetic', False)
+ 
+    if(self.synthetic):
+        self.datafile     = kwargs.pop('dataFile')
+ 
     if kwargs:
         abort(f"Unknown input arguments: {kwargs}")
 

@@ -22,15 +22,14 @@ class EpidemicsCountry( EpidemicsBase ):
     self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
-    self.synthetic    = kwargs.pop('synthetic', False)
     
+    super().__init__( **kwargs )
+  
     if(self.synthetic):
-        self.datafile     = kwargs.pop('dataFile')
         self.regionalData = SyntheticData( self.datafile )
     else:
         self.regionalData = RegionalData( self.country,self.preprocess )
 
-    super().__init__( **kwargs )
     
     self.process_data()
  

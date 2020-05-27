@@ -6,6 +6,8 @@ class SyntheticData:
 
     """
     def __init__(self, datafile,preprocess=False):
+        print("[Epidemics] Reading Synthetic data.")
+
         self.preprocess = preprocess
         self.read_synthetic_data(datafile)
         self.time = np.asarray(range(len(self.infected)))

@@ -30,16 +30,18 @@ def sir_int_r0(y0, t_eval, N, p ):
     return Svec
 
 
-def make_data_with_mul_nrm_noise(cases, sig = 1.0):
+def make_data_with_mul_nrm_noise(infected, sig = 1.0):
+    cases = np.diff(infected)
     # Add multiplicative noise, round to integers and remove negative values
     cstar = cases + cases*np.random.normal(0, sig, len(cases))
     cstar = np.round(cstar)
     cstar[cstar < 0] = 0
-    return cstar
+    Sstar = np.cumsum(cstar)
+    return Sstar
 
  
-def plot(cases):
-    total = np.cumsum(cases)
+def plot(total):
+    cases = np.diff(total)
     plt.plot(total)
     plt.ylabel('Total Infections')
     plt.show()
@@ -49,16 +51,16 @@ def plot(cases):
     plt.show()
 
 
-def makefile(name, description, N, infected):
+def makefile(name, description, N, susceptible):
     f = open(name, "a")
     f.write(description)
     f.write(os.linesep)
     f.write(str(N))
     f.write(os.linesep)
-    f.write(str(len(infected)))
+    f.write(str(len(susceptible)))
     f.write(os.linesep)
-    for i in infected:
-        f.write(str(i))
+    for s in susceptible:
+        f.write(str(s))
         f.write(os.linesep)
     f.close()
 
@@ -82,15 +84,16 @@ if __name__ == "__main__":
 
     p = [r0, gamma, tact, dtact, kbeta]
 
-    S = sir_int_r0((S0, I0), teval, N, p)
+    S        = sir_int_r0((S0, I0), teval, N, p)
+    cases    = -np.diff(S)
+    infected = np.cumsum(cases)
     
-    cases = -np.diff(S)
     print("Plotting unprocessed solver output..")
-    plot(cases)
+    plot(infected)
     
-    randcases1 = make_data_with_mul_nrm_noise(cases, 1)
+    infectedRand = make_data_with_mul_nrm_noise(infected, 1)
     print("Plotting randomized solver output..")
-    plot(randcases1)
+    plot(infectedRand)
 
-    makefile("sir_int_r0_raw.txt", "Synthetic Raw", N, cases)
-    makefile("sir_int_r0_rndm.txt", "Synthetic Rnd1", N, cases)
+    makefile("sir_int_r0_raw.txt", "Synthetic Raw", N, infected)
+    makefile("sir_int_r0_rndm.txt", "Synthetic Rnd", N, infectedRand)

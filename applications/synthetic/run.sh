@@ -2,19 +2,9 @@
 
 declare -a arr=(
 "sir_int_r0_raw.txt"
-"sir_int_r0_rndm.txt"
 )
 
-# OTHER
-# "italy"
-# "russia"
-# "sweden"
-# "ukraine"
-# "austria"
-
-# NOT WORKING
-# "china"
-# "cosovo"
+#"sir_int_r0_rndm.txt"
 
 base="./data/"
 
