@@ -1,1 +1,1 @@
-PYTHONPATH=../../build:$PYTHONPATH python3 synthetic.py
+PYTHONPATH=../../build:$PYTHONPATH python3 make_synthetic.py
