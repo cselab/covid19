@@ -2,10 +2,9 @@ import os
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
-
+ 
 from epidemics.epidemics import EpidemicsBase
 from epidemics.data.combined import RegionalData
 from epidemics.data.synthetic import SyntheticData
@@ -30,7 +29,10 @@ class EpidemicsCountry( EpidemicsBase ):
     else:
         self.regionalData = RegionalData( self.country,self.preprocess )
 
-    
+    if(not self.display):
+        matplotlib.use('Agg')
+
+   
     self.process_data()
  
   def save_data_path( self ):
