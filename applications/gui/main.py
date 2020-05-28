@@ -35,53 +35,64 @@ parser.add_argument('--duration', type=float, default=10, help='Duration of appl
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--moving_average', type=int, default=0, help='Half-width of moving average window applied to data.')
 parser.add_argument('--infer_duration', action='store_true', help='Infer the duration of intervention from the data.')
+parser.add_argument('--configure', action='store_true', help='Configure the model and save in dataFolder.')
+parser.add_argument('--sample', action='store_true', help='Sample model saved in dataFolder')
+parser.add_argument('--propagate', action='store_true', help='Propagate model saved in dataFolder')
+parser.add_argument('--intervals', action='store_true', help='Compute intervals for model saved in dataFolder')
 args = parser.parse_args()
 
 args.dataFolder = os.path.join(os.path.abspath('.'), args.dataFolder) + '/'
+statefile = os.path.join(args.dataFolder, 'state.pickle')
 
 from model import Model
 
-params_to_infer = ['R0', 'tint', 'kint']
-if args.infer_duration:
-    params_to_infer.append('dint')
+if not any([args.configure, args.sample, args.propagate, args.intervals]):
+    args.congiture = True
+    args.sample = True
+    args.propagate = True
+    args.intervals = True
 
-params_fixed = {
-    'dint': args.duration,
-}
+if args.configure:
+    params_to_infer = ['R0', 'tint', 'kint']
+    if args.infer_duration:
+        params_to_infer.append('dint')
 
-data = args.data
-data = data[:-args.validateData - 1]
-data = moving_average(data, args.moving_average)
+    params_fixed = {
+        'dint': args.duration,
+    }
 
-kwargs = {
-    'dataTotalInfected': data,
-    'populationSize': args.populationSize,
-    'percentages': args.percentages,
-    'dataDays': args.dataDays,
-    'futureDays': args.futureDays,
-    'params_to_infer': params_to_infer,
-    'params_fixed': params_fixed,
-    'nSamples': args.nSamples,
-    'nPropagation': args.nPropagation,
-}
+    data = args.data
+    data = data[:-args.validateData - 1]
+    data = moving_average(data, args.moving_average)
 
-model = Model(**kwargs)
+    kwargs = {
+        'dataTotalInfected': data,
+        'populationSize': args.populationSize,
+        'percentages': args.percentages,
+        'dataDays': args.dataDays,
+        'futureDays': args.futureDays,
+        'params_to_infer': params_to_infer,
+        'params_fixed': params_fixed,
+        'nSamples': args.nSamples,
+        'nPropagation': args.nPropagation,
+    }
 
-model.sample()
+    model = Model(**kwargs)
+    model.save(statefile)
+else:
+    model = Model.load(statefile)
 
-#model.save()
+if args.sample:
+    model.sample()
+    model.save(statefile)
+else:
+    model = Model.load(statefile)
 
-#model2 = Model.load("data/switzerland/country.sir_gui.nbin/state.pickle")
-#printlog(model2)
-
-# Download and save population data
-#jsData = tools.download_data(args)
-
-# Sample the parameters of the computational model
-#jskSamples = sample_parameters(args, jsData)
-
-# Propagate the uncertainty in the parameters
-#jskPropagation = propagate_uncertainty(args, jskSamples, jsData)
+if args.propagate:
+    model.propagate()
+    model.save(statefile)
+else:
+    model = Model.load(statefile)
 
 # Compute credible intervals
 #jskIntervals = compute_intervals(args, jskPropagation, jsData)
