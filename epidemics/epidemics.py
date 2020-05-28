@@ -28,6 +28,7 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
+    self.maxGen      = kwargs.pop('maxGen', 100)
     self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
  
@@ -173,7 +174,7 @@ class EpidemicsBase:
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = 0.4
-    self.e['Solver']['Termination Criteria']['Max Generations'] = 50
+    self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
@@ -205,10 +206,9 @@ class EpidemicsBase:
     print('[Epidemics] Done copying variables.')
 
 
-  def optimize( self, maxGenerations):
+  def optimize( self, nSamples ):
 
     self.nSamples = 1
-    self.maxGenerations = maxGenerations
 
     self.e = korali.Experiment()
 
@@ -218,8 +218,8 @@ class EpidemicsBase:
     self.e['Problem']['Computational Model'] = self.computational_model
 
     self.e["Solver"]["Type"] = "CMAES"
-    self.e["Solver"]["Population Size"] = 24
-    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGenerations
+    self.e["Solver"]["Population Size"] = nSamples
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGen
     self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
 
     js = self.get_variables_and_distributions()
