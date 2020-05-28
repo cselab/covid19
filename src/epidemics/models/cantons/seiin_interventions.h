@@ -37,11 +37,12 @@ struct Parameters {
     T theta;  /// Corrective multiplicative factor for Mij.
 
     // Intervention parameters.
-    T b1;     /// beta before 1st intervention.
-    T b2;     /// beta before 2nd intervention.
-    T b3;     /// beta after  2rd intervention.
-    T d1;     /// day of 1st intervention
-    T d2;     /// day of 2nd intervention
+    T b1;     /// beta after 1st intervention.
+    T b2;     /// beta after 2nd intervention.
+    T b3;     /// beta after 3rd intervention.
+    T d1;     /// day of 1st intervention.
+    T d2;     /// day of 2nd intervention.
+    T d3;     /// day of 3rd intervention.
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
