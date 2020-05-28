@@ -34,7 +34,7 @@ class Model( ModelBase ):
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
-
+    
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 

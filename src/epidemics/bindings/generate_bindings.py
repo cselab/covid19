@@ -102,15 +102,20 @@ def generate_canton(*models):
     save_if_modified(os.path.join(PATH, '_cantons.generated.cpp'), code)
 
 def main():
+    # add model here
     generate_country_model('sir', 'S I R', 'beta gamma')
     generate_country_model('sir_int', 'S I R', 'beta gamma tact dtact kbeta')
     generate_country_model('sir_int_r0', 'S I R', 'r0 gamma tact dtact kbeta')
     generate_country_model('seiir', 'S E Ir Iu R', 'beta mu alpha Z D')
+    generate_country_model('seiir_int', 'S E Ir Iu R', 'beta mu alpha Z D tact dtact kbeta')
+    # or here
     generate_canton_model('sei_c', 'S E I', 'beta nu Z D tact kbeta')
     generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
     generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
     generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3')
-    generate_country('sir', 'sir_int', 'sir_int_r0', 'seiir')
+ 
+    # add model here as argument
+    generate_country('sir', 'sir_int', 'sir_int_r0', 'seiir', 'seiir_int')
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 

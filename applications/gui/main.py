@@ -44,8 +44,24 @@ args.noSave = False  # until we fix the bug in korali
 
 args.dataFolder = os.path.join(os.path.abspath('.'), args.dataFolder) + '/'
 
-printlog(args)
-abort(args)
+from epidemics.country.sir_gui.nbin import Model
+
+kwargs = vars(args)
+
+kwargs.pop('validateData')
+kwargs.pop('reduction')
+kwargs.pop('duration')
+kwargs.pop('moving_average')
+kwargs.pop('infer_reduction')
+kwargs.pop('infer_duration')
+
+model = Model(**kwargs)
+
+model.save()
+
+model2 = Model.load("data/switzerland/country.sir_gui.nbin/state.pickle")
+
+printlog(model2)
 
 # Download and save population data
 #jsData = tools.download_data(args)

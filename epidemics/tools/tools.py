@@ -20,11 +20,8 @@ def printlog(msg, prefix=LOGPREFIX, end='\n', flush=False):
     if flush:
         out.flush()
 
-def abort(msg, code=1, prefix=LOGPREFIX):
-    out = sys.stdout
-    out.write(f"{LOGPREFIX}{msg}")
-    out.flush()
-    exit(code)
+def abort(msg, prefix=LOGPREFIX):
+    raise RuntimeError(f"\n{prefix}{msg}")
 
 def flatten(matrix):
     """

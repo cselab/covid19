@@ -1,3 +1,6 @@
+#include "backward.h"
+
+#ifdef EPIDEMICS_ENABLE_BACKWARD_CPP
 #include <backward.hpp>
 
 namespace epidemics {
@@ -16,3 +19,11 @@ void printStackTrace(FILE *f, int depth) {
 }
 
 }  // namespace epidemics
+
+#else
+
+void epidemics::printStackTrace(FILE *f, int) {
+    fprintf(f, "Stack trace not available, backward cpp is not enabled.");
+}
+
+#endif

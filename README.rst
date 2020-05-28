@@ -22,6 +22,15 @@ Project structure
 Compilation
 ===========
 
+Install the boost library by following
+`these instructions <https://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html>`_. In macOS you can run
+
+.. code-block:: bash
+
+  brew install boost
+
+
+
 From the repository root folder do:
 
 .. code-block:: bash
@@ -32,6 +41,7 @@ From the repository root folder do:
     cd build
     cmake ..
     make
+
 
 Tests
 =====
@@ -45,6 +55,18 @@ To run the tests, run the following command (from the repository root):
 
 To run only Python tests, run ``cd tests/py && ./run.sh``.
 To run only C++ tests, run ``cd build && ./libepidemics_unittests``.
+
+
+Debugging
+=========
+
+If the C++ code is crashing, try enabling the backward-cpp library for printing the stack trace:
+
+.. code-block:: bash
+
+    cmake -DENABLE_BACKWARD_CPP=ON ..
+    make
+
 
 Code formatting
 ===============

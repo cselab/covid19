@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(COVID19 LANGUAGES CXX)
+
+option(ENABLE_BACKWARD_CPP "Whether or not to use backward-cpp, for automatically printing stack traces." OFF)
+
 set(EXTERN_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/extern")
 set(SRC_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(CODE_DIR      "${CMAKE_CURRENT_SOURCE_DIR}/src/epidemics")
@@ -9,7 +12,9 @@ set(CUSTOM_CXXFLAGS -Wall -Wextra -march=native)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)  # Use -std=c++14, not -std=gnu++14.
 add_subdirectory(${EXTERN_DIR}/pybind11 epidemics_pybind11)
-add_subdirectory(${EXTERN_DIR}/backward-cpp epidemics_backward_cpp)
+if(ENABLE_BACKWARD_CPP)
+    add_subdirectory(${EXTERN_DIR}/backward-cpp epidemics_backward_cpp)
+endif()
 
 include(GoogleTest)
 option(INSTALL_GTEST OFF)
@@ -28,6 +33,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.sir_int.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_int_r0.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiir_int.generated.cpp
 )
 
 add_custom_command(
@@ -55,7 +61,6 @@ add_library(
     ${CODE_DIR}/utils/backward.cpp
     ${CODE_DIR}/utils/signal.cpp
 )
-add_backward(libepidemics_core)
 set_property(TARGET libepidemics_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_options(libepidemics_core PUBLIC ${CUSTOM_CXXFLAGS})
 target_include_directories(libepidemics_core PUBLIC ${SRC_DIR})
@@ -69,7 +74,6 @@ pybind11_add_module(
     ${GENERATED_COUNTRY_BINDINGS}
     ${CODE_DIR}/bindings/bindings.cpp
 )
-add_backward(libepidemics)
 target_link_libraries(libepidemics PRIVATE libepidemics::core)
 
 
@@ -82,9 +86,15 @@ add_executable(
     ${UNIT_SRC_DIR}/test_autodiff.cpp
 )
 
-add_backward(libepidemics_unittests)
 target_link_libraries(libepidemics_unittests PRIVATE gtest gtest_main libepidemics::core)
 gtest_discover_tests(libepidemics_unittests)
+
+if(ENABLE_BACKWARD_CPP)
+    target_compile_definitions(libepidemics_core PUBLIC EPIDEMICS_ENABLE_BACKWARD_CPP)
+    add_backward(libepidemics_core)
+    add_backward(libepidemics)
+    add_backward(libepidemics_unittests)
+endif()
 
 # Make Release mode the default.
 if(NOT CMAKE_BUILD_TYPE)
