@@ -13,7 +13,20 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import pickle
 import sys
 
-PROJECT_DIR =  Path("/Users/pvlachas/Documents/PhD/project_covid/covid19")
+def filter_few(confirmed, population):
+    i = 0
+    for i, c in enumerate(confirmed):
+        if c > 5 and c > 2e-6 * population:
+            break
+    return confirmed[i:]
+
+def get_country_data(country):
+    with open('./data/countries.json') as f:
+        js = json.loads(f.read())
+    return js[country]
+
+
+PROJECT_DIR =  Path("/home/mboden/scratch/covid19")
 
 
 sys.path.append(str(PROJECT_DIR))
@@ -21,13 +34,13 @@ sys.path.append(str(PROJECT_DIR))
 from epidemics.tools.io import download_and_save
 
 
-DATA_DIR = Path("/Users/pvlachas/Documents/PhD/project_covid/covid19/rnns/data")
+DATA_DIR = Path("/home/mboden/scratch/covid19/applications/rnns/data")
 DATA_DOWNLOADS_DIR = DATA_DIR / 'downloads'
 
 print(DATA_DIR)
 print(DATA_DOWNLOADS_DIR)
 
-FIG_DIR =  Path("/Users/pvlachas/Documents/PhD/project_covid/covid19/rnns/Plots")
+FIG_DIR =  Path("/home/mboden/scratch/covid19/applications/rnns/plots")
 
 ##########################################################################
 ## GPYTORCH - Gaussian processes in pytorch
