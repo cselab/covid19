@@ -9,9 +9,9 @@ import time
 import random
 
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
+
 
 from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
@@ -29,6 +29,13 @@ class EpidemicsBase:
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
     self.display     = os.environ['HOME']
+    self.synthetic   = kwargs.pop('synthetic', False)
+ 
+    if(self.synthetic):
+        self.datafile     = kwargs.pop('dataFile')
+ 
+    if(not self.display):
+        matplotlib.use('Agg')
 
     if kwargs:
         abort(f"Unknown input arguments: {kwargs}")

@@ -10,7 +10,7 @@ class Model( ModelBase ):
     self.modelName        = 'country.sir_int_r0.nbin'
     self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
-
+    
     super().__init__( **kwargs )
 
 
@@ -34,6 +34,11 @@ class Model( ModelBase ):
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
+
+    print(p)
+    print(t)
+    print(y0)
+    print(N)
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
