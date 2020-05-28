@@ -65,6 +65,7 @@ if __name__ == "__main__":
     T = 100
     teval = np.linspace(0, T, num=T+1)
 
+    # Adjust parameter granularity 'num'
     r0    = np.linspace( 1.0,  2.0, num=2)
     gamma = np.linspace( 0.1,  0.5, num=2)
     tact  = np.linspace(10.0, 80.0, num=2)
@@ -78,9 +79,9 @@ if __name__ == "__main__":
             "Model"      : "SIR with Interventions",
             "Population" : N,
             "IC"         : Y0,
-            "Teval"      : teval,
+            "Teval"      : teval, 
             "Params"     : ["r0", "gamma" , "tact", "dtact", "kbeta"],
-            "Data"       : data
+            "Data"       : data # list of touples (params, timeseries [dim x teval] )
     }
     
     store_data("SIR.pickle", output)
