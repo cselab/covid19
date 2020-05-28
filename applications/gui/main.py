@@ -40,7 +40,7 @@ aa('--dataDays',
    nargs='+',
    type=float,
    help='Days at which `data` is defined, defaults to range(len(data)).')
-aa('--populationSize', type=int, help='Total population.', required=True)
+aa('--populationSize', type=int, help='Total population.')
 aa('--nSamples', type=int, default=2000, help='Number of samples for TMCMC.')
 aa('--nThreads', type=int, default=1, help='Number of threads.')
 aa('--nPropagate',
@@ -110,6 +110,9 @@ if args.configure:
 
     data = args.data
     data = moving_average(data, args.moving_average)
+
+    assert args.populationSize is not None,\
+            "--populationSize is required"
 
     kwargs = {
         'dataTotalInfected': data,
