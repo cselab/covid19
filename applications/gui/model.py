@@ -27,16 +27,19 @@ class Model(EpidemicsBase):
                  params_prior=None,
                  params_fixed=None,
                  nSamples=2000,
-                 nPropagation=100,
+                 nPropagate=100,
                  **kwargs):
         super().__init__(**kwargs)
-
         self.futureDays = futureDays
         self.dataTotalInfected = dataTotalInfected
         self.dataDays = dataDays if dataDays else np.arange(
-            len(dataTotalInfected))
+            len(dataTotalInfected), dtype=float)
         self.populationSize = populationSize
+        self.percentages = percentages
+        self.nSamples = nSamples
+        self.nPropagate = nPropagate
         self.__process_data()
+
 
         def update_known(orig, new):
             if not new:
@@ -99,18 +102,18 @@ class Model(EpidemicsBase):
 
         # FIXME: skip points with daily<=0
         self.data['Model']['x-data'] = t[1:]
-        self.data['Model']['y-data'] = np.diff(y[0:])
+        self.data['Model']['y-data'] = np.diff(y)
 
         self.data['Model']['Initial Condition'] = y0
         self.data['Model']['Population Size'] = self.populationSize
 
         T = np.ceil(t[-1] + self.futureDays)
-        self.data['Propagation']['x-data'] = np.linspace(0, T, int(T + 1))
+        self.data['Propagation']['x-data'] = np.linspace(0., T, int(T + 1))
 
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
 
-    def __substitute_inferred(self, p):
+    def substitute_inferred(self, p):
         """
         p: `list(float)`
             Parameter values from Korali
@@ -129,7 +132,7 @@ class Model(EpidemicsBase):
         data = libepidemics.country.ModelData(N=N)
         cppsolver = sir_int_r0.Solver(data)
 
-        pp = self.__substitute_inferred(p)
+        pp = self.substitute_inferred(p)
 
         params = sir_int_r0.Parameters(r0=pp['R0'],
                                        gamma=pp['gamma'],

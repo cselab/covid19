@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 
 
-from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort
+from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
 class EpidemicsBase:
@@ -30,10 +30,10 @@ class EpidemicsBase:
     self.sampler     = kwargs.pop('sampler','TMCMC')
     self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
- 
+
     if(self.synthetic):
         self.datafile     = kwargs.pop('dataFile')
- 
+
     if(not self.display):
         matplotlib.use('Agg')
 
@@ -189,10 +189,10 @@ class EpidemicsBase:
 
     js = {}
     js['Evidence'] = self.e['Solver']['LogEvidence']
-    print(f"[Epidemics] Log Evidence = {js['Evidence']}")
+    printlog(f"Log Evidence = {js['Evidence']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
-    print('[Epidemics] Copy variables from Korali to Epidemics...')
+    printlog('Copy variables from Korali to Epidemics...')
     self.parameters = []
     myDatabase = self.e['Results']['Sample Database']
     for j in range(self.nParameters):
@@ -202,7 +202,7 @@ class EpidemicsBase:
 
     self.has_been_called['sample'] = True
     self.has_been_called['propagate'] = False
-    print('[Epidemics] Done copying variables.')
+    printlog('Done copying variables.')
 
 
   def optimize( self, maxGenerations):
@@ -235,7 +235,7 @@ class EpidemicsBase:
 
     k.run(self.e)
 
-    print('[Epidemics] Copy variables from Korali to Epidemics...')
+    printlog('Copy variables from Korali to Epidemics...')
     self.parameters = []
     myDatabase = self.e['Results']['Best Sample']['Parameters']
     for j in range(self.nParameters):
@@ -245,7 +245,7 @@ class EpidemicsBase:
 
     self.has_been_called['optimize'] = True
     self.has_been_called['propagate'] = False
-    print('[Epidemics] Done copying variables.')
+    printlog('Done copying variables.')
 
 
   def set_variables_and_distributions( self, js ):
@@ -275,7 +275,7 @@ class EpidemicsBase:
 
   def load_parameters(self,samples_path):
 
-      print('[Epidemics] Loading posterior samples')
+      printlog('Loading posterior samples')
 
       files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
       files.sort()
@@ -297,13 +297,13 @@ class EpidemicsBase:
 
       self.has_been_called['sample'] = True
 
-      print('[Epidemics] Loaded')
+      printlog('Loaded')
 
 
   def propagate( self, nPropagate = 1000 ):
 
     if not self.has_been_called['sample'] and not self.has_been_called['optimize'] :
-      sys.exit('[Epidemics] [Error] Sample or Optimize before propagation')
+      abort('[Error] Sample or Optimize before propagation')
       return
 
     self.e = korali.Experiment()
@@ -335,7 +335,7 @@ class EpidemicsBase:
     for k in range(Nv):
       varNames.append( self.e['Samples'][0]['Saved Results']['Variables'][k]['Name'] )
 
-    print('[Epidemics] Copy variables from Korali to Epidemics...')
+    printlog('Copy variables from Korali to Epidemics...')
     self.propagatedVariables = {}
     for i,x in enumerate(varNames):
       self.propagatedVariables[x] = np.zeros((nPropagate,Nt))
@@ -353,7 +353,7 @@ class EpidemicsBase:
     for k in range(nPropagate):
       self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
 
-    print('[Epidemics] Done copying variables.')
+    printlog('Done copying variables.')
 
     # TODO clear variable?
     self.e = korali.Experiment()
@@ -362,7 +362,7 @@ class EpidemicsBase:
 
 
   def new_figure(self):
-    print('[Epidemics] New figure...')
+    printlog('New figure...')
     fig = plt.figure(figsize=(12, 8))
     fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
@@ -370,15 +370,13 @@ class EpidemicsBase:
 
     return fig
 
-
-  def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
-
+  def compute_intervals(self, varName, ns, cumsum=False):
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
 
     samples = np.zeros((Np*ns,Nt))
 
-    print(f"[Epidemics] Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
+    printlog(f"Sampling from {self.likelihoodModel} for '{varName}' variable... ")
 
     start = time.process_time()
 
@@ -405,19 +403,87 @@ class EpidemicsBase:
         try:
           x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
         except:
-          print("Error p: {}".format(p))
+          printlog("Error p: {}".format(p))
         samples[:,k] = np.asarray(x).flatten()
 
     else:
-      sys.exit("\n[Epidemics] Likelihood not found in compute_plot_intervals.\n")
+      raise NotImplementedError(
+              "Likelihood not found in compute_intervals.")
+
+    if cumsum:
+      samples = np.cumsum(samples, 1)
+
+    elapsed = time.process_time() - start
+    printlog(f" elapsed {elapsed:.2f} sec")
+
+    printlog(f"Computing quantiles... ")
+
+    mean   = np.zeros(Nt)
+    median = np.zeros(Nt)
+    for k in range(Nt):
+      median[k] = np.quantile(samples[:,k],0.5)
+      mean[k] = np.mean(samples[:,k])
+
+    intervals = []
+    for p in np.sort(self.percentages)[::-1]:
+      lo = np.zeros(Nt);
+      hi = np.zeros(Nt);
+      for k in range(Nt):
+        lo[k] = np.quantile(samples[:,k],0.5-p/2)
+        hi[k] = np.quantile(samples[:,k],0.5+p/2)
+      intervals.append((p, lo, hi))
+
+    t = self.data['Propagation']['x-data']
+
+    return t, mean, median, intervals
+
+  def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
+
+    Np = self.propagatedVariables[varName].shape[0]
+    Nt = self.propagatedVariables[varName].shape[1]
+
+    samples = np.zeros((Np*ns,Nt))
+
+    printlog(f"Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
+
+    start = time.process_time()
+
+    if self.likelihoodModel=='Normal':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        r = self.propagatedVariables['Standard Deviation'][:,k]
+        x = [ np.random.normal(m,r) for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
+
+    elif self.likelihoodModel=='Positive Normal':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        s = self.propagatedVariables['Standard Deviation'][:,k]
+        t = get_truncated_normal(m,s,0,np.Inf)
+        x = [ t.rvs() for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
+
+    elif self.likelihoodModel=='Negative Binomial':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        r = self.propagatedVariables['Dispersion'][:,k]
+        p =  m/(m+r)
+        try:
+          x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
+        except:
+          printlog("Error p: {}".format(p))
+        samples[:,k] = np.asarray(x).flatten()
+
+    else:
+      abort("Likelihood not found in compute_plot_intervals.")
 
     if cummulate>0 :
       samples = np.cumsum(samples,axis=cummulate)
 
     elapsed = time.process_time() - start
-    print(f" elapsed {elapsed:.2f} sec")
+    printlog(f" elapsed {elapsed:.2f} sec")
 
-    print(f"[Epidemics] Computing quantiles... ")
+    printlog(f"Computing quantiles... ")
 
     mean   = np.zeros((Nt,1))
     median = np.zeros((Nt,1))

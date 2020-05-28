@@ -15,7 +15,7 @@ from scipy.stats import truncnorm
 
 LOGPREFIX = '[Epidemics] '
 
-def printlog(msg, prefix=LOGPREFIX, end='\n', flush=False):
+def printlog(msg, prefix=LOGPREFIX, end='\n', flush=True):
     out = sys.stdout
     out.write(f"{prefix}{msg}{end}")
     if flush:
