@@ -145,13 +145,14 @@ else:
 
 if args.intervals:
     from epidemics.epidemics import load_param_samples
+    percentages = args.percentages
     vv = dict()
     vv['Daily Infected'] = model.compute_intervals("Daily Incidence",
                                                    args.nIntervals,
-                                                   args.percentages)
+                                                   percentages)
     vv['Total Infected'] = model.compute_intervals("Daily Incidence",
                                                    args.nIntervals,
-                                                   args.percentages,
+                                                   percentages,
                                                    cumsum=True)
 
     js = dict()
@@ -159,13 +160,26 @@ if args.intervals:
     js['y-data'] = list(np.cumsum(model.data['Model']['y-data']))
     js['Population Size'] = model.populationSize
     js['nSamples'] = model.nSamples
-    js['percentages'] = args.percentages
+    js['percentages'] = percentages
 
     samples = load_param_samples(dataFolder)
-    js['mean_params'] = \
-            model.substitute_inferred(
-                    [np.mean(samples[k]) for k in model.params_to_infer]
-                    )
+    mean_params = model.substitute_inferred(
+        [np.mean(samples[k]) for k in model.params_to_infer])
+    js['mean_params'] = mean_params
+    js['intervals_params'] = {
+        k: [(p, m, m) for p in percentages]
+        for k, m in mean_params.items()
+    }
+    js['intervals_params'].update({
+        k: [
+            (
+                p,  #
+                np.quantile(samples[k], 0.5 - p / 2),  #
+                np.quantile(samples[k], 0.5 + p / 2),  #
+            ) for p in percentages
+        ]
+        for k in samples.dtype.names
+    })
 
     for k, v in vv.items():
         t, mean, median, intervals = v
