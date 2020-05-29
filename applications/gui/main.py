@@ -94,7 +94,7 @@ statefile = os.path.join(dataFolder, 'state.pickle')
 from model import Model
 
 if not any([args.configure, args.sample, args.propagate, args.intervals]):
-    args.congiture = True
+    args.configure = True
     args.sample = True
     args.propagate = True
     args.intervals = True
