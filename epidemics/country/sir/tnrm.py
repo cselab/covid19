@@ -18,8 +18,8 @@ class Model( ModelBase ):
  
     self.nParameters = 3
     js = self.get_uniform_priors(
-            ('beta', 0.0, 100.0), 
-            ('gamma', 0.0, 100.0), 
+            ('beta', 0.0, 10.0), 
+            ('gamma', 0.0, 10.0), 
             ('[Sigma]', 1e-6, 10)
             )
     
