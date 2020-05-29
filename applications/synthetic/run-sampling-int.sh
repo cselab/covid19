@@ -1,10 +1,10 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int_r0_rndm.txt"
+"sir_int_r0_raw.txt"
 )
 
-#"sir_int_r0_raw.txt"
+#"sir_int_r0_rndm.txt"
 
 
 base="./data/"
