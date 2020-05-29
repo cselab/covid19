@@ -220,12 +220,12 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "CMAES"
     self.e["Solver"]["Population Size"] = nSamples
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGen
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-8
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-12
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], 20 )
+    self.set_korali_output_files( self.saveInfo['korali samples'], 1 )
 
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
 
