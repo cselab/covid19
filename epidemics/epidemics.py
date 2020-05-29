@@ -347,7 +347,7 @@ class EpidemicsBase:
     elif( self.likelihoodModel=='Negative Binomial' ):
       varName = 'Dispersion'
     else:
-      sys.exit('\n[Epidemics] Likelihood not found in propagate.\n')
+      abort('Likelihood not found in propagate.')
 
     self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
     for k in range(nPropagate):

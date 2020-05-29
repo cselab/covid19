@@ -19,6 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'build'))
 from epidemics.tools.tools import printlog, abort, moving_average
 import libepidemics
 import json
+import numpy as np
 
 
 def get_mean_parameters(dataFolder):
@@ -153,7 +154,7 @@ if args.intervals:
 
     js = dict()
     js['x-data'] = list(model.data['Model']['x-data'])
-    js['y-data'] = list(model.data['Model']['y-data'])
+    js['y-data'] = list(np.cumsum(model.data['Model']['y-data']))
     js['Population Size'] = model.populationSize
     js['nSamples'] = model.nSamples
     js['percentages'] = model.percentages
