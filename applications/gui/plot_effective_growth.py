@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Created by Petr Karnakov on 29.05.2020
+# Copyright 2020 ETH Zurich
+
 import json
 import numpy as np
 import argparse
@@ -12,8 +15,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 
-from countries import LAST_DAY
-
+LAST_DAY = '2020-05-18'
 ALPHA = 0.3
 
 
@@ -71,11 +73,11 @@ xdata = np.array(d['x-data']).astype(float)
 
 t = np.array(d['x-axis']).astype(float)
 params = d['mean_params']
-tact = params['tact']
-dtact = params['dtact']
+tint = params['tint']
+dint = params['dint']
 gamma = params['gamma']
 R0 = params['R0']
-kbeta = params['kbeta']
+kint = params['kint']
 
 
 def days_to_delta(t):
@@ -95,8 +97,8 @@ ax3.xaxis.set_major_formatter(myFmt)
 
 db = np.array(samples['Results']['Sample Database'])
 R0 = db[:, 0]
-tact = db[:, 1]
-kbeta = db[:, 2]
+tint = db[:, 1]
+kint = db[:, 2]
 
 Nt = len(t)
 Ns = R0.shape[0]
@@ -104,8 +106,8 @@ Ns = R0.shape[0]
 lambdaeff = np.zeros((Nt, Ns))
 for i in range(Nt):
     for j in range(Ns):
-        beta = R0[j] * intervention_trans(1., kbeta[j], t[i], tact[j],
-                                          dtact * 0.5) * gamma
+        beta = R0[j] * intervention_trans(1., kint[j], t[i], tint[j],
+                                          dint * 0.5) * gamma
         lambdaeff[i, j] = beta - gamma
 
 mean = np.mean(lambdaeff, axis=1)
@@ -161,7 +163,7 @@ if dehning:
         a.plot(d.days, d.values, marker='x', ms=4, linestyle='none', c='g')
 
 os.makedirs(args.output_dir, exist_ok=True)
-p = os.path.join(args.output_dir, "total.pdf")
+p = os.path.join(args.output_dir, "growth.pdf")
 print(p)
 fig.tight_layout()
 fig.savefig(p)

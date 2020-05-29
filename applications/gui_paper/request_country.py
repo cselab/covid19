@@ -2,7 +2,7 @@
 
 import json
 import subprocess as sp
-from european_countries import EUROPEAN_COUNTRIES
+# from european_countries import EUROPEAN_COUNTRIES
 presets = "./countries.json"
 
 with open(presets) as f:
@@ -22,8 +22,8 @@ def filter_few(confirmed, population):
 countries = [js_i['country'] for js_i in js]
 
 # countries_to_infer = ['Switzerland','France','Spain','Italy','Netherlands']
-countries_to_infer = EUROPEAN_COUNTRIES
-# countries_to_infer = ['Switzerland']
+# countries_to_infer = EUROPEAN_COUNTRIES
+countries_to_infer = ['Switzerland']
 
 # Not avail Czech Republic
 
