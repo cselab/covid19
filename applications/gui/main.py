@@ -50,7 +50,7 @@ aa('--nPropagate',
    help='Number of points to evaluate the solution in the propagation phase.')
 aa('--nIntervals',
    type=int,
-   default=10,
+   default=100,
    help='Number of points for computing '
    'means and credible intervals.')
 aa('--futureDays',
@@ -105,6 +105,8 @@ if args.configure:
     if args.infer_duration:
         params_to_infer.append('dint')
 
+    params_prior = dict()
+
     params_fixed = {
         'dint': args.duration,
     }
@@ -118,13 +120,10 @@ if args.configure:
     kwargs = {
         'dataTotalInfected': data,
         'populationSize': args.populationSize,
-        'percentages': args.percentages,
         'dataDays': args.dataDays,
-        'futureDays': args.futureDays,
         'params_to_infer': params_to_infer,
+        'params_prior': params_prior,
         'params_fixed': params_fixed,
-        'nSamples': args.nSamples,
-        'nPropagate': args.nPropagate,
     }
 
     model = Model(**kwargs)
@@ -133,13 +132,13 @@ else:
     model = Model.load(statefile)
 
 if args.sample:
-    model.sample(model.nSamples)
+    model.sample(args.nSamples)
     model.save(statefile)
 else:
     model = Model.load(statefile)
 
 if args.propagate:
-    model.propagate(model.nPropagate)
+    model.propagate(min(model.nSamples, args.nPropagate), args.futureDays)
     model.save(statefile)
 else:
     model = Model.load(statefile)
@@ -147,9 +146,11 @@ else:
 if args.intervals:
     vv = dict()
     vv['Daily Infected'] = model.compute_intervals("Daily Incidence",
-                                                   args.nIntervals)
+                                                   args.nIntervals,
+                                                   args.percentages)
     vv['Total Infected'] = model.compute_intervals("Daily Incidence",
                                                    args.nIntervals,
+                                                   args.percentages,
                                                    cumsum=True)
 
     js = dict()
@@ -157,7 +158,7 @@ if args.intervals:
     js['y-data'] = list(np.cumsum(model.data['Model']['y-data']))
     js['Population Size'] = model.populationSize
     js['nSamples'] = model.nSamples
-    js['percentages'] = model.percentages
+    js['percentages'] = args.percentages
     js['mean_params'] = \
             model.substitute_inferred(get_mean_parameters(dataFolder))
 

@@ -20,26 +20,20 @@ class Model(EpidemicsBase):
     def __init__(self,
                  dataTotalInfected,
                  populationSize,
-                 percentages,
                  dataDays=[],
-                 futureDays=0,
                  params_to_infer=[],
                  params_prior=None,
                  params_fixed=None,
-                 nSamples=2000,
-                 nPropagate=100,
                  **kwargs):
         super().__init__(**kwargs)
-        self.futureDays = futureDays
         self.dataTotalInfected = dataTotalInfected
         self.dataDays = dataDays if dataDays else np.arange(
             len(dataTotalInfected), dtype=float)
+        assert len(self.dataTotalInfected) == len(self.dataDays),\
+                "size mismatch {:} != {:}".format(
+                        len(self.dataTotalInfected), len(self.dataDays))
         self.populationSize = populationSize
-        self.percentages = percentages
-        self.nSamples = nSamples
-        self.nPropagate = nPropagate
         self.__process_data()
-
 
         def update_known(orig, new):
             if not new:
@@ -107,11 +101,13 @@ class Model(EpidemicsBase):
         self.data['Model']['Initial Condition'] = y0
         self.data['Model']['Population Size'] = self.populationSize
 
-        T = np.ceil(t[-1] + self.futureDays)
-        self.data['Propagation']['x-data'] = np.linspace(0., T, int(T + 1))
-
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
+
+    def propagate(self, nPropagate, futureDays):
+        T = np.ceil(self.data['Model']['x-data'][-1] + futureDays)
+        self.data['Propagation']['x-data'] = np.linspace(0., T, int(T + 1))
+        super().propagate(nPropagate)
 
     def substitute_inferred(self, p):
         """

@@ -308,6 +308,8 @@ class EpidemicsBase:
 
     self.e = korali.Experiment()
 
+    self.nPropagate = nPropagate
+
     self.e['Problem']['Type'] = 'Propagation'
     self.e['Problem']['Execution Model'] = self.computational_model_propagate
 
@@ -370,7 +372,7 @@ class EpidemicsBase:
 
     return fig
 
-  def compute_intervals(self, varName, ns, cumsum=False):
+  def compute_intervals(self, varName, ns, percentages, cumsum=False):
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
 
@@ -425,7 +427,7 @@ class EpidemicsBase:
       mean[k] = np.mean(samples[:,k])
 
     intervals = []
-    for p in np.sort(self.percentages)[::-1]:
+    for p in np.sort(percentages)[::-1]:
       lo = np.zeros(Nt);
       hi = np.zeros(Nt);
       for k in range(Nt):
