@@ -7,6 +7,7 @@ import pickle
 import sys
 import time
 import random
+import glob
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -515,3 +516,34 @@ class EpidemicsBase:
     plt.pause(0.001)
 
     return samples
+
+def load_param_samples(datadir):
+    """
+    Returns parameters and log-likelihood from the last generation of samples.
+    datadir: `str`
+        Path to directory containing `_korali_samples`
+    """
+    samplespath = sorted(
+        glob.glob(os.path.join(datadir, '_korali_samples', '*.json')))[-1]
+
+    with open(samplespath) as f:
+        js = json.load(f)
+
+    names = [v['Name'] for v in js['Variables']]
+    names_add = ['logPrior', 'logLikelihood']
+    names_all = names + names_add
+
+    samples = np.array(js['Solver']['Sample Database'])
+    logprior = np.array(js['Solver']['Sample LogPrior Database'])
+    loglike = np.array(js['Solver']['Sample LogLikelihood Database'])
+
+    dtype = np.dtype({
+            'names' : names_all,
+            'formats' : [np.float] * len(names_all)})
+    comb = np.empty(samples.shape[0], dtype=dtype)
+    for i,name in enumerate(names):
+        comb[name] = samples[:,i]
+    comb[names_add[0]] = logprior
+    comb[names_add[1]] = loglike
+    return comb
+

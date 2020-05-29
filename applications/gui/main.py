@@ -144,6 +144,7 @@ else:
     model = Model.load(statefile)
 
 if args.intervals:
+    from epidemics.epidemics import load_param_samples
     vv = dict()
     vv['Daily Infected'] = model.compute_intervals("Daily Incidence",
                                                    args.nIntervals,
@@ -159,8 +160,12 @@ if args.intervals:
     js['Population Size'] = model.populationSize
     js['nSamples'] = model.nSamples
     js['percentages'] = args.percentages
+
+    samples = load_param_samples(dataFolder)
     js['mean_params'] = \
-            model.substitute_inferred(get_mean_parameters(dataFolder))
+            model.substitute_inferred(
+                    [np.mean(samples[k]) for k in model.params_to_infer]
+                    )
 
     for k, v in vv.items():
         t, mean, median, intervals = v
