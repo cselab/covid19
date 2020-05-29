@@ -20,10 +20,10 @@ def sir_beta(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
-    Svec = np.zeros(len(cpp_res))
-
+    Svec = np.zeros(len(cpp_res)+1)
+    Svec[0] = N
     for idx,entry in enumerate(cpp_res):
-        Svec[idx] = entry.S()
+        Svec[idx+1] = entry.S()
 
     # get newly infected
     return Svec
@@ -43,10 +43,11 @@ def sir_int_r0(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
-    Svec = np.zeros(len(cpp_res))
+    Svec = np.zeros(len(cpp_res)+1)
 
+    Svec[0] = N
     for idx,entry in enumerate(cpp_res):
-        Svec[idx] = entry.S()
+        Svec[idx+1] = entry.S()
 
     # get newly infected
     return Svec
@@ -108,8 +109,11 @@ if __name__ == "__main__":
     psir = [beta, gamma]
 
     sirS     = sir_beta((S0, I0), teval, N, psir)
+    print(sirS)
     sirCases = -np.diff(sirS)
+    print(sirCases)
     sirInfected = np.cumsum(sirCases)
+    print(sirInfected)
     makefile("sir_raw.txt", "Synthetic SIR Raw", N, sirInfected)
     
     p = [r0, gamma, tact, dtact, kbeta]
