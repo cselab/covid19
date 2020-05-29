@@ -99,7 +99,6 @@ class Model(EpidemicsBase):
         self.data['Model']['y-data'] = np.diff(y)
 
         self.data['Model']['Initial Condition'] = y0
-        self.data['Model']['Population Size'] = self.populationSize
 
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
@@ -166,13 +165,12 @@ class Model(EpidemicsBase):
         p = s['Parameters']
         t = self.data['Model']['x-data']
         y0 = self.data['Model']['Initial Condition']
-        N = self.data['Model']['Population Size']
+        N = self.populationSize
 
         tt = [t[0] - 1] + t.tolist()
         sol = self.__solve_ode(y0=y0, T=t[-1], t_eval=tt, N=N, p=p)
-        y = -np.diff(sol.y[0])
 
-        # get incidents
+        # daily
         y = -np.diff(sol.y[0])
 
         eps = 1e-32
@@ -188,7 +186,7 @@ class Model(EpidemicsBase):
         p = s['Parameters']
         t = self.data['Propagation']['x-data']
         y0 = self.data['Model']['Initial Condition']
-        N = self.data['Model']['Population Size']
+        N = self.populationSize
 
         tt = [t[0] - 1] + t.tolist()
         sol = self.__solve_ode(y0=y0, T=t[-1], t_eval=t.tolist(), N=N, p=p)
