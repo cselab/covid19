@@ -4,9 +4,10 @@ import os
 import numpy as np
 import itertools
 import pickle
+import sys
 
+sys.path.append('../../build')
 import libepidemics #cpp backend
-
 
 def sir_int_r0(y0, t_eval, N, p ):
     
@@ -28,7 +29,7 @@ def sir_int_r0(y0, t_eval, N, p ):
         out[1,idx] = entry.I()
         out[2,idx] = entry.R()
 
-    return out
+    return out, ['S','I','R']
 
 def seiir_int(y0, t_eval, N, p ):
     
@@ -52,14 +53,16 @@ def seiir_int(y0, t_eval, N, p ):
         out[1,idx] = entry.Iu()
         out[2,idx] = entry.R()
 
-    return out
+    return out, ['S','E','Ir','Iu','R']
 
 
 def produce_data(model, plist, teval, N, y0):
     data = []
-    for p in plist:
-        out = model(y0, teval, N, p)
-        data.append((p,out))
+    n = len(plist)
+    for i,p in enumerate(plist):
+        print('{}/{}'.format(i,n))
+        out, fields = model(y0, teval, N, p)
+        data.append((p,fields,out))
 
     return data
 
@@ -98,22 +101,28 @@ if __name__ == "__main__":
     teval = np.linspace(0, T, num=T+1)
 
     # Adjust parameter granularity 'num'
-
+    num = 2
     # SIR
-    r0    = np.linspace( 1.0,  2.0, num=2)
-    gamma = np.linspace( 0.1,  0.5, num=2)
+    r0    = np.linspace( 1.0,  2.0, num=num)
+    gamma = np.linspace( 0.1,  0.5, num=num)
 
     # SEIIR
-    beta  = np.linspace( 0.1, 10.0, num=2)
-    mu    = np.linspace(0.01,  1.0, num=2)
-    alpha = np.linspace(0.01,  1.0, num=2)
-    Z     = np.linspace( 1.0,   50, num=2)
-    D     = np.linspace(1000, 8000, num=2)
+    beta  = np.linspace( 0.1, 10.0, num=num)
+    mu    = np.linspace(0.01,  1.0, num=num)
+    alpha = np.linspace(0.01,  1.0, num=num)
+    Z     = np.linspace( 1.0,   50, num=num)
+    D     = np.linspace(1000, 8000, num=num)
  
     # Intervention
-    tact  = np.linspace(10.0, 80.0, num=2)
-    dtact = np.linspace( 5.0, 30.0, num=2)
-    kbeta = np.linspace( 0.5,  1.0, num=2)
+    tact  = np.linspace(10.0, 80.0, num=num)
+    dtact = np.linspace( 5.0, 30.0, num=num)
+    kbeta = np.linspace( 0.5,  1.0, num=num)
+
+    r0 = [1.8]
+    gamma = [0.1]
+    tact = [50]
+    dtact = [10]
+    kbeta = [0.4]
 
     plist_sir   = list(itertools.product(*[r0, gamma, tact, dtact, kbeta]))
     plist_seiir = list(itertools.product(*[beta, mu, alpha, Z, D, tact, dtact, kbeta]))
@@ -124,5 +133,5 @@ if __name__ == "__main__":
     sir_dict   = create_dict("SIR with Interventions", N, Y0sir, teval, ["r0", "gamma", "tact", "dtact", "kbeta"], data_sir)
     seiir_dict = create_dict("SEIIR with Interventions", N, Y0seiir, teval, ["beta", "mu", "alpha", "Z", "D"], data_seiir)
    
-    store_data("SIR.pickle", sir_dict)
-    store_data("SEIIR.pickle", seiir_dict)
+    store_data("./data/SIR.pickle", sir_dict)
+    store_data("./data/SEIIR.pickle", seiir_dict)

@@ -7,7 +7,7 @@ python main.py -c Switzerland -sl 10 -hd 20 -ne 100000
 python main.py -c Switzerland -sl 10 -hd 30 -ne 100000
 
 python main.py -c Switzerland -sl 20 -hd 2 -ne 100000
-python main.py -c Switzerland -sl 20 -hd 4 -ne 100000
+python main.py -c Switzerland -sl 20 -hd 4 -ne 10000
 python main.py -c Switzerland -sl 20 -hd 6 -ne 100000
 python main.py -c Switzerland -sl 20 -hd 8 -ne 100000
 python main.py -c Switzerland -sl 20 -hd 10 -ne 100000

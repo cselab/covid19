@@ -28,6 +28,7 @@ class Model():
         self.build_model()
         
         self.name = self.country + '/'
+        self.name += params['name']
         self.name += 'seq'+str(self.seq_length)
         self.name += '_hdim'+str(self.hidden_dim)+'_l'+str(self.n_layers)
         self.name += '_e'+str(self.n_epochs)+'_lr'+str(self.lr) 
