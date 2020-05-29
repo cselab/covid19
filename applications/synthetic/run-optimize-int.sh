@@ -4,9 +4,6 @@ declare -a arr=(
 "sir_int_r0_raw.txt"
 )
 
-#"sir_int_r0_rndm.txt"
-
-
 base="./data/"
 
 for f in "${arr[@]}"

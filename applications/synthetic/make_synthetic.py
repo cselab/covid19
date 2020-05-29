@@ -109,11 +109,8 @@ if __name__ == "__main__":
     psir = [beta, gamma]
 
     sirS     = sir_beta((S0, I0), teval, N, psir)
-    print(sirS)
     sirCases = -np.diff(sirS)
-    print(sirCases)
     sirInfected = np.cumsum(sirCases)
-    print(sirInfected)
     makefile("sir_raw.txt", "Synthetic SIR Raw", N, sirInfected)
     
     p = [r0, gamma, tact, dtact, kbeta]
