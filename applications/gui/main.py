@@ -94,6 +94,8 @@ statefile = os.path.join(dataFolder, 'state.pickle')
 
 from model import Model
 
+os.makedirs(dataFolder, exist_ok=True)
+
 if not any([args.configure, args.sample, args.propagate, args.intervals]):
     args.configure = True
     args.sample = True
@@ -119,6 +121,7 @@ if args.configure:
 
     kwargs = {
         'dataTotalInfected': data,
+        'dataFolder': dataFolder,
         'populationSize': args.populationSize,
         'dataDays': args.dataDays,
         'params_to_infer': params_to_infer,

@@ -38,10 +38,10 @@ def flatten(matrix):
 
 def prepare_folder( dir, clean=False ):
   dir = os.path.relpath( dir )
-  if( os.path.commonpath( ['data',dir])  != 'data' ):
-     sys.exit(f'\n[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}\n')
   # XXX dangerous!
   if(clean==True):
+    if( os.path.commonpath( ['data',dir])  != 'data' ):
+       abort(f'[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}')
     shutil.rmtree(dir, ignore_errors=True)
   if os.path.isdir(dir) == False:
     os.makedirs(dir)
