@@ -10,11 +10,12 @@ import os
 import pickle
 import shutil
 import sys
+import numpy as np
 from scipy.stats import truncnorm
 
 LOGPREFIX = '[Epidemics] '
 
-def printlog(msg, prefix=LOGPREFIX, end='\n', flush=False):
+def printlog(msg, prefix=LOGPREFIX, end='\n', flush=True):
     out = sys.stdout
     out.write(f"{prefix}{msg}{end}")
     if flush:
@@ -37,10 +38,10 @@ def flatten(matrix):
 
 def prepare_folder( dir, clean=False ):
   dir = os.path.relpath( dir )
-  if( os.path.commonpath( ['data',dir])  != 'data' ):
-     sys.exit(f'\n[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}\n')
   # XXX dangerous!
   if(clean==True):
+    if( os.path.commonpath( ['data',dir])  != 'data' ):
+       abort(f'[prepare_folder] Error: The data must be saved in the ./data folder. Chosen folder: {dir}')
     shutil.rmtree(dir, ignore_errors=True)
   if os.path.isdir(dir) == False:
     os.makedirs(dir)
@@ -53,6 +54,24 @@ def get_last_generation( folder, pattern ):
   return len(files), sorted(files)[-1]
 
 
+def moving_average(x, w):
+    """
+    x: `numpy.ndarray`, (N)
+    w: int
+      Window half-width.
+    Returns:
+    xa: `numpy.ndarray`, (N)
+      Array `x` averaged over window [-w,w].
+    """
+    s = np.zeros_like(x)
+    q = np.zeros_like(x)
+    for i in range(len(x)):
+        for j in range(max(0, i - w), min(i + w + 1, len(x))):
+            if np.isfinite(x[j]):
+                s[i] += x[j]
+                q[i] += 1
+    xa = s / q
+    return xa
 
 
 def save_file( data, file, str, fileType='pickle' ):
