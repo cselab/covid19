@@ -159,7 +159,7 @@ class EpidemicsBase:
     return js
 
 
-  def sample( self, nSamples=1000 ):
+  def sample(self, nSamples=1000, cov=0.4):
 
     self.e = korali.Experiment()
 
@@ -174,7 +174,7 @@ class EpidemicsBase:
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
+    self.e['Solver']['Target Coefficient Of Variation'] = cov
     self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)

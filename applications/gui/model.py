@@ -103,6 +103,9 @@ class Model(EpidemicsBase):
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
 
+    def sample(self, nSamples):
+        super().sample(nSamples, 0.7)
+
     def propagate(self, nPropagate, futureDays):
         T = np.ceil(self.data['Model']['x-data'][-1] + futureDays)
         self.data['Propagation']['x-data'] = np.linspace(0., T, int(T + 1))
