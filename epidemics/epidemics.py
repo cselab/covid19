@@ -10,6 +10,7 @@ import random
 import glob
 
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
@@ -35,9 +36,6 @@ class EpidemicsBase:
 
     if(self.synthetic):
         self.datafile     = kwargs.pop('dataFile')
-
-    if(not self.display):
-        matplotlib.use('Agg')
 
     if kwargs:
         abort(f"Unknown input arguments: {kwargs}")
@@ -172,9 +170,10 @@ class EpidemicsBase:
 
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
-    self.e['Solver']['Step Size'] = 0.1
+    self.e['Solver']['Adaptive Step Size'] = True
+    self.e['Solver']['Step Size'] = 0.5
     self.e['Solver']['Population Size'] = self.nSamples
-    self.e['Solver']['Target Coefficient Of Variation'] = 0.4
+    self.e['Solver']['Target Coefficient Of Variation'] = 0.6
     self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)

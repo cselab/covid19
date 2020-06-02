@@ -100,7 +100,7 @@ if __name__ == "__main__":
     teval = np.linspace(0, T, num=T+1)
 
     r0    = 1.6
-    gamma = 0.3
+    gamma = 1.0/5.2
     tact  = 40
     dtact = 10
     kbeta = 0.5
@@ -120,11 +120,11 @@ if __name__ == "__main__":
     infected = np.cumsum(cases)
     
     print("Plotting unprocessed solver output..")
-    plot(infected)
+    #plot(infected)
     
-    infectedRand = make_data_with_mul_nrm_noise(infected, 1)
+    infectedRand = make_data_with_mul_nrm_noise(infected, 0.05)
     print("Plotting randomized solver output..")
-    plot(infectedRand)
+    #plot(infectedRand)
 
     makefile("sir_int_r0_raw.txt", "Synthetic Raw", N, infected)
     makefile("sir_int_r0_rndm.txt", "Synthetic Rnd", N, infectedRand)
