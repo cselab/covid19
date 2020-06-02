@@ -103,6 +103,9 @@ class Model(EpidemicsBase):
         save_file(self.data, self.saveInfo['inference data'],
                   'Data for Inference', 'pickle')
 
+    def sample(self, nSamples):
+        super().sample(nSamples, 0.7)
+
     def propagate(self, nPropagate, futureDays):
         T = np.ceil(self.data['Model']['x-data'][-1] + futureDays)
         self.data['Propagation']['x-data'] = np.linspace(0., T, int(T + 1))
@@ -139,25 +142,36 @@ class Model(EpidemicsBase):
         y0cpp = (s0, i0, 0.0)
         initial = sir_int_r0.State(y0cpp)
 
-        cpp_res = cppsolver.solve_params_ad(params,
-                                            initial,
-                                            t_eval=t_eval,
-                                            dt=0.1)
+        AUTOGRAD = False
+        if AUTOGRAD:
+            cpp_res = cppsolver.solve_params_ad(params,
+                                                initial,
+                                                t_eval=t_eval,
+                                                dt=0.1)
 
-        yS = np.zeros(len(cpp_res))
-        gradmu = []  # gradients wrt model parameters
-        gradsig = []  # gradients wrt distribution parameter
+            yS = np.zeros(len(cpp_res))
+            gradmu = []  # gradients wrt model parameters
+            gradsig = []  # gradients wrt distribution parameter
 
-        for idx, entry in enumerate(cpp_res):
-            yS[idx] = entry.S().val()
-            gradmu.append(
-                np.array([
-                    entry.S().d(0),
-                    entry.S().d(1),
-                    entry.S().d(2),
-                    entry.S().d(3), 0.0
-                ]))
-            gradsig.append(np.array([0.0, 0.0, 0.0, 0.0, 1.0]))
+            for i, entry in enumerate(cpp_res):
+                yS[i] = entry.S().val()
+                gradmu.append(
+                    np.array([
+                        entry.S().d(0),
+                        entry.S().d(1),
+                        entry.S().d(2),
+                        entry.S().d(3), 0.0
+                    ]))
+                gradsig.append(np.array([0.0, 0.0, 0.0, 0.0, 1.0]))
+        else:
+            cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt=0.1)
+
+            yS = np.zeros(len(cpp_res))
+            gradmu = []  # gradients wrt model parameters
+            gradsig = []  # gradients wrt distribution parameter
+
+            for i, entry in enumerate(cpp_res):
+                yS[i] = entry.S()
 
         return Solution(y=[yS], gradMu=gradmu, gradSig=gradsig)
 
@@ -189,10 +203,9 @@ class Model(EpidemicsBase):
         N = self.populationSize
 
         tt = [t[0] - 1] + t.tolist()
-        sol = self.__solve_ode(y0=y0, T=t[-1], t_eval=t.tolist(), N=N, p=p)
+        sol = self.__solve_ode(y0=y0, T=t[-1], t_eval=tt, N=N, p=p)
 
         y = -np.diff(sol.y[0])
-        y = np.append(0, y)
 
         eps = 1e-32
         y[y < eps] = eps

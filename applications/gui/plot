@@ -1,4 +1,6 @@
 d=data
+outdir=$d
 
-./plot_intervals_infected.py --dataFolder "$d"
-python -m korali.plotter --dir $d/_korali_samples/ --output samples.png
+./plot_intervals_infected.py --dataFolder "$d" --output_dir "$outdir"
+./plot_effective_growth.py --dataDir "$d" --output_dir "$outdir"
+python -m korali.plotter --dir $d/_korali_samples/  --output "$outdir/samples.png"
