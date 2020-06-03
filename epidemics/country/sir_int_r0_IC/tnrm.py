@@ -7,7 +7,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.sir_int_r0_nogamma.tnrm'
+    self.modelName        = 'country.sir_int_r0_IC.tnrm'
     self.modelDescription = 'Fit SIR with Interventions on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
@@ -16,13 +16,13 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 5
+    self.nParameters = 6
     js = self.get_uniform_priors(
             ('R0', 0.5, 5.), 
             ('tact', 0.0, 100.),
             ('dtact', 0.0, 50.),
             ('kbeta', 0.0, 1.0),
-            ('I0', 0, 10.) 
+            ('I0', 0, 10.),
             ('Sigma', 1e-6, 100),
             )
     
