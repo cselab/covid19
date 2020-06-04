@@ -9,11 +9,6 @@ import matplotlib.pyplot as plt
 
 import libepidemics #cpp backend
 
-def getInfectedFromS(S):
-    incidents = -np.diff(S)
-    infected  = np.cumsum(incidents)
-    return infected
-
 
 def sir_beta(y0, t_eval, N, p ):
     
@@ -27,17 +22,11 @@ def sir_beta(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
-    Svec = np.zeros(len(cpp_res)+1)
-    Svec[0] = N
+    infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
-        Svec[idx+1] = entry.S()
+        infected[idx] = N-entry.S()
     
-    infected = getInfectedFromS(Svec)
     return infected
-
-
-def sir_r0(y0, t_eval, N, p ):
-    pass
 
 
 def sir_int_r0(y0, t_eval, N, p ):
@@ -52,13 +41,10 @@ def sir_int_r0(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
-    Svec = np.zeros(len(cpp_res)+1)
-
-    Svec[0] = N
+    infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
-        Svec[idx+1] = entry.S()
+        infected[idx] = N-entry.S()
  
-    infected = getInfectedFromS(Svec)
     return infected
 
 
@@ -73,25 +59,65 @@ def seir(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
-    Svec = np.zeros(len(cpp_res)+1)
-    Svec[0] = N
+    infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
-        Svec[idx+1] = entry.S()
+        infected[idx] = N-entry.S()-entry.E()
     
-    infected = getInfectedFromS(Svec)
     return infected
 
 
 def seir_int(y0, t_eval, N, p ):
-    pass
+    seir_int  = libepidemics.country.seir_int
+    data      = libepidemics.country.ModelData(N=N)
+    cppsolver = seir_int.Solver(data)
+
+    params = seir_int.Parameters(beta=p[0], gamma=p[1], a=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
+    
+    initial = seir_int.State(y0)
+    
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    
+    infected = np.zeros(len(cpp_res))
+    for idx,entry in enumerate(cpp_res):
+        infected[idx] = N-entry.S()-entry.E()
+    
+    return infected
 
 
 def seiir(y0, t_eval, N, p ):
-    pass
+    seiir     = libepidemics.country.seiir
+    data      = libepidemics.country.ModelData(N=N)
+    cppsolver = seiir.Solver(data)
+
+    params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
+    
+    initial = seiir.State(y0)
+    
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    
+    infected = np.zeros(len(cpp_res))
+    for idx,entry in enumerate(cpp_res):
+        infected[idx] = N-entry.S()-entry.E()-entry.Iu()
+    
+    return infected
 
 
 def seiir_int(y0, t_eval, N, p ):
-    pass
+    seiir_int = libepidemics.country.seiir_int
+    data      = libepidemics.country.ModelData(N=N)
+    cppsolver = seiir_int.Solver(data)
+
+    params = seiir_int.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4], tact=p[5], dtact=p[6], kbeta=p[7])
+    
+    initial = seiir_int.State(y0)
+    
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    
+    infected = np.zeros(len(cpp_res))
+    for idx,entry in enumerate(cpp_res):
+        infected[idx] = N-entry.S()-entry.E()-entry.Iu()
+    
+    return infected
 
 
 def make_data_with_mul_nrm_noise(infected, sig = 1.0):
@@ -156,18 +182,23 @@ if __name__ == "__main__":
     # Model Parameter
     r0    = 1.75
     gamma = 1.0/5.2
-    a     = 1.0/2.0 # inverse is average incubation period
+    mu    = 1.0/2.0 # inverse is avg incubation period
+    alpha = 0.7 # percentage reported
+    Z     = 0.1 # avg latency period 
+    D     = 10.0 # avg duration of infection
     tact  = 40
     dtact = 10
-    kbeta = 0.7
+    kbeta = 0.3 #0.7
 
     beta = gamma*r0
     
     # Parameter Construction
-    p_sir      = [beta, gamma]
-    p_sir_int  = [r0, gamma, tact, dtact, kbeta]
-    p_seir     = [beta, gamma, a]
-    p_seir_int = [beta, gamma, a, tact, dtact, kbeta]
+    p_sir       = [beta, gamma]
+    p_sir_int   = [r0, gamma, tact, dtact, kbeta]
+    p_seir      = [beta, gamma, mu]
+    p_seir_int  = [beta, gamma, mu, tact, dtact, kbeta]
+    p_seiir     = [beta, mu, alpha, Z, D]
+    p_seiir_int = [beta, mu, alpha, Z, D, tact, dtact, kbeta]
 
     # SIR 
     sir_infected = sir_beta((S0, Ir0, R0), teval, N, p_sir)
@@ -181,20 +212,38 @@ if __name__ == "__main__":
     # SIR with interventions
     sir_infected_int = sir_int_r0((S0, Ir0, R0), teval, N, p_sir_int)
     plot(sir_infected_int, "SIR_int")
-    makefile("sir_int_r0_raw.txt", "Synthetic SIR with Intrventions Raw", N, sir_infected_int)
+    makefile("sir_int_r0_raw.txt", "Synthetic SIR with Interventions Raw", N, sir_infected_int)
     
     sir_infected_int_rnd = make_data_with_mul_nrm_noise(sir_infected_int, noise)
-    plot(sir_infected_rnd,"SIR_rnd")
+    plot(sir_infected_int_rnd,"SIR_rnd")
     makefile("sir_int_r0_rnd.txt", "Synthetic SIR with Interventions Rnd", N, sir_infected_int_rnd)
 
     # SEIR
     seir_infected = seir((S0, E0, Ir0, R0), teval, N, p_seir)
-    plot(seir_infected, "SEIR")
+    plot(seir_infected, "SEIR_raw")
     makefile("seir_raw.txt", "Synthetic SEIR Raw", N, seir_infected)
+ 
+    seir_infected_rnd = make_data_with_mul_nrm_noise(sir_infected, noise)
+    plot(seir_infected_rnd,"SEIR_rnd")
+    makefile("seir_rnd.txt", "Synthetic SEIR with Interventions Rnd", N, seir_infected_rnd)
 
     # SEIR with Interventions
+    seir_infected_int = seir_int((S0, E0, Ir0, R0), teval, N, p_seir_int)
+    plot(seir_infected_int, "SEIR_raw")
+    makefile("seir_int_raw.txt", "Synthetic SEIR with Interventions Raw", N, seir_infected_int)
+
+    seir_infected_int_rnd = make_data_with_mul_nrm_noise(seir_infected_int, noise)
+    plot(seir_infected_int_rnd,"SEIR_int_rnd")
+    makefile("seir_int_rnd.txt", "Synthetic SEIR with Interventions Rnd", N, seir_infected_int_rnd)
 
     # SEIIR 
+    seiir_infected = seiir((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir)
+    plot(seiir_infected, "SEIIR_raw")
+    makefile("seiir_raw.txt", "Synthetic SEIIR Raw", N, seiir_infected)
 
     # SEIIR with Interventions
+    seiir_infected_int = seiir_int((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir_int)
+    plot(seiir_infected_int, "SEIIR_int_raw")
+    makefile("seiir_int_raw.txt", "Synthetic SEIIR with Interventions Raw", N, seiir_infected_int)
+
 
