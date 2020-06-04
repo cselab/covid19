@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     # 'global' params
     np.random.seed(1337)
-    noise = 0.05
+    noise = 0.1
 
     T     = 90
     N     = 10000000
@@ -188,12 +188,13 @@ if __name__ == "__main__":
     D     = 10.0 # avg duration of infection
     tact  = 40
     dtact = 10
-    kbeta = 0.3 #0.7
+    kbeta = 0.3
 
-    beta = gamma*r0
+    beta = gamma*r0 # 0.3365
     
     # Parameter Construction
     p_sir       = [beta, gamma]
+    p_sir_r0    = [r0, gamma]
     p_sir_int   = [r0, gamma, tact, dtact, kbeta]
     p_seir      = [beta, gamma, mu]
     p_seir_int  = [beta, gamma, mu, tact, dtact, kbeta]
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     sir_infected_rnd = make_data_with_mul_nrm_noise(sir_infected, noise)
     plot(sir_infected_rnd, "SIR_rnd")
     makefile("sir_rnd.txt", "Synthetic SIR Rnd", N, sir_infected_rnd)
-    
+ 
     # SIR with interventions
     sir_infected_int = sir_int_r0((S0, Ir0, R0), teval, N, p_sir_int)
     plot(sir_infected_int, "SIR_int")
@@ -240,10 +241,17 @@ if __name__ == "__main__":
     seiir_infected = seiir((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir)
     plot(seiir_infected, "SEIIR_raw")
     makefile("seiir_raw.txt", "Synthetic SEIIR Raw", N, seiir_infected)
+ 
+    seiir_infected_rnd = make_data_with_mul_nrm_noise(seiir_infected, noise)
+    plot(seiir_infected_rnd,"SEIIR_rnd")
+    makefile("seiir_rnd.txt", "Synthetic SEIR Rnd", N, seiir_infected_rnd)
+
 
     # SEIIR with Interventions
     seiir_infected_int = seiir_int((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir_int)
     plot(seiir_infected_int, "SEIIR_int_raw")
     makefile("seiir_int_raw.txt", "Synthetic SEIIR with Interventions Raw", N, seiir_infected_int)
 
-
+    seiir_infected_int_rnd = make_data_with_mul_nrm_noise(seiir_infected_int, noise)
+    plot(seiir_infected_int_rnd,"SEIIR_int_rnd")
+    makefile("seiir_int_rnd.txt", "Synthetic SEIIR with Interventions Rnd", N, seiir_infected_int_rnd)
