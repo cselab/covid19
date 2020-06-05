@@ -27,7 +27,7 @@ class ModelBase( EpidemicsCountry ):
     y0cpp   = (s0, 0.0, i0, 0.0)
     initial = seir.State(y0cpp)
     
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.1)
     
     infected  = np.zeros(len(cpp_res))
     gradmu    = []
