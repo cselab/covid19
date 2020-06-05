@@ -18,7 +18,7 @@ plt.ioff()
 from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
-from epidemics.tools.nested import priorTransformFromJs, getPosteriorFromResult
+from epidemics.tools.nested import priorTransformFromJs, getPosteriorFromResult, WorkerPool
 
 class EpidemicsBase:
 
@@ -227,8 +227,14 @@ class EpidemicsBase:
  
         llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
 
+#        pool = None
+#        if (self.nThreads > 1):
+#            pool = WorkerPool(self.nThreads)
+
+        #sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nSamples, bound='multi', pool=pool)
+
         sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nSamples, bound='multi')
-        sampler.run_nested(maxiter=1e9, dlogz=0.001, add_live=True)
+        sampler.run_nested(maxiter=1e9, dlogz=0.01, add_live=True)
 
         res = sampler.results
         res.summary()

@@ -1,4 +1,12 @@
 import numpy as np
+from multiprocessing import Pool
+
+class WorkerPool(object):
+    def __init__(self, cores):
+        self.pool = Pool(processes=cores)
+        self.size = cores
+    def map(self, function, tasks):
+        return self.pool.map(function, tasks)
 
 def priorTransformFromJs(p,js):
     pt = np.zeros(len(p))

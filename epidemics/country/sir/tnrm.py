@@ -20,8 +20,8 @@ class Model( ModelBase ):
  
     self.nParameters = 3
     js = self.get_uniform_priors(
-            ('beta', 0.0, 10.0), 
-            ('gamma', 0.0, 10.0), 
+            ('beta', 0.0, 1.0), 
+            ('gamma', 0.0, 1.0), 
             ('Sigma', 1e-6, 10)
             )
     
@@ -109,5 +109,8 @@ class Model( ModelBase ):
         b    = np.inf
         llk += truncnorm.logpdf(refy[idx], a, b, incident, std)
 
+#    print(refy)
+#    print(y)
+#    print(llk)
     return llk
 
