@@ -35,7 +35,10 @@ class ModelBase( EpidemicsCountry ):
 
     for idx,entry in enumerate(cpp_res):
         infected[idx] = N-entry.S().val()-entry.E().val()
-        gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), -entry.S().d(1)-entry.E().d(1), -entry.S().d(2)-entry.E().d(2), 0.0 ])) 
+        gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), 
+                                 -entry.S().d(1)-entry.E().d(1), 
+                                 -entry.S().d(2)-entry.E().d(2), 
+                                 0.0 ])) 
         gradsig.append(np.array([ 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values

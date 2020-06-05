@@ -15,16 +15,16 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
 
-    seiir     = libepidemics.country.seiir
+    seiir_int = libepidemics.country.seiir_int
     data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seiir.Solver(data)
+    cppsolver = seiir_int.Solver(data)
 
-    params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
+    params = seiir_int.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4], tact=p[5], dtact=p[6], kbeta=p[7])
  
     s0, ir0 = y0
     y0cpp   = (s0, 0.0, ir0, 0.0, 0.0) # S E Ir Iu  R
     
-    initial = seiir.State(y0cpp)
+    initial = seiir_int.State(y0cpp)
  
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
   
@@ -40,9 +40,12 @@ class ModelBase( EpidemicsCountry ):
             -entry.S().d(2)-entry.E().d(2)-entry.Iu().d(2),
             -entry.S().d(3)-entry.E().d(3)-entry.Iu().d(3),
             -entry.S().d(4)-entry.E().d(4)-entry.Iu().d(4),
+            -entry.S().d(5)-entry.E().d(5)-entry.Iu().d(5),
+            -entry.S().d(6)-entry.E().d(6)-entry.Iu().d(6),
+            -entry.S().d(7)-entry.E().d(7)-entry.Iu().d(7),
             0.0]))
 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
  
     infected[np.isnan(infected)] = 0
  
