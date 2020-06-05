@@ -1,14 +1,13 @@
  #!/bin/bash
 
 declare -a arr=(
-"seiir_int"
-)
-
 "sir_int_r0"
 "sir"
 "seir"
 "seir_int"
 "seiir"
+"seiir_int"
+)
 
 
 mkdir -p data
