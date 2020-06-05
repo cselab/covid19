@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 import libepidemics #cpp backend
 
+dt = 1e-3
 
 def sir_beta(y0, t_eval, N, p ):
     
@@ -20,7 +21,7 @@ def sir_beta(y0, t_eval, N, p ):
     
     initial = sir.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
@@ -39,7 +40,7 @@ def sir_int_r0(y0, t_eval, N, p ):
     
     initial = sir_int_r0.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
@@ -57,7 +58,7 @@ def seir(y0, t_eval, N, p ):
     
     initial = seir.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
@@ -75,7 +76,7 @@ def seir_int(y0, t_eval, N, p ):
     
     initial = seir_int.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
@@ -93,7 +94,7 @@ def seiir(y0, t_eval, N, p ):
     
     initial = seiir.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
@@ -111,7 +112,7 @@ def seiir_int(y0, t_eval, N, p ):
     
     initial = seiir_int.State(y0)
     
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
     infected = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
