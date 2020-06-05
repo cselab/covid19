@@ -360,7 +360,7 @@ def example():
         colors = dict()
         texts = dict()
         for i, c in enumerate(rend.get_codes()):
-            colors[c] = np.sin(i + rend.get_frame() * 5 / rend.get_max_frame()) ** 2
+            colors[c] = np.sin(i + rend.get_frame() * 5 / (1 + rend.get_max_frame())) ** 2
             texts[c] = "{:},{:}".format(rend.get_frame(), i)
         rend.set_values(colors)
         rend.set_texts(texts)
@@ -376,7 +376,7 @@ def example():
                 c = rend.get_zone_to_canton()[nn[i]]
                 if c in colors:
                     vv[i] = colors[c]
-            vv = np.cos(np.arange(len(nn)) + rend.get_frame() * 10 / rend.get_max_frame()) ** 2
+            vv = np.cos(np.arange(len(nn)) + rend.get_frame() * 10 / (1 + rend.get_max_frame())) ** 2
             rend.set_zone_values(vv)
 
 

@@ -18,12 +18,12 @@ class Model( ModelBase ):
  
     self.nParameters = 6
     js = self.get_uniform_priors(
-            ('beta', 0.1, 100), 
-            ('mu', 0., 0.1), 
-            ('alpha', 0., 0.1),
-            ('Z', 0, 50), 
-            ('D', 1000, 8000), 
-            ('[Sigma]', 0.01, 100)
+            ('beta', 0.0, 10), 
+            ('mu', 0.0, 1.0), 
+            ('alpha', 0., 1.0),
+            ('Z', 0, 1.0), 
+            ('D', 1.0, 100.), 
+            ('Sigma', 1e-6, 100)
             )
     
     return js
@@ -39,7 +39,7 @@ class Model( ModelBase ):
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidents
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
      
     eps = 1e-32
     y[y < eps] = eps
@@ -49,7 +49,7 @@ class Model( ModelBase ):
         sgrad    = []
         diffgrad = []
         for idx in range(len(y)):
-            tmp = -(sol.gradMu[idx+1]-sol.gradMu[idx])
+            tmp = (sol.gradMu[idx+1]-sol.gradMu[idx])
             diffgrad.append(list(tmp))
             
             tmp = tmp*p[-1]
@@ -64,7 +64,7 @@ class Model( ModelBase ):
 
 
   def computational_model_propagate( self, s ):
-    p = s['Parameters']
+    p  = s['Parameters']
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
@@ -72,7 +72,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
     y = np.append(0, y)
 
     eps = 1e-32
