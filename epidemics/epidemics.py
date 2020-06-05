@@ -18,6 +18,8 @@ plt.ioff()
 from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
 from epidemics.tools.compute_credible_intervals import compute_credible_intervals
 
+from epidemics.tools.nested import priorTransformFromJs, getPosteriorFromResult
+
 class EpidemicsBase:
 
   def __init__( self, **kwargs ):
@@ -82,6 +84,8 @@ class EpidemicsBase:
   def computational_model_propagate( s ):
     pass
 
+  def llk_model( x ):
+    pass
 
 
   def save( self, fileName=None ):
@@ -206,6 +210,41 @@ class EpidemicsBase:
     printlog('Done copying variables.')
 
 
+  def sample_nested(self, nSamples=1000 ):
+   
+        from dynesty import NestedSampler
+       
+        js = self.get_variables_and_distributions()
+        ptform = lambda p : priorTransformFromJs(p, js)
+
+        ndim = len(js['Distributions'])
+
+        refy = self.data['Model']['y-data']
+        t    = self.data['Model']['x-data']
+
+        N  = self.data['Model']['Population Size']
+        y0 = self.data['Model']['Initial Condition']
+ 
+        llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
+
+        sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nSamples, bound='multi')
+        sampler.run_nested(maxiter=1e9, dlogz=0.001, add_live=True)
+
+        res = sampler.results
+        res.summary()
+
+        printlog('Copy variables from Nested Sampler to Epidemics...')
+        samples = getPosteriorFromResult(res)
+        for j in range(self.nParameters):
+          self.parameters.append({})
+          self.parameters[j]['Name']   = self.e['Variables'][0]['Name']
+          self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
+    
+        self.has_been_called['sample'] = True
+        self.has_been_called['propagate'] = False
+        printlog('Done copying variables.')
+
+  
   def optimize( self, nSamples ):
 
     self.nSamples = 1
@@ -448,7 +487,6 @@ class EpidemicsBase:
 
     printlog(f"Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
 
-    start = time.process_time()
 
     if self.likelihoodModel=='Normal':
       for k in range(Nt):

@@ -43,7 +43,7 @@ class ModelBase( EpidemicsCountry ):
     
     # Create Solution Object
     sol = Object()
-    sol.y       = [yS]
+    sol.y       = yS
     sol.gradMu  = gradmu
     sol.gradSig = gradsig
  
