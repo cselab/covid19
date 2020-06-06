@@ -109,8 +109,5 @@ class Model( ModelBase ):
         b    = np.inf
         llk += truncnorm.logpdf(refy[idx], a, b, incident, std)
 
-#    print(refy)
-#    print(y)
-#    print(llk)
     return llk
 
