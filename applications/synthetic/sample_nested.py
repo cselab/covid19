@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   27/3/2020
-# Email:  garampat@ethz.ch
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
