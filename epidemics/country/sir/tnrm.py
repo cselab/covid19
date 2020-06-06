@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import truncnorm
 
 from .model_base import ModelBase
 
@@ -88,26 +87,3 @@ class Model( ModelBase ):
 
     js['Standard Deviation'] = ( p[-1] * y ).tolist()
     s['Saved Results'] = js
-
-
-  def llk_model ( self, p, t, refy, y0, N ):
-
-    tt = [t[0]-1] + t.tolist()
-    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-
-    # get incidents
-    y = -np.diff(sol.y)
- 
-    eps = 1e-32
-    y[y < eps] = eps
-    refy[refy < 0] = 0
-  
-    llk = 0.0
-    for idx, incident in enumerate(y):
-        std  = incident*p[-1]
-        a    = -1.0*incident/std
-        b    = np.inf
-        llk += truncnorm.logpdf(refy[idx], a, b, incident, std)
-
-    return llk
-

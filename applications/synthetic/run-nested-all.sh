@@ -1,14 +1,14 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir"
+"sir_int_r0"
+"seir"
+"seiir"
+"seir_int"
+"seiir_int"
 )
 
-#"sir_int_r0"
-#"seir"
-#"seir_int"
-#"seiir"
-#"seiir_int"
+#"sir"
 
 mkdir -p data
 mkdir -p output_nested

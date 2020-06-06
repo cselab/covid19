@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from scipy.stats import truncnorm
 
 import matplotlib
 matplotlib.use('Agg')
