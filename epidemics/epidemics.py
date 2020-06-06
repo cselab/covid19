@@ -47,6 +47,7 @@ class EpidemicsBase:
       'korali samples': './_korali_samples/',
       'korali propagation': './_korali_propagation/',
       'inference data': './data_for_inference.pickle',
+      'nested results': './nested_res.pickle',
       'figures': './figures/',
       'evidence': 'evidence.json'
     }
@@ -81,8 +82,10 @@ class EpidemicsBase:
   def computational_model( s ):
     pass
 
+
   def computational_model_propagate( s ):
     pass
+
 
   def llk_model( x ):
     pass
@@ -94,6 +97,14 @@ class EpidemicsBase:
       fileName = self.saveInfo['state']
     with open(fileName, 'wb') as f:
       pickle.dump(self, f)
+
+
+  def save_nested( self, res ):
+    """Pickle result of nested sampler to the given target file."""
+    fileName = self.saveInfo['nested results']
+    with open(fileName, 'wb') as f:
+      pickle.dump(res, f)
+
 
   def load(fileName="state.pickle"):
     """Load object pickled by `save()`"""
@@ -202,7 +213,7 @@ class EpidemicsBase:
     myDatabase = self.e['Results']['Sample Database']
     for j in range(self.nParameters):
       self.parameters.append({})
-      self.parameters[j]['Name'] = self.e['Variables'][0]['Name']
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
       self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
 
     self.has_been_called['sample'] = True
@@ -210,45 +221,45 @@ class EpidemicsBase:
     printlog('Done copying variables.')
 
 
-  def sample_nested(self, nSamples=1000 ):
+  def sample_nested(self, nLiveSamples=1000 ):
    
-        from dynesty import NestedSampler
-       
-        js = self.get_variables_and_distributions()
-        ptform = lambda p : priorTransformFromJs(p, js)
+    from dynesty import NestedSampler
+        
+    js = self.get_variables_and_distributions()
+    ptform = lambda p : priorTransformFromJs(p, js)
 
-        ndim = len(js['Distributions'])
+    ndim = len(js['Distributions'])
 
-        refy = self.data['Model']['y-data']
-        t    = self.data['Model']['x-data']
+    refy = self.data['Model']['y-data']
+    t    = self.data['Model']['x-data']
 
-        N  = self.data['Model']['Population Size']
-        y0 = self.data['Model']['Initial Condition']
+    N  = self.data['Model']['Population Size']
+    y0 = self.data['Model']['Initial Condition']
  
-        llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
+    llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
 
-#        pool = None
-#        if (self.nThreads > 1):
-#            pool = WorkerPool(self.nThreads)
+    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi')
+    sampler.run_nested(maxiter=1e2, dlogz=0.01, add_live=True)
 
-        #sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nSamples, bound='multi', pool=pool)
-
-        sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nSamples, bound='multi')
-        sampler.run_nested(maxiter=1e9, dlogz=0.01, add_live=True)
-
-        res = sampler.results
-        res.summary()
-
-        printlog('Copy variables from Nested Sampler to Epidemics...')
-        samples = getPosteriorFromResult(res)
-        for j in range(self.nParameters):
-          self.parameters.append({})
-          self.parameters[j]['Name']   = self.e['Variables'][0]['Name']
-          self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
+    res = sampler.results
+    res.summary()
     
-        self.has_been_called['sample'] = True
-        self.has_been_called['propagate'] = False
-        printlog('Done copying variables.')
+    self.save_nested( res )
+
+    myDatabase       = getPosteriorFromResult(res)
+    self.nSamples, _ = np.shape(myDatabase)
+
+    printlog('Copy variables from Nested Sampler to Epidemics... ({0} samples generated)'.format(self.nSamples))
+    
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name']   = js['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [sample[j] for sample in myDatabase] )
+
+    self.has_been_called['sample']    = True
+    self.has_been_called['propagate'] = False
+    
+    printlog('Done copying variables.')
 
   
   def optimize( self, nSamples ):
@@ -295,8 +306,8 @@ class EpidemicsBase:
 
   def set_variables_and_distributions( self, js ):
 
+    nP = self.nParameters
     if self.e['Problem']['Type']=='Bayesian/Reference' :
-      nP = self.nParameters
       for k in range(nP):
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
         self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
@@ -306,7 +317,6 @@ class EpidemicsBase:
         self.e['Distributions'][k]['Maximum'] = js['Distributions'][k]['Maximum']
 
     else:
-      nP = self.nParameters-1
       for k in range(nP):
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
 
@@ -491,6 +501,7 @@ class EpidemicsBase:
 
     samples = np.zeros((Np*ns,Nt))
 
+    start = time.process_time()
     printlog(f"Sampling from {self.likelihoodModel} for '{varName}' variable... ", end='', flush=True)
 
 

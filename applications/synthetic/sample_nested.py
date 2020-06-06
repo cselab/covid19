@@ -44,6 +44,4 @@ a.sample_nested( 1000 )
 
 a.propagate( args.nPropagation )
 
-# a.save() currently not working with mTMCMC results 
-
 a.plot_intervals()
