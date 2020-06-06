@@ -221,7 +221,7 @@ class EpidemicsBase:
     printlog('Done copying variables.')
 
 
-  def sample_nested(self, nLiveSamples=1000 ):
+  def sample_nested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.01 ):
    
     from dynesty import NestedSampler
         
@@ -239,7 +239,7 @@ class EpidemicsBase:
     llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
 
     sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi')
-    sampler.run_nested(maxiter=1e2, dlogz=0.01, add_live=True)
+    sampler.run_nested(maxiter=maxiter, dlogz=dlogz, add_live=True) # TODO: set parameters external
 
     res = sampler.results
     res.summary()
