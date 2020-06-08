@@ -47,24 +47,24 @@ class ModelBase( EpidemicsCountry ):
             solver, params, y0cpp, params_derivatives, y0_derivatives, t_eval=t_eval, dt=0.01)
     
     
-    yS      = np.zeros(len(cpp_results))
+    infected = np.zeros(len(cpp_results))
     gradmu  = []
     gradsig = []
 
     idx = 0
     for cpp, cpp_der in zip(cpp_results, cpp_der_results):
-        yS[idx] = cpp[0]
-        gradmu.append( np.array([ cpp_der[0, 0], cpp_der[0, 2], cpp_der[0, 3], cpp_der[0, 4], cpp_der[0, 5], 0.0 ]) ) 
+        infected[idx] = N - cpp[0]
+        gradmu.append( np.array([ -cpp_der[0, 0], -cpp_der[0, 2], -cpp_der[0, 3], -cpp_der[0, 4], -cpp_der[0, 5], 0.0 ]) ) 
         gradsig.append( np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]) )
         idx = idx+1
 
 
     # Fix bad values
-    yS[np.isnan(yS)] = 0
+    infected[np.isnan(infected)] = 0
     
     # Create Solution Object
     sol = Object()
-    sol.y       = yS
+    sol.y       = infected
     sol.gradMu  = gradmu
     sol.gradSig = gradsig
  

@@ -37,10 +37,9 @@ class Model( ModelBase ):
     y0 = (N-p[4], p[4])
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-    y = -np.diff(sol.y)
     
     # get incidents
-    y = -np.diff(sol.y)
+    y = np.diff(sol.y)
      
     eps = 1e-32
     y[y < eps] = eps
@@ -62,7 +61,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
-    y = -np.diff(sol.y)
+    y = np.diff(sol.y)
     y = np.append(0, y)
 
     eps = 1e-32

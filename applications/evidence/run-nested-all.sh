@@ -14,7 +14,8 @@ declare -a arr=(
 # "austria"
 
 base="./data/nested/"
-model="country.sir_int_r0.tnrm"
+#model="country.sir_int_r0.tnrm"
+model="country.seiir_int.tnrm"
 
 
 mkdir -p output_nested
