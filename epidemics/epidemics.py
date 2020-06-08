@@ -221,7 +221,7 @@ class EpidemicsBase:
     printlog('Done copying variables.')
 
 
-  def sample_nested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.01 ):
+  def sample_nested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
    
     from dynesty import NestedSampler
         
