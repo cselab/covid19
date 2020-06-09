@@ -1,8 +1,8 @@
  #!/bin/bash
 
-declare -a arr=(
 "switzerland"
 "germany"
+declare -a arr=(
 "france"
 )
 

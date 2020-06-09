@@ -246,7 +246,7 @@ class EpidemicsBase:
     
     self.save_nested( res )
 
-    myDatabase       = getPosteriorFromResult(res)
+    myDatabase, _    = getPosteriorFromResult(res)
     self.nSamples, _ = np.shape(myDatabase)
 
     printlog('Copy variables from Nested Sampler to Epidemics... ({0} samples generated)'.format(self.nSamples))
