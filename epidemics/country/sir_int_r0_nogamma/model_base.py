@@ -28,21 +28,21 @@ class ModelBase( EpidemicsCountry ):
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     
-    yS      = np.zeros(len(cpp_res))
+    infected      = np.zeros(len(cpp_res))
     gradmu  = []
     gradsig = []
 
     for idx,entry in enumerate(cpp_res):
-        yS[idx] = entry.S().val()
-        gradmu.append(np.array([ entry.S().d(0), entry.S().d(1), entry.S().d(2), entry.S().d(3), 0.0 ])) 
+        infected[idx] = N-entry.S().val()
+        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), -entry.S().d(3), 0.0 ])) 
         gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values
-    yS[np.isnan(yS)] = 0
+    infected[np.isnan(infected)] = 0
     
     # Create Solution Object
     sol = Object()
-    sol.y       = [yS]
+    sol.y       = infected
     sol.gradMu  = gradmu
     sol.gradSig = gradsig
  

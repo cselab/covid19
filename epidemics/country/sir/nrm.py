@@ -15,7 +15,7 @@ class Model( ModelBase ):
   def get_variables_and_distributions( self ):
  
     self.nParameters = 3
-    js = self.get_uniform_priors(('beta', 0.1, 100), ('gamma', 0.1, 150), ('[Sigma]', 0.01, 100))
+    js = self.get_uniform_priors(('beta', 0.1, 100), ('gamma', 0.1, 150), ('Sigma', 1e-6, 100))
     
     return js
 
@@ -29,7 +29,7 @@ class Model( ModelBase ):
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidents
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
      
     eps = 1e-32
     y[y < eps] = eps
@@ -62,7 +62,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
     y = np.append(0, y)
 
     eps = 1e-32

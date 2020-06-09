@@ -23,7 +23,7 @@ class Model( ModelBase ):
             ('tact', 1, 80),
             ('dtact', 0.0, 30),
             ('kbeta', 0.1, 10),
-            ('[r]', 0.01, 100),
+            ('r', 0.01, 100),
             )
     
     return js
@@ -37,10 +37,9 @@ class Model( ModelBase ):
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-    y = -np.diff(sol.y[0])
     
     # get incidents
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
      
     eps = 1e-32
     y[y < eps] = eps
@@ -62,7 +61,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
     y = np.append(0, y)
 
     eps = 1e-32

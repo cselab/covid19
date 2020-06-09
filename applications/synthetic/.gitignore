@@ -1,2 +1,5 @@
 *.txt
+figures
 data
+output
+output_nested

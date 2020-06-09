@@ -17,26 +17,29 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    sir       = libepidemics.country.sir
+    seir      = libepidemics.country.seir
     data      = libepidemics.country.ModelData(N=N)
-    cppsolver = sir.Solver(data)
+    cppsolver = seir.Solver(data)
 
-    params = sir.Parameters(beta=p[0], gamma=p[1])
+    params = seir.Parameters(beta=p[0], gamma=p[1], a=p[2])
     
-    s0, i0 = y0
-    y0cpp   = (s0, i0, 0.0)
-    initial = sir.State(y0cpp)
+    s0, i0  = y0
+    y0cpp   = (s0, 0.0, i0, 0.0)
+    initial = seir.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.1)
     
-    infected = np.zeros(len(cpp_res))
-    gradmu   = []
-    gradsig  = []
+    infected  = np.zeros(len(cpp_res))
+    gradmu    = []
+    gradsig   = []
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx] = N-entry.S().val()
-        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 1.0 ]))
+        infected[idx] = N-entry.S().val()-entry.E().val()
+        gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), 
+                                 -entry.S().d(1)-entry.E().d(1), 
+                                 -entry.S().d(2)-entry.E().d(2), 
+                                 0.0 ])) 
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values
     infected[np.isnan(infected)] = 0

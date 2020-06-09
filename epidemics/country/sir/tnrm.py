@@ -1,4 +1,5 @@
 import numpy as np
+
 from .model_base import ModelBase
 
 
@@ -18,9 +19,9 @@ class Model( ModelBase ):
  
     self.nParameters = 3
     js = self.get_uniform_priors(
-            ('beta', 0.0, 10.0), 
-            ('gamma', 0.0, 10.0), 
-            ('[Sigma]', 1e-6, 10)
+            ('beta', 0.0, 1.0), 
+            ('gamma', 0.0, 1.0), 
+            ('Sigma', 1e-6, 10)
             )
     
     return js
@@ -35,7 +36,7 @@ class Model( ModelBase ):
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidents
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
      
     eps = 1e-32
     y[y < eps] = eps
@@ -68,7 +69,7 @@ class Model( ModelBase ):
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
-    y = -np.diff(sol.y[0])
+    y = np.diff(sol.y)
     y = np.append(0, y)
 
     eps = 1e-32

@@ -1,14 +1,14 @@
 import numpy as np
-
 from .model_base import ModelBase
+
 
 class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.sir_int_r0.tnrm'
-    self.modelDescription = 'Fit SIR with interventions on Daily Infected Data with Positive Normal Likelihood'
+    self.modelName        = 'country.seir.tnrm'
+    self.modelDescription = 'Fit SEIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
@@ -16,34 +16,33 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 6
+    self.nParameters = 7
     js = self.get_uniform_priors(
-            ('R0', 0.5, 5.), 
-            ('gamma', 0.0, 1.0), 
+            ('beta', 0.0, 10.0), 
+            ('gamma', 0.0, 10.0), 
+            ('mu', 0.0, 1.0), 
             ('tact', 0.0, 100.),
             ('dtact', 0.0, 50.),
             ('kbeta', 0.0, 1.0),
-            ('Sigma', 1e-6, 100),
+            ('Sigma', 1e-6, 10)
             )
     
     return js
 
-
   def computational_model( self, s ):
-    p = s['Parameters']
+    p  = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
-    
+
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidents
-    y = np.diff(sol.y)
-     
+    y   = np.diff(sol.y)
     eps = 1e-32
     y[y < eps] = eps
-    
+
     # Transform gradients
     if(self.sampler == 'mTMCMC'):
         sgrad    = []

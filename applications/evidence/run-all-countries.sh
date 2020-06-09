@@ -17,13 +17,13 @@ declare -a arr=(
 # "china"
 # "cosovo"
 
-base="./data/nogamma/"
-model="country.sir_int_r0_nogamma.tnrm"
+base="./data/adaptive/"
+model="country.sir_int_r0.tnrm"
 
 for c in "${arr[@]}"
 do
 
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 25000 -np 25000 -cm $model -c "$c" --sampler 'mTMCMC' -df $base
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 100000 -np 100000 -cm $model -c "$c" --sampler 'mTMCMC' -df $base | tee -a out-rac.txt
 
    
    folder="$base/$c/$model"

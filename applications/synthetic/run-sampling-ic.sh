@@ -1,10 +1,9 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int_r0_raw"
+"sir_int_r0_rndm"
 )
-
-#"sir_int_r0_rndm"
+#"sir_int_r0_raw"
 
 
 model="country.sir_int_r0_IC.tnrm"
@@ -12,7 +11,7 @@ model="country.sir_int_r0_IC.tnrm"
 for f in "${arr[@]}"
 do
    base="./data/$f/"
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 1000 -np 1000 -cm $model -c "$c" --sampler 'mTMCMC' -df $base --synthetic -dat "$f.txt" | tee out-rsic.txt
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py --silentPlot -nt 12 -ns 1000 -np 1000 -cm $model -c "$c" --sampler 'mTMCMC' -df $base --synthetic -dat "$f.txt" | tee -a out-rsic.txt
    
    folder="$base/$model"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
