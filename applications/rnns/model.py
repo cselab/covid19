@@ -34,6 +34,7 @@ class Model():
         self.name += '_e'+str(self.n_epochs)+'_lr'+str(self.lr) 
         self.path = './results/'+self.name + '/'
 
+        print('Saving at {}'.format(self.path))
         self.create_folder(self.path)
         self.create_folder(self.path+'training_predictions/')
 
