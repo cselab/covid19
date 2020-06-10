@@ -1,9 +1,11 @@
  #!/bin/bash
 
-"switzerland"
-"germany"
+# "switzerland"
+# "germany"
 declare -a arr=(
 "france"
+"switzerland"
+"germany"
 )
 
 # OTHER
