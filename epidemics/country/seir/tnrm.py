@@ -18,9 +18,9 @@ class Model( ModelBase ):
  
     self.nParameters = 4
     js = self.get_uniform_priors(
-            ('beta', 0.0, 10.0), 
-            ('gamma', 0.0, 10.0), 
-            ('mu', 0.0, 1.0), 
+            ('beta', 0.0, 2.0), 
+            ('gamma', 0.0, 1.0), 
+            ('a', 0.0, 1.0), 
             ('Sigma', 1e-6, 10)
             )
     

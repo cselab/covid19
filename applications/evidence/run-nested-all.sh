@@ -1,9 +1,9 @@
  #!/bin/bash
 
-"switzerland"
-"germany"
 declare -a arr=(
+"switzerland"
 "france"
+"germany"
 )
 
 # OTHER
@@ -15,7 +15,7 @@ declare -a arr=(
 
 base="./data/nested/"
 #model="country.sir_int_r0.tnrm"
-model="country.seiir_int.tnrm"
+model="country.seir_int.tnrm"
 
 
 mkdir -p output_nested
