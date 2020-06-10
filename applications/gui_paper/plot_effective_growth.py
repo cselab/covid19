@@ -40,6 +40,9 @@ parser.add_argument('--title',
                     type=str,
                     default="",
                     help="Title for the figure")
+parser.add_argument('--growth',
+                    action="store_true",
+                    help="Plot effective growth rate instead of R0")
 parser.add_argument('--output_dir',
                     default=".",
                     help="Directory for output images.")
@@ -62,6 +65,7 @@ if args.dehning2020_dir:
     import load_dehning2020 as dg_germany
     dehning = dg_germany.load(args.dehning2020_dir)
 
+plt.rcParams.update({'font.size': 13})
 fig = plt.figure(figsize=(6, 9))
 # ax = fig.subplots(3)
 ax = fig.subplots(3, sharex=True)
@@ -102,22 +106,38 @@ Nt = len(t)
 Ns = R0.shape[0]
 
 lambdaeff = np.zeros((Nt, Ns))
+vR0 = np.zeros((Nt, Ns))
 for i in range(Nt):
     for j in range(Ns):
         beta = R0[j] * intervention_trans(1., kbeta[j], t[i], tact[j],
                                           dtact * 0.5) * gamma
         lambdaeff[i, j] = beta - gamma
+        vR0[i, j] = beta / gamma
 
-mean = np.mean(lambdaeff, axis=1)
-ax1.plot(days, mean)
 
-median = np.quantile(lambdaeff, 0.5, axis=1)
-q1 = np.quantile(lambdaeff, 0.1, axis=1)
-q2 = np.quantile(lambdaeff, 0.9, axis=1)
-ax1.fill_between(days, q1, q2, alpha=ALPHA)
+Q_LO = 0.1
+Q_HI = 0.9
 
-ax1.axhline(y=0, color='black', linestyle=':')
-ax1.set_ylabel(r'Effective growth rate $\lambda^\ast(t)$')
+if args.growth:
+    y = lambdaeff
+    mean = np.mean(y, axis=1)
+    ax1.plot(days, mean)
+    median = np.quantile(y, 0.5, axis=1)
+    q1 = np.quantile(y, Q_LO, axis=1)
+    q2 = np.quantile(y, Q_HI, axis=1)
+    ax1.fill_between(days, q1, q2, alpha=ALPHA)
+    ax1.axhline(y=0, color='black', linestyle=':')
+    ax1.set_ylabel(r'effective growth rate $\lambda^\ast(t)$')
+else:
+    y = vR0
+    mean = np.mean(y, axis=1)
+    ax1.plot(days, mean)
+    median = np.quantile(y, 0.5, axis=1)
+    q1 = np.quantile(y, Q_LO, axis=1)
+    q2 = np.quantile(y, Q_HI, axis=1)
+    ax1.fill_between(days, q1, q2, alpha=ALPHA)
+    ax1.axhline(y=1, color='black', linestyle=':')
+    ax1.set_ylabel(r'$R_0(t)$')
 
 ydata = np.array(d['y-data']).astype(float)
 
@@ -132,10 +152,11 @@ for v in d['Daily Infected']['Intervals']:
     high = v['High Interval']
     ax2.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
-ax2.scatter(daysdata, np.diff(ydata, prepend=0), c='black', s=4)
-ax2.set_ylabel('Daily new reported')
+ax2.scatter(daysdata[:-1], np.diff(ydata), c='black', s=4)
+ax2.set_ylabel('Daily Infected')
+ax2.set_yscale('log')
 ax2.set_xlim(left=days.min())
-ax2.set_ylim(bottom=0)
+ax2.set_ylim(bottom=1)
 
 mean = d['Total Infected']['Mean']
 median = d['Total Infected']['Median']
@@ -149,7 +170,7 @@ for v in d['Total Infected']['Intervals']:
     ax3.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
 ax3.scatter(daysdata, ydata, c='black', s=4)
-ax3.set_ylabel('Total new reported')
+ax3.set_ylabel('Cumulative Infected')
 ax3.set_xlim(left=days.min())
 ax3.set_ylim(bottom=0)
 
