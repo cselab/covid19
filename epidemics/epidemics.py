@@ -185,7 +185,6 @@ class EpidemicsBase:
 
     self.e['Solver']['Type'] = "TMCMC"
     self.e['Solver']['Version'] = self.sampler
-    self.e['Solver']['Adaptive Step Size'] = True
     self.e['Solver']['Step Size'] = 0.5
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = cov

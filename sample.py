@@ -5,13 +5,14 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__),'build'))
 
 import argparse
 import copy
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='sir.nbin', help='The computational model.')
+parser.add_argument('--compModel', '-cm', default='country.sir.nrm', help='The computational model.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
@@ -24,7 +25,6 @@ parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
-parser.add_argument('--it_per_day','-it',default=10,help='number of iterations per day when using the pytorch ODE solver')
 
 args = parser.parse_args()
 
