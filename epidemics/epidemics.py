@@ -183,7 +183,7 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
-    self.e['Solver']['Type'] = "TMCMC"
+    self.e['Solver']['Type'] = "Sampler/TMCMC"
     self.e['Solver']['Version'] = self.sampler
     self.e['Solver']['Step Size'] = 0.5
     self.e['Solver']['Population Size'] = self.nSamples
