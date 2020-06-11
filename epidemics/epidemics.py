@@ -36,6 +36,7 @@ class EpidemicsBase:
     self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
 
+
     if(self.synthetic):
         self.datafile     = kwargs.pop('dataFile')
 

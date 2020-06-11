@@ -1,5 +1,6 @@
  #!/bin/bash
 
+
 declare -a arr=(
 "switzerland"
 "france"
@@ -23,6 +24,7 @@ declare -a arr=(
 # "sweden"
 
 base="./data/nested/"
+
 model="country.sir_int_r0.tnrm"
 #model="country.seir_int.tnrm"
 #model="country.seiir_int.tnrm"

@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import argparse
 import copy
 from epidemics.tools.tools import import_from
+sys.path.append('../../build')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.sir.tnrm', help='The computational model.')
