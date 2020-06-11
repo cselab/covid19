@@ -1,29 +1,39 @@
  #!/bin/bash
 
-# "switzerland"
-# "germany"
+
 declare -a arr=(
-"france"
 "switzerland"
+"france"
 "germany"
 )
 
-# OTHER
-# "italy"
+# OTHER (TOP 10 by Population)
+
 # "russia"
-# "sweden"
+# "germany"
+# "turkey"
+# "france"
+# "united kingdom" @test link
+# "italy"
+# "spain"
 # "ukraine"
-# "austria"
+# "poland" @test link
+# "romania @test link
+
+# "switzerland"
+# "sweden"
 
 base="./data/nested/"
-#model="country.sir_int_r0.tnrm"
-model="country.reparam.seiir_int.tnrm"
+
+#model="country.seir_int.tnrm"
+model="country.seiir_int.tnrm"
 
 
 mkdir -p output_nested
 
 for c in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_nested.py --silentPlot -ns 1500 -cm ${model} -c "$c" -df $base
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_nested.py --silentPlot -ns 1000 -cm ${model} -c "$c" -df $base
+   python plot_nested.py -of "${base}/figures/samples.png"
 
 done

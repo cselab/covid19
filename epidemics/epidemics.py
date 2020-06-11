@@ -248,6 +248,12 @@ class EpidemicsBase:
 
     myDatabase, _    = getPosteriorFromResult(res)
     self.nSamples, _ = np.shape(myDatabase)
+ 
+    js = {}
+    js['Evidence'] = res.logz[-1]
+    printlog(f"Log Evidence = {js['Evidence']}")
+    save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
+
 
     printlog('Copy variables from Nested Sampler to Epidemics... ({0} samples generated)'.format(self.nSamples))
     

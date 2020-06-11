@@ -7,7 +7,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.seir.tnrm'
+    self.modelName        = 'country.seir_int.tnrm'
     self.modelDescription = 'Fit SEIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
@@ -20,11 +20,11 @@ class Model( ModelBase ):
     js = self.get_uniform_priors(
             ('beta', 0.0, 2.0), 
             ('gamma', 0.0, 1.0), 
-            ('mu', 0.0, 1.0), 
+            ('a', 0.0, 1.0), 
             ('tact', 0.0, 100.),
             ('dtact', 0.0, 50.),
             ('kbeta', 0.0, 1.0),
-            ('Sigma', 1e-6, 10)
+            ('Sigma', 1e-6, 100)
             )
     
     return js
