@@ -21,7 +21,7 @@ class Model( ModelBase ):
             ('beta', 0.0, 2.0), 
             ('gamma', 0.0, 1.0), 
             ('a', 0.0, 1.0), 
-            ('Sigma', 1e-6, 10)
+            ('Sigma', 1e-6, 100)
             )
     
     return js

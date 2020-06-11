@@ -24,7 +24,7 @@ class Model( ModelBase ):
             ('tact', 0.0, 100.),
             ('dtact', 0.0, 50.),
             ('kbeta', 0.0, 1.0),
-            ('Sigma', 1e-6, 10)
+            ('Sigma', 1e-6, 100)
             )
     
     return js
