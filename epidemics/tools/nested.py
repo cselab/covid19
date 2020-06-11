@@ -2,6 +2,8 @@ import numpy as np
 from multiprocessing import Pool
 
 import pickle
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 class WorkerPool(object):
@@ -143,7 +145,7 @@ def plot_lower_triangle(ax, theta):
       if j > 0:
         ax[i, j].set_yticklabels([])
 
-def plotNetsedResult(result):
+def plotNetsedResult(result, savepath=None):
 
     samples, idx  = getPosteriorFromResult(result)
  
@@ -167,8 +169,12 @@ def plotNetsedResult(result):
 #    for i in range(numdim):
 #      ax[i, 0].set_ylabel(genList[idx]['Variables'][i]['Name'])
 #      ax[-1, i].set_xlabel(genList[idx]['Variables'][i]['Name'])
-
-    plt.show()
+    
+    if (savepath==None):
+        print("TEST")
+        plt.show()
+    else:
+        plt.savefig(savepath)
 
 
 
