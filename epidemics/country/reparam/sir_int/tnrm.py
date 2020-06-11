@@ -8,23 +8,21 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.seiir_int.tnrm'
-    self.modelDescription = 'Fit SEIIR with Interventions on Daily Infected Data with Positive Normal Likelihood'
+    self.modelName        = 'country.reparam.sir_int.tnrm'
+    self.modelDescription = 'Fit SIR with interventions on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
+ 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 9
+    self.nParameters = 6
     js = self.get_uniform_priors(
-            ('beta', 0.5, 2.0), 
-            ('mu', 0.0, 1.0), 
-            ('alpha', 0., 1.0),
-            ('Z', 0.0, 21.), 
-            ('D', 0.0, 30.),  
-            ('tact', 0.0, 100.),
-            ('dtact', 0.0, 50.),
+            ('R0', 0.1, 2.0), 
+            ('D', 1.0, 30.0), 
+            ('tact', 1, 100),
+            ('dtact', 0.0, 50),
             ('kbeta', 0.0, 1.0),
             ('Sigma', 1e-6, 100)
             )
@@ -32,7 +30,6 @@ class Model( ModelBase ):
     return js
 
   def computational_model( self, s ):
-
     p = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
@@ -47,7 +44,7 @@ class Model( ModelBase ):
     eps = 1e-32
     y[y < eps] = eps
     
-    # Get gradients here 
+    # Transform gradients
     if(self.sampler == 'mTMCMC'):
         sgrad    = []
         diffgrad = []
@@ -67,7 +64,7 @@ class Model( ModelBase ):
 
 
   def computational_model_propagate( self, s ):
-    p  = s['Parameters']
+    p = s['Parameters']
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
@@ -85,12 +82,11 @@ class Model( ModelBase ):
     js['Variables'] = []
 
     js['Variables'].append({})
-    js['Variables'][0]['Name'] = 'Daily Incidence'
+    js['Variables'][0]['Name']   = 'Daily Incidence'
     js['Variables'][0]['Values'] = list(y)
 
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
     js['Standard Deviation'] = ( p[-1] * y ).tolist()
-
     s['Saved Results'] = js

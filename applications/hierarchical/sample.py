@@ -6,11 +6,15 @@
 
 import argparse, sys
 import copy
-sys.path.append('../../')
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append('../../build')
+
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='sir.nbin', help='The computational mode.')
+parser.add_argument('--compModel', '-cm', default='country.reparam.seiir.tnrm', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
@@ -21,8 +25,6 @@ parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that 
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
-parser.add_argument('--backend','-b',default='numpy',help='numpy/scipy or pytorch')
-parser.add_argument('--it_per_day','-it',default=10,help='number of iterations per day when using the pytorch ODE solver')
 
 args = parser.parse_args()
 

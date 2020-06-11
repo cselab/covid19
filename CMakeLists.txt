@@ -36,6 +36,12 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seir_int.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_int.generated.cpp
+    ${CODE_DIR}/bindings/_country.sir_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.sir_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seir_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seir_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiir_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiir_int_reparam.generated.cpp
 )
 
 add_custom_command(

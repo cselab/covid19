@@ -116,8 +116,18 @@ def main():
     generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
     generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3')
  
+    # reparam
+    generate_country_model('sir_reparam', 'S I R', 'R0 D')
+    generate_country_model('sir_int_reparam', 'S I R', 'R0 D tact dtact kbeta')
+    generate_country_model('seir_reparam', 'S E I R', 'R0 D Z')
+    generate_country_model('seir_int_reparam', 'S E I R', 'R0 D Z tact dtact kbeta')
+    generate_country_model('seiir_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha')
+    generate_country_model('seiir_int_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha tact dtact kbeta')
+
+
     # add model here as argument
-    generate_country('sir', 'sir_int', 'sir_int_r0', 'seir', 'seir_int', 'seiir', 'seiir_int')
+    generate_country('sir', 'sir_int', 'sir_int_r0', 'seir', 'seir_int', 'seiir', 'seiir_int',
+                     'sir_reparam', 'sir_int_reparam', 'seir_reparam', 'seir_int_reparam', 'seiir_reparam', 'seiir_int_reparam')
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 

@@ -8,24 +8,21 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.seiir_int.tnrm'
-    self.modelDescription = 'Fit SEIIR with Interventions on Daily Infected Data with Positive Normal Likelihood'
+    self.modelName        = 'country.reparam.seiir.tnrm'
+    self.modelDescription = 'Fit SEIIR on Daily Infected Data with Positive Normal Likelihood'
     self.likelihoodModel  = 'Positive Normal'
 
     super().__init__( **kwargs )
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 9
+    self.nParameters = 6
     js = self.get_uniform_priors(
-            ('beta', 0.5, 2.0), 
-            ('mu', 0.0, 1.0), 
+            ('R0', 0.0, 2.0), 
+            ('mu', 0.0, 2.0), 
             ('alpha', 0., 1.0),
-            ('Z', 0.0, 21.), 
-            ('D', 0.0, 30.),  
-            ('tact', 0.0, 100.),
-            ('dtact', 0.0, 50.),
-            ('kbeta', 0.0, 1.0),
+            ('Z', 0, 15.0), 
+            ('D', 1.0, 30.), 
             ('Sigma', 1e-6, 100)
             )
     
