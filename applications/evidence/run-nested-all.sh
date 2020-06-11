@@ -6,12 +6,21 @@ declare -a arr=(
 "germany"
 )
 
-# OTHER
-# "italy"
+# OTHER (TOP 10 by Population)
+
 # "russia"
-# "sweden"
+# "germany"
+# "turkey"
+# "france"
+# "united kingdom" @test link
+# "italy"
+# "spain"
 # "ukraine"
-# "austria"
+# "poland" @test link
+# "romania @test link
+
+# "switzerland"
+# "sweden"
 
 base="./data/nested/"
 #model="country.sir_int_r0.tnrm"
