@@ -293,7 +293,15 @@ class EpidemicsBase:
     N  = self.data['Model']['Population Size']
     y0 = self.data['Model']['Initial Condition']
  
-    llkfunction = lambda p : self.llk_model( p, t, refy, y0, N)
+    llkfunction = None
+    if self.likelihoodModel == "Positive Normal":
+        llkfunction = lambda p : self.llk_model_tnrm( p, t, refy, y0, N)
+    elif self.likelihoodModel == "Negative Binomial":
+        llkfunction = lambda p : self.llk_model_nbin( p, t, refy, y0, N)
+    else:
+       print("[Epidemics] likelihood model not recognized!")
+       sys.exit(0)
+
 
     sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi')
     sampler.run_nested(maxiter=maxiter, dlogz=dlogz, add_live=True) # TODO: set parameters external
