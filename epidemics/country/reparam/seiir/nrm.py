@@ -8,9 +8,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seiir.tnrm'
+    self.modelName        = 'country.reparam.seiir.nrm'
     self.modelDescription = 'Fit SEIIR on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.likelihoodModel  = 'Normal'
 
     super().__init__( **kwargs )
 
@@ -27,5 +27,6 @@ class Model( ModelBase ):
             )
     
     return js
+
 
 

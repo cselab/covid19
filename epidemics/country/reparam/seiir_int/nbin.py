@@ -8,9 +8,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seiir_int.tnrm'
+    self.modelName        = 'country.reparam.seiir_int.nbin'
     self.modelDescription = 'Fit SEIIR with Interventions on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
@@ -26,7 +26,7 @@ class Model( ModelBase ):
             ('tact', 0.0, 100.),
             ('dtact', 0.0, 50.),
             ('kbeta', 0.0, 1.0),
-            ('Sigma', 1e-6, 100)
+            ('[r]', 0.01, 100),
             )
     
     return js

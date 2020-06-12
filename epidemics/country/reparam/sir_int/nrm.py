@@ -8,9 +8,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sir_int.tnrm'
+    self.modelName        = 'country.reparam.sir_int.nrm'
     self.modelDescription = 'Fit SIR with interventions on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.likelihoodModel  = 'Normal'
 
     super().__init__( **kwargs )
 
