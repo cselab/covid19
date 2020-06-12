@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from scipy.stats import truncnorm
+from scipy.special import loggamma
 
 import matplotlib
 matplotlib.use('Agg')
@@ -125,7 +126,33 @@ class EpidemicsCountry( EpidemicsBase ):
     plt.close(fig)
 
 
-  def llk_model ( self, p, t, refy, y0, N ):
+  def llk_model_nbin ( self, p, t, refy, y0, N ):
+
+    tt = [t[0]-1] + t.tolist()
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
+
+    # get incidents
+    y = np.diff(sol.y)
+ 
+    eps = 1e-32
+    y[y < eps] = eps
+    refy[refy < 0] = 0
+  
+    llk = 0.0
+    for idx, incident in enumerate(y):
+        llk -= loggamma ( refy[idx] + 1. ) #fix
+        m    = incident
+        r    = incident*p[-1]
+        prob = m / (m+r)
+
+        llk += loggamma ( refy[idx] + r )
+        llk -= loggamma ( r )
+        llk += r * np.log(1-prob)
+        llk += refy[idx] * np.log(prob)
+
+    return llk
+
+  def llk_model_tnrm ( self, p, t, refy, y0, N ):
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
