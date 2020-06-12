@@ -220,6 +220,63 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
+  def sample_knested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
+
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Bayesian/Reference'
+    self.e['Problem']['Likelihood Model'] = self.likelihoodModel
+    self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Computational Model'] = self.computational_model
+    
+    self.e["Solver"]["Type"] = "Sampler/Nested"
+    self.e["Solver"]["Number Live Points"] = nLiveSamples
+    self.e["Solver"]["Batch Size"] = 1
+    self.e["Solver"]["Proposal Update Frequency"] = 1
+    self.e["Solver"]["Resampling Method"] = "Ellipse"
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.1
+#    self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
+ 
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
+    self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 10000
+    self.e["Solver"]["Termination Criteria"]["Max Gain Factor"] = dlogz
+
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
+
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
+    self.e['Console Output']['Verbosity'] = 'Detailed'
+    self.e["Console Output"]["Frequency"] = 5000
+    
+    if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
+
+    k = korali.Engine()
+    
+    #k['Conduit']['Type'] = 'Concurrent'
+    #k['Conduit']['Concurrent Jobs'] = self.nThreads
+
+    k.run(self.e)
+
+    js = {}
+    js['Evidence'] = self.e['Solver']['Log Evidence']
+    printlog(f"Log Evidence = {js['Evidence']}")
+    save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
+
+    printlog('Copy variables from Korali to Epidemics...')
+    
+    myDatabase = self.e['Results']['Posterior Sample Database']
+    self.nSamples, _ = np.shape(myDatabase)
+    
+    self.parameters = []
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
+
+    self.has_been_called['sample'] = True
+    self.has_been_called['propagate'] = False
+    printlog('Done copying variables.')
+
 
   def sample_nested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
    
