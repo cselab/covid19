@@ -14,7 +14,7 @@ sys.path.append('../../build')
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='country.reparam.sir_int.tnrm', help='The computational mode.')
+parser.add_argument('--compModel', '-cm', default='country.reparam.seir_int.tnrm', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')

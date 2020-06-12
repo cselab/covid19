@@ -23,7 +23,7 @@ class Model( ModelBase ):
             ('tact', 1, 80),
             ('dtact', 0.0, 30),
             ('kbeta', 0.1, 10),
-            ('r', 0.01, 100),
+            ('[r]', 0.01, 100),
             )
     
     return js

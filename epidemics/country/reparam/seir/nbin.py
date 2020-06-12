@@ -7,26 +7,21 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seir_int.tnrm'
+    self.modelName        = 'country.reparam.seir.nbin'
     self.modelDescription = 'Fit SEIR on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
 
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 7
+    self.nParameters = 4
     js = self.get_uniform_priors(
             ('R0', 0.0, 2.0), 
             ('D', 0.0, 15.0), 
             ('Z', 0.0, 30.0), 
-            ('tact', 0.0, 100.),
-            ('dtact', 0.0, 50.),
-            ('kbeta', 0.0, 1.0),
-            ('Sigma', 1e-6, 10)
+            ('[r]', 0.01, 100),
             )
     
     return js
-
-
