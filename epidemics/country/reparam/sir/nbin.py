@@ -26,7 +26,6 @@ class Model( ModelBase ):
     
     return js
 
-
   def computational_model( self, s ):
     p = s['Parameters']
     t  = self.data['Model']['x-data']
@@ -42,6 +41,7 @@ class Model( ModelBase ):
     eps = 1e-32
     y[y < eps] = eps
  
+    # Transform gradients
     if(self.sampler == 'mTMCMC'):
         print("[Epidemics] mTMCMC not yet available for nbin")
         sys.exit(0)
