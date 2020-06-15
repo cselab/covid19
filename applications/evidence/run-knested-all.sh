@@ -1,10 +1,9 @@
  #!/bin/bash
 
-#"france"
-#"germany"
-
 declare -a arr=(
 "switzerland"
+"france"
+"germany"
 )
 
 # OTHER (TOP 10 by Population)
@@ -31,7 +30,7 @@ model="country.sir_int_r0.tnrm"
 
 for c in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 3000 -cm ${model} -c "$c" -df $base | tee knested.out
+   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm ${model} -c "$c" -df $base | tee "knested_${c}.out"
    python plot_nested.py -rf "${base}/${c}/${model}/nested_res.pickle" -of "${base}/${c}/${model}/figures/samples.png"
 
 done
