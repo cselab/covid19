@@ -253,6 +253,14 @@ struct AutoDiffBase : Storage
         return x >= 0 ? x : -x;
     }
 
+    friend Derived exp(Derived x) {
+        using std::exp;
+        x.val() = exp(x.val());
+        for (size_t i = 0; i < x.N(); ++i)
+            x.d(i) *= x.val();
+        return x;
+    }
+
 protected:
     struct size_tag { };
 
