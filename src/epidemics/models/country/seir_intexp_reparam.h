@@ -47,7 +47,9 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         if (t <= p.tact) {
            r0 = p.R0;
         } else {
-           r0 = p.R0*exp(p.tact-t);
+           using std::exp;
+           double dt = p.tact-t; // careful: diff will not work
+           r0 = p.R0*exp(dt);
         }
 
         double invN = 1. / data_.N;
