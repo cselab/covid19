@@ -235,7 +235,7 @@ class EpidemicsBase:
     self.e["Solver"]["Batch Size"] = 1
     self.e["Solver"]["Proposal Update Frequency"] = 1
 #    self.e["Solver"]["Resampling Method"] = "Ellipse"
-    self.e["Solver"]["Ellipsoidal Scaling"] = 1.1
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.0
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
