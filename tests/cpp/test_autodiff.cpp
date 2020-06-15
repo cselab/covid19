@@ -13,7 +13,7 @@ static void assertEqAD(const AD &a, const AD &b) {
 }
 
 template <typename Make>
-static void test_arithmetic(Make make) {
+static void testArithmetic(Make make) {
     // Test unary +, -.
     assertEqAD(+make(100., 10., 20.), make(100., 10., 20.));
     assertEqAD(-make(100., 10., 20.), make(-100., -10., -20.));
@@ -41,7 +41,7 @@ static void test_arithmetic(Make make) {
 }
 
 template <typename Make>
-static void test_comparison(Make make) {
+static void testComparison(Make make) {
     ASSERT_TRUE(5 > make(4., 1.));
     ASSERT_FALSE(5 > make(5., 1.));
     ASSERT_FALSE(5 > make(6., 1.));
@@ -94,7 +94,7 @@ static void test_comparison(Make make) {
 }
 
 template <typename Make>
-static void test_expression(Make make) {
+static void testExpression(Make make) {
     auto x = make(10.,  1., 0.);
     auto y = make(100., 0., 1.);
 
@@ -111,17 +111,29 @@ static void test_expression(Make make) {
     assertEqAD(func2(x, y), make(1000., 100., 10.));
 }
 
+template <typename Make>
+static void testSpecialFunctions(Make make) {
+    using std::exp;
+    double a = exp(10.);
+    assertEqAD(exp(make(10., 1, 2.)), make(a, a, 2 * a));
+}
+
 TEST(AutoDiff, arithmetic) {
-    test_arithmetic(make_ad<double, double, double>);
-    test_arithmetic(make_dynamic_ad<double, double, double>);
+    testArithmetic(make_ad<double, double, double>);
+    testArithmetic(make_dynamic_ad<double, double, double>);
 }
 
 TEST(AutoDiff, comparison) {
-    test_comparison(make_ad<double, double>);
-    test_comparison(make_dynamic_ad<double, double>);
+    testComparison(make_ad<double, double>);
+    testComparison(make_dynamic_ad<double, double>);
 }
 
 TEST(AutoDiff, expression) {
-    test_expression(make_ad<double, double, double>);
-    test_expression(make_dynamic_ad<double, double, double>);
+    testExpression(make_ad<double, double, double>);
+    testExpression(make_dynamic_ad<double, double, double>);
+}
+
+TEST(AutoDiff, special) {
+    testSpecialFunctions(make_ad<double, double, double>);
+    testSpecialFunctions(make_dynamic_ad<double, double, double>);
 }
