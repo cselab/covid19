@@ -131,4 +131,6 @@ fig.colorbar(sm,
              orientation='horizontal',
              ticks=[0.5, 1, 1.5, 2, 2.5])
 
-fig.savefig("map.pdf")
+fpath = "map_R0.pdf"
+print(fpath)
+fig.savefig(fpath)

@@ -26,7 +26,7 @@ fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
 for before, parname, ax in zip([True, False], ['R0int', 'R0'], axes):
     printerr(parname)
-    ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
+    ax.axvline(x=1, color='black', linestyle='-', alpha=0.25, zorder=-10)
     i = 0
     texts = []
     for i, row in enumerate(df.itertuples()):
@@ -45,4 +45,6 @@ for before, parname, ax in zip([True, False], ['R0int', 'R0'], axes):
             fontsize=15)
     ax.set_ylabel('days from first cases to intervention')
 fig.tight_layout()
-fig.savefig("scatter_tact.pdf")
+fpath = "scatter_tint_R0.pdf"
+print(fpath)
+fig.savefig(fpath)

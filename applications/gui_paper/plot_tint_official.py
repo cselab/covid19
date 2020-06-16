@@ -10,8 +10,8 @@ import countrydata
 datafolder = "."
 df = countrydata.CollectCountryData(datafolder)
 df = countrydata.AppendColor(df)
-df = countrydata.AppendOfficalLockdown(df)
 df = countrydata.AppendInferred(df, datafolder)
+df = countrydata.AppendOfficalLockdown(df)
 
 fig, ax = plt.subplots(1, 1, figsize=(5, 5.3))
 
@@ -67,5 +67,6 @@ ax.set_yticks(yticks_y)
 ax.set_yticklabels(yticks_label, fontsize=7)
 
 fig.tight_layout()
-fig.savefig("scatter_tint_actual.pdf")
-
+fpath = "scatter_tint_official.pdf"
+print(fpath)
+fig.savefig(fpath)

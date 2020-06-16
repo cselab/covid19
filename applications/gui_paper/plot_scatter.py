@@ -22,7 +22,7 @@ axes = [axes, axes]
 dfs = df.sort_values(by='R0int_mean', ascending=False)
 
 for before, parname, ax in zip([False, True], ['R0int', 'R0'], axes):
-    ax.axvline(x=1, color='black', linestyle=':', zorder=-10)
+    ax.axvline(x=1, color='black', linestyle='-', alpha=0.25, zorder=-10)
     i = 0
     ax.get_yaxis().set_visible(False)
     for i, row in enumerate(dfs.itertuples()):
@@ -41,4 +41,6 @@ for before, parname, ax in zip([False, True], ['R0int', 'R0'], axes):
             transform=ax.transAxes,
             fontsize=15)
 fig.tight_layout()
-fig.savefig("scatter_R0.pdf")
+fpath = "scatter_R0.pdf"
+print(fpath)
+fig.savefig(fpath)
