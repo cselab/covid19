@@ -305,7 +305,7 @@ class EpidemicsBase:
        sys.exit(0)
 
 
-    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi', sample='unif')
+    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi',sample='unif')
     sampler.run_nested(maxiter=maxiter, dlogz=dlogz, add_live=True) # TODO: set parameters external
 
     res = sampler.results
