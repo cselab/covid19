@@ -2,12 +2,12 @@
 
 set -eu
 
-prefix=total
+prefix=tile
 outdir=$prefix
 
 mkdir -p "$outdir"
 
-for f in */total.pdf ; do
+for f in */growth.pdf ; do
   name=$(dirname "$f")
   o=$outdir/$name.pdf
   [ -f "$o" ] || ln -srv "$f" "$o"
