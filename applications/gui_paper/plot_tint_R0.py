@@ -24,7 +24,7 @@ df = countrydata.AppendInferred(df, datafolder)
 
 fig, axes = plt.subplots(1, 2, figsize=(9, 4))
 
-for before, parname, ax in zip([True, False], ['R0int', 'R0'], axes):
+for before, parname, ax in zip([False, True], ['R0int', 'R0'], axes):
     printerr(parname)
     ax.axvline(x=1, color='black', linestyle='-', alpha=0.25, zorder=-10)
     i = 0

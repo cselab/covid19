@@ -10,6 +10,7 @@ import re
 import pandas as pd
 
 import countrydata
+from countries import ABBREV2
 
 # XXX path to folder with output from `request_country.py`
 datafolder = "."
@@ -31,4 +32,5 @@ with open(fpath, 'w') as f:
             delay = ""
             official = ""
         inferred = inferred.strftime('%Y-%m-%d')
-        f.write(','.join([row.fullname, inferred, official, delay]) + '\n')
+        country = "{} ({})".format(row.fullname, ABBREV2[row.folder])
+        f.write(','.join([country, inferred, official, delay]) + '\n')
