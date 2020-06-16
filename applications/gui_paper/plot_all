@@ -11,6 +11,9 @@ for f in */intervals.json ; do
     continue
   fi
   ./plot_effective_growth.py --dataDir "$d" --output "$d/growth.pdf" --title "$d"
-  python -m korali.plotter --dir $d/_korali_samples/  --output $d/samples.png > /dev/null || true
+
+  pretty=$d/_korali_samples_pretty
+  ./pretty_samples.py "$d/_korali_samples" "$pretty"
+  python -m korali.plotter --dir "$pretty" --output "$d/samples.png" > /dev/null || true
   echo "$d/samples.png"
 done
