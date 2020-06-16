@@ -5,12 +5,12 @@ set -eu
 for f in */intervals.json ; do
   d=${f%/*}
   echo $d
-  outfile=$d/total.pdf
+  outfile=$d/growth.pdf
   if [ -f "$outfile" ] ; then
     echo "skip existing '$outfile'"
     continue
   fi
-  ./plot_effective_growth.py "$d" --output_dir "$d" --title "$d"
+  ./plot_effective_growth.py --dataDir "$d" --output "$d/growth.pdf" --title "$d"
   python -m korali.plotter --dir $d/_korali_samples/  --output $d/samples.png > /dev/null || true
   echo "$d/samples.png"
 done
