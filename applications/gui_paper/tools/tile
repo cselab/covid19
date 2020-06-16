@@ -3,8 +3,8 @@
 set -eu
 
 name=growth
-out=$name.pdf
-files=$(ls *.pdf | grep -v "$name" | xargs)
+out=tile_growth.pdf
+files=$(ls *.pdf | grep -v "$name" | grep -v "samples.pdf" | grep -v "tile.pdf" | xargs)
 cmd="pdfnup --nup 5x2 --outfile '$out' $files"
 echo "$cmd"
 eval "$cmd"
@@ -19,6 +19,6 @@ miff:- | montage -background none -geometry +0+0 -tile 5x2 - $out"
 echo "$cmd"
 eval "$cmd"
 
-cmd="convert samples-*.png samples.pdf"
+cmd="convert samples-*.png tile_samples.pdf"
 echo "$cmd"
 eval "$cmd"

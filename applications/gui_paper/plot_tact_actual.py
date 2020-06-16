@@ -14,51 +14,20 @@ datafolder = "."
 
 from countries import LAST_DAY
 
+
 def days_to_delta(t):
     return np.timedelta64(int(t + 0.5), 'D')
 
 
-csv = "merge_csv/delay.csv"
-csv = pd.read_csv(csv)
-
-print(len(csv))
-"""
-for i in range(len(out)):
-  date = merged['date'][i]
-  exact = merged['exactDate'][i]
-  if exact and exact != 'nan':
-      date = pd.to_datetime(date)
-      exact = pd.to_datetime(exact)
-      delay = date - exact
-      if not pd.isna(delay):
-          out['delay'][i] = "{:+d}".format(int(delay.days + 0.5))
-"""
-
-
-def Col(dictx, dicty):
-    x = []
-    y = []
-    for k in dictx:
-        if k in dicty:
-            x.append(dictx[k])
-            y.append(dicty[k])
-    return x, y
-
-
-displayname = {
+folder_to_fullname = {
     "RussianFederation": "Russia",
-    "UnitedKingdom": "UK",
-    "BosniaandHerzegovina": "BiH",
+    "UnitedKingdom": "United Kingdom",
+    "BosniaandHerzegovina": "Bosnia and Herzegovina",
     "NorthMacedonia": "North Macedonia",
-    "CzechRepublic": "Czechia",
+    "CzechRepublic": "Czech Republic",
+    "VaticanCity": "Vatican City",
+    "SanMarino": "San Marino",
 }
-
-folder_to_display = {v: k for k, v in displayname.items()}
-folder_to_display.update({
-    "United Kingdom": "UnitedKingdom",
-    "Bosnia and Herzegovina": "BosniaandHerzegovina",
-    "San Marino": "SanMarino",
-})
 
 
 def display_to_folder(c):
@@ -74,90 +43,119 @@ def Color(i):
     return colors[i % len(colors)]
 
 
-def GlobColors():
-    color = dict()
+def CollectCountryData(datafolder):
+    """
+    Returns `pandas.DataFrame()` with data on countries found in `datafolder`.
+        folder: subfolder in `datafolder` containing `intervals.json`
+        startday: day of first data point
+    """
+    v_folder = []
+    v_color = []
+    v_startday = []
+    v_fullname = []
+    v_displayname = []
     for i, path in enumerate(
             sorted(glob(os.path.join(datafolder, "*", "intervals.json")))):
         folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
                             path)[0]
-        color[folder] = Color(i)
-    return color
-
-
-def StartDay():
-    start_day = dict()
-    for i, path in enumerate(
-            sorted(glob(os.path.join(datafolder, "*", "intervals.json")))):
-        folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
-                            path)[0]
+        v_folder.append(folder)
+        v_color.append(Color(i))
         with open(path) as f:
             js = json.loads(f.read())
-        start_day[folder] = np.datetime64(LAST_DAY) - days_to_delta(
-            max(js['x-data']))
-    return start_day
+        v_startday.append(
+            np.datetime64(LAST_DAY) - days_to_delta(max(js['x-data'])))
+        fullname = folder_to_fullname.get(folder, folder)
+        v_fullname.append(fullname)
+        v_displayname.append(fullname)
+
+    countrydata = pd.DataFrame({
+        "folder": v_folder,
+        "color": v_color,
+        "startday": v_startday,
+        "displayname": v_displayname,
+        "fullname": v_fullname,
+    })
+    return countrydata
+
+def AppendOfficalLockdown(countrydata, path="official_lockdowns.csv"):
+    """
+    Appends country data from CollectCountryData() by dates of official lockdown.
+    Columns: `[..., official_lockdown]`
+    """
+    csv = pd.read_csv(path)
+    v_date = []
+    for c in countrydata['fullname']:
+        date = csv['date'].loc[csv['country'] == c]
+        if not date.empty:
+            v_date.append(pd.to_datetime(date.values.min()))
+        else:
+            v_date.append(pd.NaT)
+    countrydata['official_lockdown'] = v_date
+
+def AppendInferred(countrydata, datafolder):
+    """
+    Appends country data from CollectCountryData() by inferred intervenion time.
+    Columns: `[..., official_lockdown]`
+    """
+    v_mean = []
+    v_low = []
+    v_high = []
+    for folder,startday in zip(countrydata['folder'], countrydata['startday']):
+        samples_path = os.path.join(datafolder, folder, 'sample_params.dat')
+        assert os.path.isfile(samples_path)
+        samples = np.genfromtxt(samples_path, names=True)
+        tint = samples['tint']
+        mean = np.mean(tint)
+        low = np.quantile(tint, 0.10)
+        high = np.quantile(tint, 0.90)
+        v_mean.append(startday + days_to_delta(mean))
+        v_low.append(startday + days_to_delta(low))
+        v_high.append(startday + days_to_delta(high))
+    countrydata['tint_mean'] = v_mean
+    countrydata['tint_low'] = v_low
+    countrydata['tint_high'] = v_high
 
 
-#color = {c: Color(i) for i, c in enumerate(sorted(csv['country']))}
-color = GlobColors()
-start_day = StartDay()
+datafolder = "."
+countrydata = CollectCountryData(datafolder)
+AppendOfficalLockdown(countrydata)
+AppendInferred(countrydata, datafolder)
+print(countrydata)
 
-for i in range(len(csv)):
-    date = pd.to_datetime(csv['date'][i])
-    exact = pd.to_datetime(csv['exactDate'][i])
-
-i = 0
 
 yticks_y = []
 yticks_label = []
 
 myFmt = mdates.DateFormatter('%b %d')
 ax.xaxis.set_major_formatter(myFmt)
-
-argsort = np.argsort(csv['date'])
-
 ax.get_yaxis().set_visible(False)
 
-for i in range(len(csv)):
-    ii = argsort[i]
-    c = csv['country'][ii]
-    date = pd.to_datetime(csv['date'][ii])
-    exact = pd.to_datetime(csv['exactDate'][ii])
-
+for i,row in enumerate(countrydata.sort_values(by='tint_mean').itertuples()):
     y = -i
+    color = row.color
+    official = row.official_lockdown
+    ax.scatter(row.tint_mean,
+               y,
+               s=16,
+               marker='o',
+               facecolor='none' if pd.isnull(official) else color,
+               edgecolor=color)
+    ax.plot([row.tint_low, row.tint_high], [y, y],
+            c="black",
+            lw=3,
+            alpha=0.25,
+            zorder=-10)
 
     yticks_y.append(y)
-    yticks_label.append(c)
+    yticks_label.append(row.displayname)
 
-    folder = display_to_folder(c)
-    cl = color[folder]
-    fcl = 'none' if pd.isna(exact) else cl
-
-    samples_path = os.path.join(folder, 'sample_params.dat')
-    if os.path.isfile(samples_path):
-        samples = np.genfromtxt(samples_path, names=True)
-        tact = samples['tact']
-        tact_mean = np.mean(tact)
-        tact_lo = np.quantile(tact, 0.10)
-        tact_hi = np.quantile(tact, 0.90)
-
-        d_mean = start_day[folder] + days_to_delta(tact_mean)
-        d_lo = start_day[folder] + days_to_delta(tact_lo)
-        d_hi = start_day[folder] + days_to_delta(tact_hi)
-        ax.scatter(d_mean, y, s=16, marker='o', facecolor=fcl, edgecolor=cl)
-        #ax.plot([d_lo, d_hi], [y, y], c=cl, lw=3, alpha=0.5, zorder=-10)
-        ax.plot([d_lo, d_hi], [y, y], c="black", lw=3, alpha=0.25, zorder=-10)
-        #ax.scatter(d_lo, y, s=16, c=cl, marker='|')
-        #ax.scatter(d_hi, y, s=16, c=cl, marker='|')
-    else:
-        ax.scatter(date, y, s=16, marker='o', facecolor=fcl, edgecolor=cl)
-
-    if not pd.isna(exact):
-        ax.scatter(exact, y, s=16, c=cl, marker='|')
-        ax.plot([exact, date], [y, y], c=cl)
-    ax.annotate(displayname.get(c, c),
-                xy=(date, y),
+    if not pd.isnull(official):
+        ax.scatter(official, y, s=16, c=color, marker='|')
+        ax.plot([official, row.tint_mean], [y, y], c=color)
+    ax.annotate(row.displayname,
+                xy=(row.tint_mean, y),
                 fontsize=7,
-                xytext=(10, 0),
+                xytext=(15, 0),
                 textcoords='offset points',
                 va='center')
 
@@ -170,11 +168,11 @@ ax.set_xticks(
             "2020-04-15",
             "2020-05-01",
             "2020-05-15",
-            "2020-06-01",
         ])))
 
 ax.set_yticks(yticks_y)
 ax.set_yticklabels(yticks_label, fontsize=7)
 
 fig.tight_layout()
-fig.savefig("scatter_tact_actual.pdf")
+fig.savefig("scatter_tint_actual.pdf")
+
