@@ -222,7 +222,6 @@ class EpidemicsBase:
 
   def sample_knested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
 
-    print("HELLO")
     self.e = korali.Experiment()
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
@@ -233,9 +232,8 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Sampler/Nested"
     self.e["Solver"]["Number Live Points"] = nLiveSamples
     self.e["Solver"]["Batch Size"] = 1
-    self.e["Solver"]["Proposal Update Frequency"] = 1
-#    self.e["Solver"]["Resampling Method"] = "Ellipse"
-    self.e["Solver"]["Ellipsoidal Scaling"] = 1.1
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.0
+    self.e["Solver"]["Proposal Update Frequency"] = 10
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
@@ -247,7 +245,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 10
+    self.e["Console Output"]["Frequency"] = 100
     
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -258,9 +256,8 @@ class EpidemicsBase:
 
     k.run(self.e)
 
-    print("HELLO")
     js = {}
-    js['Evidence'] = self.e['Solver']['Log Evidence']
+    js['Evidence'] = self.e['Solver']['LogEvidence']
     printlog(f"Log Evidence = {js['Evidence']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
@@ -305,7 +302,7 @@ class EpidemicsBase:
        sys.exit(0)
 
 
-    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi', sample='unif')
+    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi',sample='unif')
     sampler.run_nested(maxiter=maxiter, dlogz=dlogz, add_live=True) # TODO: set parameters external
 
     res = sampler.results

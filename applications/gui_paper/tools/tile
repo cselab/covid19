@@ -2,7 +2,7 @@
 
 set -eu
 
-name=predictions
+name=growth
 out=$name.pdf
 files=$(ls *.pdf | grep -v "$name" | xargs)
 cmd="pdfnup --nup 5x2 --outfile '$out' $files"
