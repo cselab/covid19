@@ -6,12 +6,12 @@ import pandas as pd
 
 import countrydata
 
-# XXX path to folder with output from `request_country.py`
+# path to folder with output from `request_country.py`
 datafolder = "."
 df = countrydata.CollectCountryData(datafolder)
-countrydata.AppendColor(df)
-countrydata.AppendOfficalLockdown(df)
-countrydata.AppendInferred(df, datafolder)
+df = countrydata.AppendColor(df)
+df = countrydata.AppendOfficalLockdown(df)
+df = countrydata.AppendInferred(df, datafolder)
 
 fig, ax = plt.subplots(1, 1, figsize=(5, 5.3))
 
@@ -60,6 +60,7 @@ ax.set_xticks(
             "2020-04-15",
             "2020-05-01",
             "2020-05-15",
+            "2020-06-01",
         ])))
 
 ax.set_yticks(yticks_y)

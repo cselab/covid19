@@ -12,31 +12,27 @@ import os
 from glob import glob
 import re
 
-import mapclassify
+import countrydata
 
-# XXX path to folder with output from `request_country.py`
+# path to folder with output from `request_country.py`
 datafolder = "."
+df = countrydata.CollectCountryData(datafolder)
+df = countrydata.AppendInferred(df, datafolder)
 
-
-def get_folder(country):
-    return os.path.join(datafolder, country.replace(' ', ''))
-
-
-def get_foldername(country):
-    return country.replace(' ', '')
-
-
-def get_geocountry(country):
-    alias = {
-        "Russian Federation": "Russia",
-        "Czech Republic": "Czechia",
-    }
-    return alias.get(country, country)
-
-
-def geocountry_to_folder(gc):
-    return gc.replace(' ', '')
-
+folder_to_geo = {
+    'CentralAfricanRepublic': 'CentralAfricanRep.',
+    'UnitedStates': 'UnitedStatesofAmerica',
+    'DominicanRepublic': 'DominicanRep.',
+    'UnitedKingdom': 'United Kingdom',
+    'SouthSudan': 'S.Sudan',
+    'CzechRepublic': 'Czech Republic',
+    'RussianFederation': 'Russia',
+    'BosniaandHerzegovina': 'Bosnia and Herzegovina',
+    'NorthMacedonia': 'Republic of Macedonia',
+    'VaticanCity': 'Vatican City',
+    'SanMarino': 'San Marino',
+}
+df['geoname'] = [folder_to_geo.get(f, f) for f in df['folder']]
 
 # http://naciscdn.org/naturalearth/packages/natural_earth_vector.zip
 path = "50m_cultural/ne_50m_admin_0_countries.shp"
@@ -50,51 +46,20 @@ else:
 
 world = world.to_crs(epsg=3395)
 
-df_folder = world.name.copy()
+world_folder = world.name.copy()
+geo_to_folder = dict(zip(df['geoname'], df['folder']))
 
-for i, gc in world.name.iteritems():
-    alias = {
-        "S.Sudan": "SouthSudan",
-        "DominicanRep.": "DominicanRepublic",
-        "Russia": "RussianFederation",
-        "CentralAfricanRep.": "CentralAfricanRepublic",
-        "UnitedStatesofAmerica": "UnitedStates",
-        "BosniaandHerz.": "BosniaandHerzegovina",
-        "Czechia": "CzechRepublic",
-        "Macedonia": "NorthMacedonia",
-    }
-    folder = geocountry_to_folder(gc)
-    df_folder[i] = alias.get(folder, folder)
+world.insert(len(world.columns), 'folder',
+             [geo_to_folder.get(geo, geo) for geo in world.name])
 
-world.insert(len(world.columns), 'folder', df_folder)
+shapes = world[world['folder'].isin(df['folder'])]
 
-# folder name to parameter
-f_R0 = dict()
-f_R0_int = dict()
+missing = '\n'.join(f for f in df['folder'] if f not in shapes.folder.values)
+if missing:
+    print("Warning: Folders missing on the map:")
+    print(missing)
 
-folders = []
-for path in glob(os.path.join(datafolder, "*", "intervals.json")):
-    folder = re.findall(os.path.join(datafolder, "(.*)", "intervals.json"),
-                        path)[0]
-    with open(path) as f:
-        js = json.loads(f.read())
-    p = js['mean_params']
-    gamma = p['gamma']
-    kbeta = p['kbeta']
-    folders.append(folder)
-    f_R0[folder] = p['R0']
-    f_R0_int[folder] = p['R0'] * kbeta
-
-shapes = world[world['folder'].isin(folders)]
-
-#print("Folders missing on the map:")
-#print('\n'.join(f for f in folders if f not in shapes.folder.values))
-
-df_R0 = pd.DataFrame(f_R0.items(), columns=['folder', 'R0'])
-df_R0_int = pd.DataFrame(f_R0_int.items(), columns=['folder', 'R0_int'])
-
-shapes = shapes.merge(df_R0, on='folder')
-shapes = shapes.merge(df_R0_int, on='folder')
+shapes = shapes.merge(df[['folder', 'R0_mean', 'R0int_mean']], on='folder')
 
 #print("Countries on the map:")
 #print('\n'.join(world.name.values))
@@ -103,8 +68,6 @@ shapes = shapes.merge(df_R0_int, on='folder')
 #print('\n'.join(shapes.folder.values))
 
 fig, [ax, ax2] = plt.subplots(1, 2, figsize=(9, 5.5))
-#ax.set_axis_off()
-#ax2.set_axis_off()
 ax.get_xaxis().set_visible(False)
 ax.get_yaxis().set_visible(False)
 ax2.get_xaxis().set_visible(False)
@@ -132,7 +95,7 @@ norm = Norm(vmin=0.5, vmax=2.5, vcenter=1)
 cmap = plt.get_cmap('coolwarm')
 
 ax.set_title(r"$R_0$ after intervention", fontsize=15)
-shapes.plot(column='R0_int',
+shapes.plot(column='R0int_mean',
             ax=ax,
             edgecolor='black',
             lw=0.1,
@@ -145,7 +108,7 @@ ax.set_xlim(*xlim)
 ax.set_ylim(*ylim)
 
 ax2.set_title(r"$R_0$ before intervention", fontsize=15)
-shapes.plot(column='R0',
+shapes.plot(column='R0_mean',
             ax=ax2,
             edgecolor='black',
             lw=0.1,
@@ -168,5 +131,4 @@ fig.colorbar(sm,
              orientation='horizontal',
              ticks=[0.5, 1, 1.5, 2, 2.5])
 
-#fig.tight_layout()
 fig.savefig("map.pdf")
