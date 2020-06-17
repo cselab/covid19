@@ -2,8 +2,8 @@
 
 
 declare -a arr=(
-"switzerland"
-"france"
+# "switzerland"
+# "france"
 "germany"
 )
 
@@ -26,16 +26,19 @@ declare -a arr2=(
 
 # "switzerland"
 
-base="./data/reparam_10/"
+base="./data/reparam_inexp/"
 
 # model="country.reparam.sir_int.nbin"
+model="country.reparam.sir_intexp.tnrm"
 # model="country.reparam.seir_int.nbin"
-model="country.reparam.seiir_int.nbin"
+# model="country.reparam.seir_intexp.tnrm"
+# model="country.reparam.seiir_int.nbin"
+# model="country.reparam.seiir_intexp.tnrm"
 
 
 for c in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_nested.py --silentPlot -ns 1500 -cm ${model} -c "$c" -df $base
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_nested.py --silentPlot -ns 500 -cm ${model} -c "$c" -df $base
    python plot_nested.py -rf "${base}/${c}/${model}/nested_res.pickle" -of "${base}/${c}/${model}/figures/samples.png"
 
 done

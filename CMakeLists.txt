@@ -44,6 +44,8 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiir_intexp_reparam.generated.cpp
+
 )
 
 add_custom_command(
