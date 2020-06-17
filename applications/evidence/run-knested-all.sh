@@ -22,14 +22,14 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested/"
+base="./data/knested2/"
 
-#model="country.reparam.sir_int.tnrm"
-model="country.reparam.seir_int.tnrm"
-#model="country.reparam.seiir_int.tnrm"
+model="country.reparam.sir_int.tnrm"
+# model="country.reparam.seir_int.tnrm"
+# model="country.reparam.seiir_int.tnrm"
 
 for c in "${arr[@]}"
 do
-   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm ${model} -c "$c" -df $base | tee "knested_${c}_${model}.out"
+   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 500 -cm ${model} -c "$c" -df $base | tee "knested_${c}_${model}.out"
 
 done

@@ -26,11 +26,11 @@ declare -a arr2=(
 
 # "switzerland"
 
-base="./data/reparam_2/"
+base="./data/reparam_10/"
 
-model="country.reparam.sir_int.tnrm"
-# model="country.reparam.seir_int.tnrm"
-# model="country.reparam.seiir_int.tnrm"
+# model="country.reparam.sir_int.nbin"
+# model="country.reparam.seir_int.nbin"
+model="country.reparam.seiir_int.nbin"
 
 
 for c in "${arr[@]}"

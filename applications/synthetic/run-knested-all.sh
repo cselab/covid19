@@ -1,7 +1,7 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int"
+"sir_int_r0"
 "seir_int"
 "seiir_int"
 )
@@ -14,12 +14,12 @@ declare -a arr=(
 #"sir"
 
 mkdir -p data
-mkdir -p output_knested
+mkdir -p output_mknested
 
-base="./data/"
+base="./pdata/"
 
 for model in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm "country.${model}.tnrm" -c "$c" -df $base --synthetic -dat "${model}_rnd.txt" | tee "./output_knested/${model}.out"
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 500 -cm "country.${model}.tnrm" -c "$c" -df $base --synthetic -dat "${model}_rnd.txt" | tee "./output_mknested/${model}.out"
    
 done

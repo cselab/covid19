@@ -230,15 +230,15 @@ class EpidemicsBase:
     self.e['Problem']['Computational Model'] = self.computational_model
     
     self.e["Solver"]["Type"] = "Sampler/Nested"
-    self.e["Solver"]["Number Live Points"] = nLiveSamples
-    self.e["Solver"]["Batch Size"] = 1
-    self.e["Solver"]["Ellipsoidal Scaling"] = 1.0
-    self.e["Solver"]["Proposal Update Frequency"] = 10
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
+    self.e["Solver"]["Number Live Points"] = nLiveSamples
+    self.e["Solver"]["Proposal Update Frequency"] = 1
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.05
+    self.e["Solver"]["Batch Size"] = 1
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
     self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 10000
-    self.e["Solver"]["Termination Criteria"]["Max Gain Factor"] = dlogz
+    self.e["Solver"]["Termination Criteria"]["Min Log Evidence Delta"] = dlogz
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
