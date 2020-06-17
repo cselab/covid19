@@ -1,13 +1,15 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int_r0"
+"sir_int"
 "seir_int"
 "seiir_int"
 )
 
 #"seir"
 #"seiir"
+#"seir_int"
+#"seiir_int"
 
 #"sir"
 
