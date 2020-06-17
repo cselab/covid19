@@ -9,7 +9,7 @@ from epidemics.tools.tools import import_from
 sys.path.append('../../build')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='country.sir.tnrm', help='The computational model.')
+parser.add_argument('--compModel', '-cm', default='country.reparam.sir.tnrm', help='The computational model.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of Live Samples.')

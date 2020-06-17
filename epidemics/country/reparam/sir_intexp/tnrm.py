@@ -20,7 +20,7 @@ class Model( ModelBase ):
     self.nParameters = 5
     js = self.get_uniform_priors(
             ('R0', 0.5, 10.0), 
-            ('D', 0.0, 30.), 
+            ('D', 1.0, 30.), 
             ('tact', 0, 100),
             ('k', 0.0, 1.0),
             ('Sigma', 1e-6, 100)
