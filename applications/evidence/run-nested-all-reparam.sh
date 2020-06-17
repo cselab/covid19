@@ -2,8 +2,8 @@
 
 
 declare -a arr=(
-#"switzerland"
-#"france"
+"switzerland"
+"france"
 "germany"
 )
 
