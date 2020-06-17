@@ -42,16 +42,22 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         double invN = 1. / data_.N;
         auto invD = 1. / p.D;
 
-        T remove = 0.0;
-        if(t >= p.tact) {
-            remove = p.l*x.S();
+        T removal;
+
+        if(t > p.tact) {
+            removal = p.l*x.S();
         }
-        auto A = invN * p.r0 * invD * x.I() * x.S();
+        else
+        {
+            removal = 0.0*x.S();
+        }
+
+        auto A = invN * p.R0 * invD * x.I() * x.S();
         auto B = invD * x.I();
 
-        dxdt.S() = -A - remove;
+        dxdt.S() = -A - removal;
         dxdt.I() = A - B;
-        dxdt.R() = B + remove;
+        dxdt.R() = B + removal;
     }
 };
 

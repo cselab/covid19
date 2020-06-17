@@ -43,16 +43,21 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              State<T> & __restrict__ dxdt) const
     {
 
-        T removal = 0;
-        if (t >= p.tact) {
+        T removal;
+        if (t > p.tact) {
            removal = p.l*x.S();
         } 
+        else
+        {
+            removal = 0.0*x.S();
+        }
+
 
         double invN = 1. / data_.N;
         auto invD = 1. / p.D;
         auto invZ = 1. / p.Z;
 
-        auto A = invN * p.r0 * invD * x.I() * x.S();
+        auto A = invN * p.R0 * invD * x.I() * x.S();
         auto B = invZ * x.E();
         auto C = invD * x.I();
 

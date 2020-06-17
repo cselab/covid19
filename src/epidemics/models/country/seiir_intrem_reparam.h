@@ -54,12 +54,17 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         // auto factor   = 1. / (p.alpha + (1 - p.alpha * p.mu));
         auto factor   = 1.;
 
-        if (t >= p.tact) {
-           removal = p.l*x.S();
+        T removal;
+        if (t > p.tact) {
+            removal = p.l*x.S();
+        } 
+        else
+        {
+            removal = 0.0*x.S();
         }
 
-        auto C1 = invN * p.r0 * invD * factor * x.S() * x.Ir();
-        auto C2 = invN * p.r0 * invD * factor * x.S() * (p.mu * x.Iu());
+        auto C1 = invN * p.R0 * invD * factor * x.S() * x.Ir();
+        auto C2 = invN * p.R0 * invD * factor * x.S() * (p.mu * x.Iu());
         auto C3 = p.alpha * (invZ * x.E());
         auto C4 = (1 - p.alpha) * (invZ * x.E());
 
