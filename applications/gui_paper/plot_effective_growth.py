@@ -43,9 +43,12 @@ parser.add_argument('--title',
 parser.add_argument('--growth',
                     action="store_true",
                     help="Plot effective growth rate instead of R0")
-parser.add_argument('--output_dir',
-                    default=".",
-                    help="Directory for output images.")
+parser.add_argument('--xrotation',
+                    action="store_true",
+                    help="Rotate x-label by 45 degrees")
+parser.add_argument('--output',
+                    default="prediction.pdf",
+                    help="Path to output pdf.")
 parser.add_argument('--dehning2020_dir',
                     help="Extracted data from Dehning et al. (Germany)")
 args = parser.parse_args()
@@ -75,8 +78,8 @@ xdata = np.array(d['x-data']).astype(float)
 
 t = np.array(d['x-axis']).astype(float)
 params = d['mean_params']
-tact = params['tact']
-dtact = params['dtact']
+tint = params['tint']
+dint = params['dint']
 gamma = params['gamma']
 R0 = params['R0']
 kbeta = params['kbeta']
@@ -97,10 +100,20 @@ ax1.xaxis.set_major_formatter(myFmt)
 ax2.xaxis.set_major_formatter(myFmt)
 ax3.xaxis.set_major_formatter(myFmt)
 
+varnames = [v['Name'] for v in samples['Variables']]
+
 db = np.array(samples['Results']['Sample Database'])
-R0 = db[:, 0]
-tact = db[:, 1]
-kbeta = db[:, 2]
+
+def get_samples(varname):
+    if varname in varnames:
+        return db[:, varnames.index(varname)]
+    return None
+
+R0 = get_samples('R0')
+tint = get_samples('tint')
+kbeta = get_samples('kbeta')
+tint2_minus_tint = get_samples('tint2_minus_tint')
+kbeta2_div_kbeta = get_samples('kbeta2_div_kbeta')
 
 Nt = len(t)
 Ns = R0.shape[0]
@@ -109,14 +122,23 @@ lambdaeff = np.zeros((Nt, Ns))
 vR0 = np.zeros((Nt, Ns))
 for i in range(Nt):
     for j in range(Ns):
-        beta = R0[j] * intervention_trans(1., kbeta[j], t[i], tact[j],
-                                          dtact * 0.5) * gamma
+        beta = R0[j] * gamma
+        if kbeta is not None:
+            beta *= intervention_trans(
+                    1., kbeta[j], t[i], tint[j], dint * 0.5)
+        if kbeta2_div_kbeta is not None:
+            beta *= intervention_trans(
+                    1., kbeta2_div_kbeta[j], t[i],
+                    tint[j] + tint2_minus_tint[j], dint * 0.5)
         lambdaeff[i, j] = beta - gamma
         vR0[i, j] = beta / gamma
 
 
 Q_LO = 0.1
 Q_HI = 0.9
+
+if args.xrotation:
+    fig.autofmt_xdate(rotation=45)
 
 if args.growth:
     y = lambdaeff
@@ -137,7 +159,8 @@ else:
     q2 = np.quantile(y, Q_HI, axis=1)
     ax1.fill_between(days, q1, q2, alpha=ALPHA)
     ax1.axhline(y=1, color='black', linestyle=':')
-    ax1.set_ylabel(r'$R_0(t)$')
+    ax1.set_ylabel(r'reproduction number $R_0$')
+ax1.set_xlim(left=days.min())
 
 ydata = np.array(d['y-data']).astype(float)
 
@@ -153,7 +176,7 @@ for v in d['Daily Infected']['Intervals']:
     ax2.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
 ax2.scatter(daysdata[:-1], np.diff(ydata), c='black', s=4)
-ax2.set_ylabel('Daily Infected')
+ax2.set_ylabel('daily infected')
 ax2.set_yscale('log')
 ax2.set_xlim(left=days.min())
 ax2.set_ylim(bottom=1)
@@ -170,7 +193,7 @@ for v in d['Total Infected']['Intervals']:
     ax3.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
 ax3.scatter(daysdata, ydata, c='black', s=4)
-ax3.set_ylabel('Cumulative Infected')
+ax3.set_ylabel('total infected')
 ax3.set_xlim(left=days.min())
 ax3.set_ylim(bottom=0)
 
@@ -181,8 +204,10 @@ if dehning:
     for a, d in zip(ax, dehning.values()):
         a.plot(d.days, d.values, marker='x', ms=4, linestyle='none', c='g')
 
-os.makedirs(args.output_dir, exist_ok=True)
-p = os.path.join(args.output_dir, "total.pdf")
-print(p)
 fig.tight_layout()
+
+output_dir = os.path.dirname(args.output)
+os.makedirs(output_dir, exist_ok=True)
+p = args.output
+print(p)
 fig.savefig(p)

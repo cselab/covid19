@@ -10,24 +10,33 @@ last row of data is `2020-05-18`
 
 # `request_country.py`
 
-* Create a symlink to `main.py` from `korali-apps:5.coronavirus/main.py`
 
-# TODO
+# Workflow
 
-* [ ] write a more detailed outline,
-* [ ] finalize the model and code
-* [ ] form a list of neighboring countries (maybe all Europe)
-* [ ] run the model on the countires
-* [ ] digitize data from fig.3
-* [ ] learn how to plot distributions of parameters from korali samples
-* [ ] learn how to draw neighboring countries with arbitrary colors using geopandas
-* [ ] make a style for plots of daily and total infected compared to data
-* [ ] confidence 90%
-* [ ] scatter plot of intervention time and growth factor
+* Create a working directory
 
-Geographical distribution of the effect
-of interventions of the ongoing pandemic
+* Add a symlink to `main.py` from `korali-apps:5.coronavirus/main.py`
 
+* Add symlinks to scripts needed below, `countries.py`, `countries.json` and `countrydata.py`
+
+* Run `./request_country_paper_release.py` to run the model on European
+  countries. This creates subfolders with:
+  - `intervals.json`: reference data, fits, mean inferred parameters
+  - `_korali_samples/gen*.json`: samples
+
+* Run `./plot_all` to create plots of fits and samples:
+  - `growth.pdf`
+  - `samples.png`
+  
+* Run `./stat_params_all` to extract samples:
+  - `sample_params.dat`
+
+* Run plotting scripts:
+  - `plot_map.py`
+  - `plot_scatter.py`
+  - `plot_tact.py`
+  - `plot_tact_actual.py`
+  - `table_tact.py`
 
 # Data sources
 
