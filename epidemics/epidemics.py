@@ -232,8 +232,8 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Sampler/Nested"
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
     self.e["Solver"]["Number Live Points"] = nLiveSamples
-    self.e["Solver"]["Proposal Update Frequency"] = 1
-    self.e["Solver"]["Ellipsoidal Scaling"] = 1.05
+    self.e["Solver"]["Proposal Update Frequency"] = 100
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.00
     self.e["Solver"]["Batch Size"] = 1
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter

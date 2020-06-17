@@ -2,8 +2,8 @@
 
 
 declare -a arr=(
-# "switzerland"
-# "france"
+#"switzerland"
+#"france"
 "germany"
 )
 
@@ -26,14 +26,14 @@ declare -a arr2=(
 
 # "switzerland"
 
-base="./data/reparam_inexp/"
+base="./data/reparam_intexp/"
 
-# model="country.reparam.sir_int.nbin"
+# model="country.reparam.sir_int.tnrm"
 model="country.reparam.sir_intexp.tnrm"
-# model="country.reparam.seir_int.nbin"
+# model="country.reparam.seir_int.tnrm"
 # model="country.reparam.seir_intexp.tnrm"
-# model="country.reparam.seiir_int.nbin"
-# model="country.reparam.seiir_intexp.tnrm"
+# model="country.reparam.seiir_int.tnrm"
+#model="country.reparam.seiir_intexp.tnrm"
 
 
 for c in "${arr[@]}"

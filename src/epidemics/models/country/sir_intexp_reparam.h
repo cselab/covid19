@@ -49,7 +49,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         else {
            using std::exp;
            double dt = p.tact - t; // careful: diff will not work
-           r0 = p.R0*exp(dt);
+           r0 = p.R0*exp(p.k*dt);
         }
         auto A = invN * r0 * invD * x.I() * x.S();
         auto B = invD * x.I();
