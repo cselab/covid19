@@ -1,7 +1,7 @@
  #!/bin/bash
 
 declare -a arr=(
-"switzerland"
+#"switzerland"
 "france"
 "germany"
 )
@@ -24,8 +24,8 @@ declare -a arr=(
 
 base="./data/knested_intexp/"
 
-# model="country.reparam.sir_intexp.tnrm"
-model="country.reparam.seir_intexp.tnrm"
+model="country.reparam.sir_intexp.tnrm"
+# model="country.reparam.seir_intexp.tnrm"
 # model="country.reparam.seiir_intexp.tnrm"
 
 for c in "${arr[@]}"
