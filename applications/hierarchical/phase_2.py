@@ -13,18 +13,17 @@ import argparse
     Hierearchical setup for SIR models with negative binomial
 '''
 
-    variables = [   {'name':'R0','cond_type':'Normal','Mean':(0,1),'Std':(0,4)},
-                    {'name':'D','cond_type':'Normal','Mean':(0,1),'Std':(0,4)},
-                    {'name':'Z','cond_type':'Normal','Mean':(0,1),'Std':(0,4)},
-                    {'name':'r','cond_type':'Normal','Mean':(0,1),'Std':(0,4)}  ]                ('r')]
 
-
-def run_phase_2(phase_1_path,phase_2_path,variables):
+def run_phase_2_auto(phase_1_path,phase_2_path,variables):
 
     # Problem
     e = korali.Experiment()
-    e["Problem"]["Type"]  = "Hierarchical/Psi"
-    e["Problem"]["Sub Problems"] = phase_1_path
+    e["Problem"]["Type"] = "Hierarchical/Psi"
+    for i in range(len(phase_1_path)):
+        print(phase_1_path[i])
+        subProblem = korali.Experiment()
+        subProblem.loadState(phase_1_path[i])
+        e["Problem"]["Sub Experiments"][i] = subProblem
 
     # Define conditionals
     e["Problem"]["Conditional Priors"] = ["Conditional "+str(var['name']) for var in variables ]
@@ -59,7 +58,7 @@ def run_phase_2(phase_1_path,phase_2_path,variables):
             i += 1
 
     # Solver
-    e["Solver"]["Type"] = "TMCMC"
+    e["Solver"]["Type"] = "Sampler/TMCMC"
     e["Solver"]["Population Size"] = 2000
     e["Solver"]["Default Burn In"] = 3;
     e["Solver"]["Target Coefficient Of Variation"] = 0.6
@@ -70,8 +69,8 @@ def run_phase_2(phase_1_path,phase_2_path,variables):
 
     # Starting Korali's Engine and running experiment
     k = korali.Engine()
-    k["Conduit"]["Type"] = "Concurrent"
-    k["Conduit"]["Concurrent Jobs"] = 12
+    # k["Conduit"]["Type"] = "Concurrent"
+    # k["Conduit"]["Concurrent Jobs"] = 12
     k.run(e)
 
 
@@ -82,8 +81,12 @@ def run_phase_2(phase_1_path,phase_2_path):
     # ---------------------------------------------------------------------------- #
 
     e = korali.Experiment()
-    e["Problem"]["Type"]  = "Hierarchical/Psi"
-    e["Problem"]["Sub Problems"] = phase_1_path
+    e["Problem"]["Type"] = "Hierarchical/Psi"
+    for i in range(len(phase_1_path)):
+        subProblem = korali.Experiment()
+        subProblem.loadState(phase_1_path[i])
+        e["Problem"]["Sub Experiments"][i] = subProblem
+
 
     # ---------------------------------------------------------------------------- #
     # ------------------------------- Conditionals ------------------------------- #
@@ -162,7 +165,7 @@ def run_phase_2(phase_1_path,phase_2_path):
     # ---------------------------------- Solver ---------------------------------- #
     # ---------------------------------------------------------------------------- #
 
-    e["Solver"]["Type"] = "TMCMC"
+    e["Solver"]["Type"] = "Sampler/TMCMC"
     e["Solver"]["Population Size"] = 2000
     e["Solver"]["Default Burn In"] = 3;
     e["Solver"]["Target Coefficient Of Variation"] = 0.6
@@ -180,23 +183,45 @@ def run_phase_2(phase_1_path,phase_2_path):
 if __name__ == "__main__":  
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
-    parser.add_argument('--regions', '-r', default='cantons', help='Model type')
+    parser.add_argument('--model', '-m', default='country.reparam.sir_int.tnrm', help='Model type')
+    parser.add_argument('--phase_1_path', '-p', default='./data/country.reparam.sir_int.tnrm/phase_1_results', help='Model type')
+    parser.add_argument('--regions', '-r', default='all', help='Model type')
 
     args = parser.parse_args()
-
     model = args.model
-    if args.regions == 'cantons':
+
+    if args.regions == 'all':
+        regions = [region for region in os.listdir(args.phase_1_path) if not region.startswith('_')]
+        folder_name = '/all_countries'
+    elif args.regions == '/cantons':
         regions = CANTON_LIST
-    elif args.regions == 'cantons_short':
+        folder_name = 'cantons'
+    elif args.regions == '/cantons_short':
         regions = CANTON_LIST_SHORT
+        folder_name = '/cantons_short'
+    else:
+        regions = args.regions
+        folder_name = str(regions)
 
-    phase_1_path = ['data/'+model+'/phase_1_results/'+region+'/'+model+'/_korali_samples/' for region in regions]
-    phase_2_path = 'data/'+model +'/phase_2_results/_korali_samples' 
+    phase_1_data = [args.phase_1_path+'/'+region+'/'+model+'/_korali_samples/latest' for region in regions]
 
-    run_phase_2(phase_1_path,phase_2_path)
+    phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples'
 
 
+    variables = [   {'name':'R0','cond_type':'Normal',      'Mean':(0.1,10.0),'Std':(0.0,5.0)},
+                    {'name':'D','cond_type':'Normal',       'Mean':(0.0,30.0),'Std':(0.0,10.0)},
+                    {'name':'tact','cond_type':'Normal',    'Mean':(0.0,30.0),'Std':(0.0,10.0)},
+                    {'name':'dtact','cond_type':'Normal',   'Mean':(0.0,50.0),'Std':(0.0,10.0)},
+                    {'name':'kbeta','cond_type':'Normal',   'Mean':(0.0,1.0),'Std':(0.0,0.1)},
+                    {'name':'[r]','cond_type':'Normal',     'Mean':(0.0,5.0),'Std':(0.0,2.5)}] 
+
+
+    # run_phase_2(phase_1_data,phase_2_path)
+    run_phase_2_auto(phase_1_data,phase_2_path,variables)
+
+
+    # phase_1_path = ['data/'+model+'/phase_1_results/'+region+'/'+model+'/_korali_samples/latest' for region in regions]
+    # phase_2_path = 'data/'+model +'/phase_2_results/_korali_samples' 
 
         # if var['cond_type'] == 'Normal':
 

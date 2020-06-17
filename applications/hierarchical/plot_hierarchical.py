@@ -28,6 +28,8 @@ def plot_phase_1(data_path,model,regions):
         output_file = phase_1_dir+str(canton)+'/'+str(model)+'/figures/posterior.png'
         
         command = 'python -m korali.plotter --dir ' + str(samples_dir) + ' --output '+str(output_file)
+        print(command)
+
         with open(shell_filename, 'a') as file:
             file.write(command+'\n')
 
@@ -40,8 +42,9 @@ def plot_phase_2(data_path,model):
     shell_filename = 'plot_phase_2.sh'
     create_shell_script(shell_filename)
 
-    phase_2_dir = data_path+str(model)+'/phase_2_results/'
-    
+    # phase_2_dir = data_path+str(model)+'/phase_2_results/'
+    phase_2_dir = data_path+'/phase_2_results/'
+
     samples_dir = phase_2_dir+'/_korali_samples/'
     output_file = phase_2_dir+'/figures/posterior.png'
     create_folder(phase_2_dir+'/figures')
@@ -75,19 +78,20 @@ def plot_phase_3(data_path,model,regions):
 
 def plot_move_files(data_path,model,regions):
 
+    out_dir = data_path+str(model)+'/figures/'
+
     for canton in regions:
-        out_dir = data_path+str(model)+'/figures/'+canton
         create_folder(out_dir)
 
         phase_1_dir = data_path+str(model)+'/phase_1_results/'+canton+'/'+model+'/figures/'
 
-        call(['cp', phase_1_dir+'prediction.png', out_dir+'/prediction_phase_1.png'])
-        call(['cp', phase_1_dir+'posterior.png', out_dir+'/posterior_phase_1.png'])
+        call(['cp', phase_1_dir+'/prediction.png', out_dir+'/prediction_phase_1/'+canton+'.png'])
+        call(['cp', phase_1_dir+'/posterior.png', out_dir+'/posterior_phase_1/'+canton+'.png'])
 
-        phase_3_dir = data_path+str(model)+'/phase_3_results/'+canton+'/'+model
+        # phase_3_dir = data_path+str(model)+'/phase_3_results/'+canton+'/'+model+'/figures/'
 
-        call(['cp', phase_3_dir+'/figures/posterior.png', out_dir+'/posterior_phase_3.png'])
-        call(['cp', phase_3_dir+'/figures/prediction.png', out_dir+'/prediction_phase_3.png'])
+        # call(['cp', phase_3_dir+'posterior.png', out_dir+'/posterior_phase_3/'+canton+'.png'])
+        # call(['cp', phase_3_dir+'prediction.png', out_dir+'/prediction_phase_3/'+canton+'.png'])
 
 if __name__ == "__main__":  
 

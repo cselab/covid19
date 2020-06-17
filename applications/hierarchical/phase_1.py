@@ -5,6 +5,7 @@
 
 import sys
 sys.path.append('../../')
+sys.path.append('../../build')
 from epidemics.tools.tools import import_from
 from epidemics.data.files.canton_population import CANTON_LIST
 import argparse
@@ -23,7 +24,7 @@ def run_phase_1(model,region,n_samples,params):
 if __name__ == "__main__": 
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--model', '-m', default='country.reparam.sir_int.tnrm', help='Model type')
     parser.add_argument('--regions', '-r', default='cantons', help='Model type')
     parser.add_argument('--dir', '-dir', default='./data/', help='Model type')
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         regions = CANTON_LIST_SHORT
 
     n_samples = 2000
-    params = {'dataFolder': args.dir'+model+'/phase_1_results/',
+    params = {'dataFolder': args.dir+model+'/phase_1_results/',
               'preprocess':True,
               'nThreads': 12,
               'nPropagation': 30,
