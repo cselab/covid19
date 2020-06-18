@@ -245,7 +245,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 100
+    self.e["Console Output"]["Frequency"] = 10
     
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 

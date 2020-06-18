@@ -1,7 +1,7 @@
  #!/bin/bash
 
 declare -a arr=(
-#"switzerland"
+"switzerland"
 "france"
 "germany"
 )
@@ -24,9 +24,19 @@ declare -a arr=(
 
 base="./data/knested_intexp/"
 
-model="country.reparam.sir_intexp.tnrm"
+#model="country.reparam.sir_int.nbin"
+#model="country.reparam.seir_int.nbin"
+model="country.reparam.seiir_int.nbin"
+
+# model="country.reparam.sir_int.tnrm"
+# model="country.reparam.sir_intexp.tnrm"
+# model="country.reparam.sir_intrem.tnrm"
+# model="country.reparam.seir_int.tnrm"
 # model="country.reparam.seir_intexp.tnrm"
+# model="country.reparam.seir_intrem.tnrm"
+# model="country.reparam.seiir_int.tnrm"
 # model="country.reparam.seiir_intexp.tnrm"
+# model="country.reparam.seiir_intrem.tnrm"
 
 for c in "${arr[@]}"
 do
