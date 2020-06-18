@@ -24,8 +24,8 @@ class Model( ModelBase ):
             ('mu', 0.0, 1.0), 
             ('alpha', 0., 1.0),
             ('tact', 0.0, 100.),
-            ('dtact', 0.0, 50.),
-            ('kbeta', 0.0, 1.0),
+            ('dtact', 0.0, 14.),
+            ('kbeta', 0.5, 1.0),
             ('Sigma', 1e-6, 100)
             )
     
