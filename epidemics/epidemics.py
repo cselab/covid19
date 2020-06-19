@@ -578,6 +578,7 @@ class EpidemicsBase:
     Nt = self.propagatedVariables[varName].shape[1]
 
     mean   = np.zeros((Nt,1))
+    sdev   = np.zeros((Nt,1))
     median = np.zeros((Nt,1))
 
     y = self.propagatedVariables[varName]
@@ -588,9 +589,12 @@ class EpidemicsBase:
     for k in range(Nt):
         median[k] = np.quantile( y[:,k],  0.5 )
         mean[k]   = np.mean( y[:,k] )
+        sdev[k]   = np.stdev( y[:,k] )
 
     
     ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean+sdev, '-', lw=1, color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=1, color=color )
     ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color=color )
 
     ax.legend(loc='upper left')

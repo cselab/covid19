@@ -96,9 +96,15 @@ def seiir(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
-    infected = np.zeros(len(cpp_res))
+    infected   = np.zeros(len(cpp_res))
+    exposed    = np.zeros(len(cpp_res))
+    recovered  = np.zeros(len(cpp_res))
+    unreported = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
-        infected[idx] = N-entry.S()-entry.E()-entry.Iu()
+        infected[idx]   = N-entry.S()-entry.E()-entry.Iu()
+        unreported[idx] = N-entry.S()-entry.E()-entry.Ir()
+        exposed[idx]    = N-entry.S()
+        recovered[idx]  = entry.R()
     
     return infected
 
@@ -114,11 +120,18 @@ def seiir_int(y0, t_eval, N, p ):
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = dt)
     
-    infected = np.zeros(len(cpp_res))
+    infected   = np.zeros(len(cpp_res))
+    exposed    = np.zeros(len(cpp_res))
+    recovered  = np.zeros(len(cpp_res))
+    unreported = np.zeros(len(cpp_res))
     for idx,entry in enumerate(cpp_res):
-        infected[idx] = N-entry.S()-entry.E()-entry.Iu()
+        infected[idx]   = N-entry.S()-entry.E()-entry.Iu()
+        unreported[idx] = N-entry.S()-entry.E()-entry.Ir()
+        exposed[idx]    = N-entry.S()
+        recovered[idx]  = entry.R()
     
-    return infected
+    return infected, exposed, unreported, recovered
+
 
 
 def make_data_with_mul_nrm_noise(infected, sig = 1.0):
@@ -250,8 +263,11 @@ if __name__ == "__main__":
 
 
     # SEIIR with Interventions
-    seiir_infected_int = seiir_int((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir_int)
+    seiir_infected_int, e, u, r = seiir_int((S0, E0, Ir0, Iu0, R0), teval, N, p_seiir_int)
     plot(seiir_infected_int, "SEIIR_int_raw")
+    plot(e, "SEIIRe_int_raw")
+    plot(u, "SEIIRu_int_raw")
+    plot(r, "SEIIRr_int_raw")
     makefile("seiir_int_raw.txt", "Synthetic SEIIR with Interventions Raw", N, seiir_infected_int)
 
     seiir_infected_int_rnd = make_data_with_mul_nrm_noise(seiir_infected_int, noise)

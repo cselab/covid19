@@ -92,8 +92,6 @@ class EpidemicsCountry( EpidemicsBase ):
         unreported = np.append(0, unreported)
 
     eps = 1e-32
-    incidents[incidents < eps] = eps
-    recovered[recovered < eps] = eps
     
     k = 0
     js = {}
