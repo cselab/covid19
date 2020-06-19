@@ -28,7 +28,7 @@ class ModelBase( EpidemicsCountry ):
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     
-    infected      = np.zeros(len(cpp_res))
+    infected = np.zeros(len(cpp_res))
     gradmu  = []
     gradsig = []
 

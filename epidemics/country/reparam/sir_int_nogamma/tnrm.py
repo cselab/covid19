@@ -22,7 +22,7 @@ class Model( ModelBase ):
             ('R0', 1.0, 10.0), 
             ('tact', 0, 100),
             ('dtact', 9.99, 10.01),
-            ('kbeta', 0.1, 1.0),
+            ('kbeta', 0.5, 1.0),
             ('Sigma', 1e-6, 100)
             )
     

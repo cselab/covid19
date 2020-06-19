@@ -1,8 +1,8 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int_r0"
-"seir_int"
+#"sir_int"
+#"seir_int"
 "seiir_int"
 )
 
@@ -13,13 +13,13 @@ declare -a arr=(
 
 #"sir"
 
-mkdir -p data
+mkdir -p kdata
 mkdir -p output_mknested
 
-base="./pdata/"
+base="./kdata/"
 
 for model in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 500 -cm "country.${model}.tnrm" -c "$c" -df $base --synthetic -dat "${model}_rnd.txt" | tee "./output_mknested/${model}.out"
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 100 -cm "country.reparam.${model}.tnrm" -c "$c" -df $base --synthetic -dat "./data/${model}_rnd.txt" | tee "./output_mknested/${model}.out"
    
 done

@@ -149,7 +149,8 @@ def plot(total, description):
 
 
 def makefile(name, description, N, susceptible):
-    f = open(name, "w+")
+    fdir = "./data/{0}".format(name)
+    f = open(fdir, "w+")
     f.seek(0) # replace old content
     f.write(description)
     f.write(os.linesep)

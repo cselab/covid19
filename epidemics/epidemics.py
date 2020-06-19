@@ -496,73 +496,6 @@ class EpidemicsBase:
 
     return fig
 
-  def compute_intervals(self, varName, ns, percentages, cumsum=False):
-    Np = self.propagatedVariables[varName].shape[0]
-    Nt = self.propagatedVariables[varName].shape[1]
-
-    samples = np.zeros((Np*ns,Nt))
-
-    printlog(f"Sampling from {self.likelihoodModel} for '{varName}' variable... ")
-
-    start = time.process_time()
-
-    if self.likelihoodModel=='Normal':
-      for k in range(Nt):
-        m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Standard Deviation'][:,k]
-        x = [ np.random.normal(m,r) for _ in range(ns) ]
-        samples[:,k] = np.asarray(x).flatten()
-
-    elif self.likelihoodModel=='Positive Normal':
-      for k in range(Nt):
-        m = self.propagatedVariables[varName][:,k]
-        s = self.propagatedVariables['Standard Deviation'][:,k]
-        t = get_truncated_normal(m,s,0,np.Inf)
-        x = [ t.rvs() for _ in range(ns) ]
-        samples[:,k] = np.asarray(x).flatten()
-
-    elif self.likelihoodModel=='Negative Binomial':
-      for k in range(Nt):
-        m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Dispersion'][:,k]
-        p =  m/(m+r)
-        try:
-          x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
-        except:
-          printlog("Error p: {}".format(p))
-        samples[:,k] = np.asarray(x).flatten()
-
-    else:
-      raise NotImplementedError(
-              "Likelihood not found in compute_intervals.")
-
-    if cumsum:
-      samples = np.cumsum(samples, 1)
-
-    elapsed = time.process_time() - start
-    printlog(f" elapsed {elapsed:.2f} sec")
-
-    printlog(f"Computing quantiles... ")
-
-    mean   = np.zeros(Nt)
-    median = np.zeros(Nt)
-    for k in range(Nt):
-      median[k] = np.quantile(samples[:,k],0.5)
-      mean[k] = np.mean(samples[:,k])
-
-    intervals = []
-    for p in np.sort(percentages)[::-1]:
-      lo = np.zeros(Nt);
-      hi = np.zeros(Nt);
-      for k in range(Nt):
-        lo[k] = np.quantile(samples[:,k],0.5-p/2)
-        hi[k] = np.quantile(samples[:,k],0.5+p/2)
-      intervals.append((p, lo, hi))
-
-    t = self.data['Propagation']['x-data']
-
-    return t, mean, median, intervals
-
   def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
 
     Np = self.propagatedVariables[varName].shape[0]
@@ -637,8 +570,40 @@ class EpidemicsBase:
 
     plt.draw()
     plt.pause(0.001)
+ 
 
-    return samples
+  def compute_mean_median( self, varName, color, ns, ax, ylabel, cummulate=-1):
+
+    Np = self.propagatedVariables[varName].shape[0]
+    Nt = self.propagatedVariables[varName].shape[1]
+
+    mean   = np.zeros((Nt,1))
+    median = np.zeros((Nt,1))
+
+    y = self.propagatedVariables[varName]
+
+    if( cummulate == 1):
+        y = np.cumsum(y, axis=1)
+    
+    for k in range(Nt):
+        median[k] = np.quantile( y[:,k],  0.5 )
+        mean[k]   = np.mean( y[:,k] )
+
+    
+    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color=color )
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color=color )
+
+    ax.legend(loc='upper left')
+    ax.set_ylabel( ylabel )
+    x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
+    ax.set_xticks( x[0:-1:3] )
+    ax.grid()
+ 
+    if( self.logPlot ): ax.set_yscale('log')
+
+    plt.draw()
+    plt.pause(0.001)
+
 
 def load_param_samples(datadir):
     """

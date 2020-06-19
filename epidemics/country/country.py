@@ -63,7 +63,77 @@ class EpidemicsCountry( EpidemicsBase ):
 
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
+  def computational_model_propagate( self, s ):
+    p  = s['Parameters']
+    t  = self.data['Propagation']['x-data']
+    y0 = self.data['Model']['Initial Condition']
+    N  = self.data['Model']['Population Size']
 
+    tt = [t[0]-1] + t.tolist()
+    sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
+    
+    incidents = np.diff(sol.y)
+    incidents = np.append(0, incidents)
+ 
+    recovered  = None
+    exposed    = None
+    unreported = None
+
+    if hasattr(sol, 'r'):
+        recovered = np.diff(sol.r)
+        recovered = np.append(0, recovered)
+ 
+    if hasattr(sol, 'e'):
+        exposed = np.diff(sol.e)
+        exposed = np.append(0, exposed)
+
+    if hasattr(sol, 'iu'):
+        unreported = np.diff(sol.iu)
+        unreported = np.append(0, unreported)
+
+    eps = 1e-32
+    incidents[incidents < eps] = eps
+    recovered[recovered < eps] = eps
+    
+    k = 0
+    js = {}
+    js['Variables'] = []
+
+    js['Variables'].append({})
+    js['Variables'][k]['Name'] = 'Daily Incidence'
+    js['Variables'][k]['Values'] = list(incidents)
+    k += 1
+
+    if recovered is not None:
+        js['Variables'].append({})
+        js['Variables'][k]['Name'] = 'Daily Recovered'
+        js['Variables'][k]['Values'] = list(recovered)
+        k += 1
+
+    if exposed is not None:
+       js['Variables'].append({})
+       js['Variables'][k]['Name'] = 'Daily Exposed'
+       js['Variables'][k]['Values'] = list(exposed)
+       k += 1
+
+    if unreported is not None:
+       js['Variables'].append({})
+       js['Variables'][k]['Name'] = 'Daily Unreported'
+       js['Variables'][k]['Values'] = list(unreported)
+       k += 1
+
+    js['Number of Variables'] = len(js['Variables'])
+    js['Length of Variables'] = len(t)
+
+    if self.likelihoodModel == 'Normal':
+        js['Standard Deviation'] = ( p[-1] * incidents ).tolist()
+    elif self.likelihoodModel == 'Positive Normal':
+        js['Standard Deviation'] = ( p[-1] * incidents ).tolist()
+    elif self.likelihoodModel == 'Negative Binomial':
+        js['Dispersion'] = (len(incidents)) * [p[-1]]
+
+    s['Saved Results'] = js
+  
   def plot_intervals( self, ns=10):
 
     fig = self.new_figure()
@@ -75,15 +145,24 @@ class EpidemicsCountry( EpidemicsBase ):
     if self.nValidation > 0:
       ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-
-    #----------------------------------------------------------------------------------------------------------------------------------
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
 
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
+    
+    if 'Daily Recovered' in self.propagatedVariables:
+      self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[0], 'Daily Recovered')
+      self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[1], 'Cummulative number of recovered', cummulate=1)
 
-    #----------------------------------------------------------------------------------------------------------------------------------
+    if 'Daily Exposed' in self.propagatedVariables:
+      self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[0], 'Daily Exposed')
+      self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[1], 'Cummulative number of exposed', cummulate=1)
+
+    if 'Daily Unreported' in self.propagatedVariables:
+      self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[0], 'Daily Unreported')
+      self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[1], 'Cummulative number of unreported', cummulate=1)
+
 
     ax[-1].set_xlabel('time in days')
 
