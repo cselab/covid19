@@ -8,7 +8,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seiir_int.nbin'
+    self.modelName        = 'country.reparam.seiir_int_nogamma.nbin'
     self.modelDescription = 'Fit SEIIR with Interventions on Daily Infected Data with Negative Binomial Likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
@@ -16,16 +16,15 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 9
+    self.nParameters = 8
     js = self.get_uniform_priors(
-            ('R0', 0.5, 10.0), 
-            ('D', 1.0, 30.),  
+            ('R0', 1.0, 10.0), 
             ('Z', 1.0, 30.), 
             ('mu', 0.0, 1.0), 
             ('alpha', 0., 1.0),
             ('tact', 0.0, 100.),
-            ('dtact', 0.0, 14.),
-            ('kbeta', 0.0, 1.0),
+            ('dtact', 9.99, 10.01),
+            ('kbeta', 0.1, 1.0),
             ('r', 1e-6, 1.0),
             )
     
