@@ -45,7 +45,7 @@ class Model(ModelBase):
             raise RuntimeError("mTMCMC not yet available for nbin")
 
         s['Reference Evaluations'] = list(y)
-        s['Dispersion'] = (p[-1] * y).tolist()
+        s['Dispersion'] = [p[-1]] * len(y)
 
     def computational_model_propagate(self, s):
         p = s['Parameters']

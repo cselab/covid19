@@ -94,4 +94,4 @@ class ModelBase( EpidemicsCountry ):
     elif self.likelihoodModel == 'Positive Normal':
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
     elif self.likelihoodModel == 'Negative Binomial':
-        s['Dispersion'] = ( p[-1] * y ).tolist()
+        s['Dispersion'] = [p[-1]] * len(y)
