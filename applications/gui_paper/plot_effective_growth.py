@@ -20,11 +20,18 @@ ALPHA = 0.3
 def linear_trans(u0, u1, t, tc, teps):
     """
     Linear transition from u0 to u1 in interval `tc - teps < t < tc + teps`.
+    u0,u1,tc,teps: `float` or `numpy.ndarray`
+        Values before and after, transition time, transition duration
+    t: `float`
+        Current time
     """
     t0 = tc - teps
     t1 = tc + teps
-    return u0 if t <= t0 else u1 if t >= t1 else \
-        u0 + (u1 - u0) * (t - t0) / (t1 - t0)
+    k0 = np.heaviside(t0 - t, 0)
+    k1 = np.heaviside(t - t1, 0)
+    kc = 1 - k0 - k1
+    uc = u0 + (u1 - u0) * (t - t0) / (t1 - t0)
+    return k0 * u0 + k1 * u1 + kc * uc
 
 
 intervention_trans = linear_trans
@@ -77,12 +84,7 @@ ax1, ax2, ax3 = ax
 xdata = np.array(d['x-data']).astype(float)
 
 t = np.array(d['x-axis']).astype(float)
-params = d['mean_params']
-tint = params['tint']
-dint = params['dint']
-gamma = params['gamma']
-R0 = params['R0']
-kbeta = params['kbeta']
+mean_params = d['mean_params']
 
 
 def days_to_delta(t):
@@ -104,13 +106,22 @@ varnames = [v['Name'] for v in samples['Variables']]
 
 db = np.array(samples['Results']['Sample Database'])
 
+
 def get_samples(varname):
+    global varnames
+    global mean_params
     if varname in varnames:
         return db[:, varnames.index(varname)]
-    return None
+    elif varname in mean_params:
+        return np.array([mean_params[varname]] * db.shape[0])
+    else:
+        return None
+
 
 R0 = get_samples('R0')
 tint = get_samples('tint')
+dint = get_samples('dint')
+gamma = get_samples('gamma')
 kbeta = get_samples('kbeta')
 tint2_minus_tint = get_samples('tint2_minus_tint')
 kbeta2_div_kbeta = get_samples('kbeta2_div_kbeta')
@@ -121,18 +132,14 @@ Ns = R0.shape[0]
 lambdaeff = np.zeros((Nt, Ns))
 vR0 = np.zeros((Nt, Ns))
 for i in range(Nt):
-    for j in range(Ns):
-        beta = R0[j] * gamma
-        if kbeta is not None:
-            beta *= intervention_trans(
-                    1., kbeta[j], t[i], tint[j], dint * 0.5)
-        if kbeta2_div_kbeta is not None:
-            beta *= intervention_trans(
-                    1., kbeta2_div_kbeta[j], t[i],
-                    tint[j] + tint2_minus_tint[j], dint * 0.5)
-        lambdaeff[i, j] = beta - gamma
-        vR0[i, j] = beta / gamma
-
+    beta = R0 * gamma
+    if kbeta is not None:
+        beta *= intervention_trans(1., kbeta, t[i], tint, dint * 0.5)
+    if kbeta2_div_kbeta is not None:
+        beta *= intervention_trans(1., kbeta2_div_kbeta, t[i],
+                                   tint + tint2_minus_tint, dint * 0.5)
+    lambdaeff[i, :] = beta - gamma
+    vR0[i, :] = beta / gamma
 
 Q_LO = 0.1
 Q_HI = 0.9
