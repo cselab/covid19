@@ -2,9 +2,8 @@
 
 set -eu
 
-prefix=tile
+prefix=tile_growth
 outdir=$prefix
-
 mkdir -p "$outdir"
 
 for f in */growth.pdf ; do
@@ -12,6 +11,10 @@ for f in */growth.pdf ; do
   o=$outdir/$name.pdf
   [ -f "$o" ] || ln -srv "$f" "$o"
 done
+
+prefix=tile_samples
+outdir=$prefix
+mkdir -p "$outdir"
 
 for f in */samples.png ; do
   name=$(dirname "$f")

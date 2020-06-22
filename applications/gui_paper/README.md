@@ -15,7 +15,7 @@ last row of data is `2020-05-18`
 
 * Create a working directory
 
-* Add a symlink to `main.py` from `korali-apps:5.coronavirus/main.py`
+* Add a symlink to `main.py` from `korali-apps:covid19/main.py`
 
 * Add symlinks to scripts needed below, `countries.py`, `countries.json` and `countrydata.py`
 
