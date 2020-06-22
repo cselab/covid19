@@ -559,7 +559,7 @@ class EpidemicsBase:
       ax.fill_between( self.data['Propagation']['x-data'], q1 , q2,  alpha=0.5, label=f' {100*p:.1f}% credible interval' )
 
     ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color='black')
-    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='blue')
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='black')
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
@@ -589,13 +589,14 @@ class EpidemicsBase:
     for k in range(Nt):
         median[k] = np.quantile( y[:,k],  0.5 )
         mean[k]   = np.mean( y[:,k] )
-        sdev[k]   = np.stdev( y[:,k] )
+        print(y[:,k], flush=True)
+        sdev[k]   = np.std( y[:,k] )
 
     
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color=color )
     ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color=color )
     ax.plot( self.data['Propagation']['x-data'], mean+sdev, '-', lw=1, color=color )
     ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=1, color=color )
-    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color=color )
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )

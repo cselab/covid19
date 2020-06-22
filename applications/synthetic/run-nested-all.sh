@@ -20,4 +20,5 @@ for model in "${arr[@]}"
 do
    PYTHONPATH=../..:../../build:$PYTHONPATH python sample_nested.py --silentPlot -ns 1500 -cm "country.${model}.nbin" -c "$c" -df $base --synthetic -dat "./data/${model}_raw.txt" | tee "./output_nested/${model}.out"
    
+   rm -rf "$folder/_korali_propagation"
 done

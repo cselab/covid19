@@ -74,6 +74,9 @@ class EpidemicsCountry( EpidemicsBase ):
     
     incidents = np.diff(sol.y)
     incidents = np.append(0, incidents)
+     
+    eps = 1e-32
+    incidents[incidents < eps] = eps
  
     recovered  = None
     exposed    = None
