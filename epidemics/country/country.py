@@ -25,6 +25,19 @@ class EpidemicsCountry( EpidemicsBase ):
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
     
+    self.defaults = { 
+            'R0'    : (1.0, 10.0),
+            'D'     : (1.0, 10.0),
+            'Z'     : (1.0, 10.0),
+            'mu'    : (0.0, 1.0),
+            'alpha' : (0.0, 1.0),
+            'tact'  : (0.0, 100.0),
+            'dtact' : (0.0, 14.0),
+            'kbeta' : (0.0, 1.0),
+            'Sigma' : (0.0, 100.0),
+            'r'     : (0.0, 1.0)
+        }
+    
     super().__init__( **kwargs )
   
     if(self.synthetic):

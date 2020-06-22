@@ -2,14 +2,14 @@
 
 declare -a arr=(
 "sir_int"
-"seir_int"
-"seiir_int"
+#"seir_int"
+#"seiir_int"
 )
 
 mkdir -p kdata
 mkdir -p output_mknested
 
-base="./kdata/"
+base="./kdata2/"
 
 for model in "${arr[@]}"
 do
