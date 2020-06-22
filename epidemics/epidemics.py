@@ -591,9 +591,10 @@ class EpidemicsBase:
         mean[k]   = np.mean( y[:,k] )
         sdev[k]   = np.std( y[:,k] )
 
-    
-    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=1, label='Median', color=color )
-    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=1, label='Mean', color=color )
+    medianlabel = 'Median {0}'.format(varName)
+    meanlabel   = 'Mean {0}'.format(varName)
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=1, label=medianlabel, color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=1, label=meanlabel, color=color )
     ax.plot( self.data['Propagation']['x-data'], mean+sdev, '-', lw=0.5, color=color )
     ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=0.5, color=color )
 
