@@ -18,8 +18,8 @@ class Model(ModelBase):
         js = self.get_uniform_priors(
             ('R0', 1, 4),
             ('tact', 0, 80),
-            ('kbeta', 0.1, 10),
-            ('[Sigma]', 0.01, 100),
+            ('kbeta', 0.1, 1.0),
+            ('[Sigma]', 1e-6, 100),
         )
 
         return js

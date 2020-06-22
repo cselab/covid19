@@ -20,7 +20,7 @@ class Model(ModelBase):
         js = self.get_uniform_priors(
             ('R0', 1, 4),
             ('tact', 0, 80),
-            ('kbeta', 0.1, 10),
+            ('kbeta', 0.1, 1),
             ('[r]', 0, 50),
         )
 

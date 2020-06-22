@@ -21,8 +21,8 @@ class ModelBase(EpidemicsCountry):
         cppsolver = sir_int_r0.Solver(data)
 
         params = sir_int_r0.Parameters(r0=p[0],
-                                       gamma=1. / 5.2,
-                                       tact=p[1],
+                                       gamma=1./5.2,
+                                       tact=p[1]-0.5*p[2],
                                        dtact=p[2],
                                        kbeta=p[3])
 
@@ -30,7 +30,7 @@ class ModelBase(EpidemicsCountry):
         y0cpp = (s0, i0, 0.0)
         initial = sir_int_r0.State(y0cpp)
 
-        cpp_res = cppsolver.solve_ad(params, initial, t_eval=t_eval, dt=0.01)
+        cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.01)
 
         yS = np.zeros(len(cpp_res))
         gradmu = []
