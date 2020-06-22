@@ -186,7 +186,7 @@ class EpidemicsBase:
 
     self.e['Solver']['Type'] = "Sampler/TMCMC"
     self.e['Solver']['Version'] = self.sampler
-    self.e['Solver']['Step Size'] = 0.5
+    self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = cov
     self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
@@ -589,14 +589,13 @@ class EpidemicsBase:
     for k in range(Nt):
         median[k] = np.quantile( y[:,k],  0.5 )
         mean[k]   = np.mean( y[:,k] )
-        print(y[:,k], flush=True)
         sdev[k]   = np.std( y[:,k] )
 
     
-    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color=color )
-    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=2, label='Mean', color=color )
-    ax.plot( self.data['Propagation']['x-data'], mean+sdev, '-', lw=1, color=color )
-    ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=1, color=color )
+    ax.plot( self.data['Propagation']['x-data'], median, '--', lw=1, label='Median', color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean, '-', lw=1, label='Mean', color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean+sdev, '-', lw=0.5, color=color )
+    ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=0.5, color=color )
 
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
