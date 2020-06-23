@@ -42,7 +42,8 @@ def example_run_seiin(num_days, inputs):
     IR0[data.key_to_index['TI']] = 1  # Ticino.
     k = 0
     for c in cantons_:
-        IU0[c] = inputs[12+k]
+        IU0[c] =  inputs[12+k]*N0[c]
+        E0[c] = 3*inputs[12+k]*N0[c]
         k += 1
 
     S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
