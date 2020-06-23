@@ -20,7 +20,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.country      = kwargs.pop('country', 'switzerland')
     self.futureDays   = kwargs.pop('futureDays', 2)
     self.nPropagation = kwargs.pop('nPropagation', 100)
-    self.logPlot      = kwargs.pop('logPlot', False)
+    self.logPlot      = kwargs.pop('logPlot', True)
     self.nValidation  = kwargs.pop('nValidation', 0)
     self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess   = kwargs.pop('preprocess', False)
@@ -59,14 +59,20 @@ class EpidemicsCountry( EpidemicsBase ):
     S0 = N - I0
     y0 = S0, I0
 
+    incidents = np.diff( y[0:] )
+    if ((incidents < 0).any()):
+        print("[Epidemics] Warning, removing negative values from daily infections!!!")
+
+    incidents = np.clip(incidents, a_min=0, a_max=1e32)
+
     if self.nValidation == 0:
       self.data['Model']['x-data'] = t[1:]
-      self.data['Model']['y-data'] = np.diff( y[0:] )
+      self.data['Model']['y-data'] = incidents
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = np.diff( y[0:-self.nValidation] )
+      self.data['Model']['y-data'] = incidents[0:-self.nValidation]
       self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = np.diff( y[-self.nValidation-1:] )
+      self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
 
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size'] = self.regionalData.populationSize

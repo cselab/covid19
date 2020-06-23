@@ -19,7 +19,7 @@ class Model(ModelBase):
             ('R0', 1, 4),
             ('tact', 0, 80),
             ('kbeta', 0.1, 1.0),
-            ('[Sigma]', 1e-6, 100),
+            ('Sigma', 0.0, 100),
         )
 
         return js

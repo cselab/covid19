@@ -16,10 +16,10 @@ class Model(ModelBase):
 
         self.nParameters = 4
         js = self.get_uniform_priors(
-            ('R0', 1, 4),
+            ('R0', 1, 10),
             ('tact', 0, 80),
             ('kbeta', 0.1, 1.0),
-            ('[Sigma]', 1e-6, 100),
+            ('Sigma', 0.0, 100),
         )
 
         return js

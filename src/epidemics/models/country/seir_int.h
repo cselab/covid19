@@ -18,7 +18,7 @@ struct Parameters {
     T kbeta;  /// Multiplicator beta after intervention.
 };
 
-/// SIR state has 3 elements: S, E, I, R.
+/// SEIR state has 4 elements: S, E, I, R.
 template <typename T>
 struct State : StateBase<T, 4> {
     using StateBase<T, 4>::StateBase;
