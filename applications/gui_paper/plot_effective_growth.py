@@ -169,7 +169,8 @@ else:
     ax1.set_ylabel(r'reproduction number $R_0$')
 ax1.set_xlim(left=days.min())
 
-ydata = np.array(d['y-data']).astype(float)
+totaldata = np.array(d['y-data']).astype(float)
+dailydata = np.diff(totaldata)
 
 mean = d['Daily Infected']['Mean']
 median = d['Daily Infected']['Median']
@@ -182,7 +183,7 @@ for v in d['Daily Infected']['Intervals']:
     high = v['High Interval']
     ax2.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
-ax2.scatter(daysdata[:-1], np.diff(ydata), c='black', s=4)
+ax2.scatter(daysdata[1:], dailydata, c='black', s=4)
 ax2.set_ylabel('daily infected')
 ax2.set_yscale('log')
 ax2.set_xlim(left=days.min())
@@ -199,7 +200,7 @@ for v in d['Total Infected']['Intervals']:
     high = v['High Interval']
     ax3.fill_between(days, low, high, alpha=ALPHA, color=line.get_color())
 
-ax3.scatter(daysdata, ydata, c='black', s=4)
+ax3.scatter(daysdata, totaldata, c='black', s=4)
 ax3.set_ylabel('total infected')
 ax3.set_xlim(left=days.min())
 ax3.set_ylim(bottom=0)

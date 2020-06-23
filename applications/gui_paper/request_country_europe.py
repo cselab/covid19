@@ -93,6 +93,7 @@ for country in country_to_idx.keys():
             ["--nThreads", "12"] + \
             ["--nSamples", "5000"] + \
             ["--futureDays", "0"] + \
+            ["--infer_duration"] + \
             ["--validateData", "0"] + \
             ["--percentages", "0.9", "0.5"] + \
             ["--populationSize", str(pop)] + \
