@@ -114,7 +114,7 @@ def main():
     generate_canton_model('sei_c', 'S E I', 'beta nu Z D tact kbeta')
     generate_canton_model('seii_c', 'S E Ir Iu', 'beta nu alpha Z D')
     generate_canton_model('seiin', 'S E Ir Iu N', 'beta mu alpha Z D theta')
-    generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3')
+    generate_canton_model('seiin_interventions', 'S E Ir Iu N', 'beta mu alpha Z D theta b1 b2 b3 d1 d2 d3 theta1 theta2 theta3')
  
     # reparam
     generate_country_model('sir_reparam', 'S I R', 'R0 D')

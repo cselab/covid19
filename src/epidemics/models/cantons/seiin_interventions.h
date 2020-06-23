@@ -27,7 +27,7 @@ struct State : StateBase<T, 5> {
 /// Lightweight parameters (optimized for).
 template <typename T>
 struct Parameters {
-    static constexpr size_t numParameters = 12;
+    static constexpr size_t numParameters = 15;
 
     T beta;   /// Transmission rate.
     T mu;     /// Reduction factor for transmission rate of undocumented individuals.
@@ -43,6 +43,9 @@ struct Parameters {
     T d1;     /// day of 1st intervention.
     T d2;     /// day of 2nd intervention.
     T d3;     /// day of 3rd intervention.
+    T theta1; //theta after 1st intervention.
+    T theta2; //theta after 2nd intervention.
+    T theta3; //theta after 3rd intervention.
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
@@ -62,14 +65,21 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             // Interventions: beta is modelled as a function of time.
             // NOTE: AD will NOT work for b0, b1!!
             T BETA;
+            T THETA;
             if ( day < p.d1) {
                BETA = p.beta;
+               THETA = p.theta;
             } else if (day < p.d2) {
                BETA = p.b1;
+               THETA = p.theta1;
             } else if (day < p.d3) {
                BETA = p.b2;
+               THETA = p.theta2;
             } else {
-               BETA = p.b3;
+               BETA = p.b2 + (day - p.d3) * p.b3;
+               if (BETA > p.beta)
+                  BETA = p.beta;
+               THETA = p.theta3;
             }
 
             T A = BETA * x.S(i) / x.N(i) * (x.Ir(i) + extComIu);
@@ -87,12 +97,12 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             for (size_t j : this->nonzero_Mij(i)) {
                 T Tij = this->M(i, j) / (x.N(j) - x.Ir(j));
                 T Tji = this->M(j, i) * inv;
-                dS += p.theta * (Tij * x.S(j) - Tji * x.S(i));
-                dE += p.theta * (Tij * x.E(j) - Tji * x.E(i));
+                dS += THETA * (Tij * x.S(j) - Tji * x.S(i));
+                dE += THETA * (Tij * x.E(j) - Tji * x.E(i));
                 // Documented infected people are in quarantine, they do not move around.
                 // dIr += p.theta * (Tij * x.Ir(j) - Tji * x.Ir(i));
-                dIu += p.theta * (Tij * x.Iu(j) - Tji * x.Iu(i));
-                dN += p.theta * (this->M(i, j) - this->M(j, i));
+                dIu += THETA * (Tij * x.Iu(j) - Tji * x.Iu(i));
+                dN  += THETA * (this->M(i, j) - this->M(j, i));
             }
 
             dxdt.S(i) = dS;
