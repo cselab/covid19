@@ -18,8 +18,8 @@ class Model( ModelBase ):
  
     self.nParameters = 7
     js = self.get_uniform_priors(
-            ('R0', *self.defaults['R0'])
-            ('D', *self.defaults['D'])
+            ('R0', *self.defaults['R0']),
+            ('D', *self.defaults['D']),
             ('Z', *self.defaults['Z']), 
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),

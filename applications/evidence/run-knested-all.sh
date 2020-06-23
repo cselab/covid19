@@ -22,11 +22,11 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested_intreparam5_more/"
+base="./data/knested_defaults/"
 
-#model="country.reparam.sir_int.nbin"
-#model="country.reparam.seir_int.nbin"
-#model="country.reparam.seiir_int.nbin" 
+# model="country.reparam.sir_int.nbin"
+# model="country.reparam.seir_int.nbin"
+# model="country.reparam.seiir_int.nbin" 
 
 # model="country.reparam.sir_int.tnrm"
 # model="country.reparam.sir_int_nogamma.tnrm"
@@ -36,8 +36,8 @@ base="./data/knested_intreparam5_more/"
 # model="country.reparam.seir_int_nogamma.tnrm"
 # model="country.reparam.seir_intexp.tnrm"
 # model="country.reparam.seir_intrem.tnrm"
-# model="country.reparam.seiir_int.tnrm"
-model="country.reparam.seiir_int_nogamma.tnrm"
+model="country.reparam.seiir_int.tnrm"
+# model="country.reparam.seiir_int_nogamma.tnrm"
 # model="country.reparam.seiir_intexp.tnrm"
 # model="country.reparam.seiir_intrem.tnrm"
 
