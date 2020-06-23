@@ -92,7 +92,6 @@ class EpidemicsCountry( EpidemicsBase ):
     sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
     
     incidents = np.diff(sol.y)
-    incidents = np.append(0, incidents)
      
     eps = 1e-32
     incidents[incidents < eps] = eps
@@ -103,15 +102,12 @@ class EpidemicsCountry( EpidemicsBase ):
 
     if hasattr(sol, 'r'):
         recovered = np.diff(sol.r)
-        recovered = np.append(0, recovered)
  
     if hasattr(sol, 'e'):
         exposed = np.diff(sol.e)
-        exposed = np.append(0, exposed)
 
     if hasattr(sol, 'iu'):
         unreported = np.diff(sol.iu)
-        unreported = np.append(0, unreported)
 
     eps = 1e-32
     

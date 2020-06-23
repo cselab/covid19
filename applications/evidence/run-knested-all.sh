@@ -2,8 +2,8 @@
 
 declare -a arr=(
 "switzerland"
-"france"
-"germany"
+#"france"
+#"germany"
 )
 
 # OTHER (TOP 10 by Population)
