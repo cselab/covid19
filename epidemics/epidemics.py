@@ -245,7 +245,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 10
+    self.e["Console Output"]["Frequency"] = 25
     
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -604,7 +604,7 @@ class EpidemicsBase:
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
  
-    if( self.logPlot ): ax.set_yscale('log')
+    if( self.logPlot and cummulate < 1 ): ax.set_yscale('log')
 
     plt.draw()
     plt.pause(0.001)

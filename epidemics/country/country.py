@@ -35,7 +35,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'dtact' : (0.0, 14.0),
             'kbeta' : (0.0, 1.0),
             'Sigma' : (0.0, 100.0),
-            'r'     : (0.0, 1.0)
+            'r'     : (0.0, 100.0)
         }
     
     super().__init__( **kwargs )
