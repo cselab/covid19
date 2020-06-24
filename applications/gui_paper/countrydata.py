@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import re
+import sys
 import json
 import numpy as np
 from glob import glob
@@ -11,6 +12,9 @@ from countries import LAST_DAY
 def days_to_delta(t):
     return np.timedelta64(int(t + 0.5), 'D')
 
+def printerr(m ,end='\n'):
+    sys.stderr.write(str(m) + end)
+    sys.stderr.flush()
 
 folder_to_fullname = {
     "RussianFederation": "Russia",
