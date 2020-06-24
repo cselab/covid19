@@ -2,8 +2,8 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'build'))
+sys.path.append(os.path.join(os.path.dirname(__file__),'..',  '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__),'..',  '..', '..', 'build'))
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import copy
@@ -101,9 +101,15 @@ def solve_seir(p):
 p = Par()
 sir = solve_sir(p)
 k = 2.3
-p.R0 *= k
-p.kint /= k ** 2
-seir = solve_seir(p)
+p_seir = copy(p)
+p_seir.R0 *= k
+p_seir.kint /= k ** 2
+seir = solve_seir(p_seir)
+
+# R0seir from doc/linear_sir_vs_seir
+R0seir = p.R0 * (1 + (p.R0 - 1) * p.gamma * p.incubation)
+print("fitted R0 = ", p_seir.R0)
+print("analytical R0 = ", R0seir)
 
 #plt.plot(sir_r0, label="sirR0")
 plt.plot(sir[0], label="sir,R0={:.3g},kin={:.3g}".format(sir[1].R0, sir[1].kint))
@@ -111,3 +117,4 @@ plt.plot(seir[0], label="seir,R0={:.3g},kin={:.3g}".format(seir[1].R0, seir[1].k
 plt.yscale('log')
 plt.legend()
 plt.savefig("sir_vs_seir.pdf")
+
