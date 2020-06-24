@@ -55,12 +55,14 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto C2 = invN * p.R0 * invD * factor * x.S() * (p.mu * x.Iu());
         auto C3 = p.alpha * (invZ * x.E());
         auto C4 = (1 - p.alpha) * (invZ * x.E());
-
+        auto C5 = invD * x.Ir();
+        auto C6 = invD * x.Iu();
+ 
         dxdt.S()  = -(C1 + C2);
-        dxdt.E()  = C1 + C2 - invZ * x.E();
-        dxdt.Ir() = C3 - invD * x.Ir();
-        dxdt.Iu() = C4 - invD * x.Iu();
-        dxdt.R()  = -dxdt.S() - dxdt.E() - dxdt.Ir() - dxdt.Iu();
+        dxdt.E()  = C1 + C2 - C3 - C4;
+        dxdt.Ir() = C3 - C5;
+        dxdt.Iu() = C4 - C6;
+        dxdt.R()  = +C5 + C6;
     }
 };
 
