@@ -2,8 +2,8 @@
 
 declare -a arr=(
 "switzerland"
-#"france"
-#"germany"
+"france"
+"germany"
 )
 
 # OTHER (TOP 10 by Population)
@@ -25,7 +25,7 @@ declare -a arr=(
 base="./data/knested_defaults/"
 
 # model="country.reparam.sir_int.nbin"
-# model="country.reparam.seir_int.nbin"
+model="country.reparam.seir_int.nbin"
 # model="country.reparam.seiir_int.nbin" 
 
 # model="country.reparam.sir_int.tnrm"
@@ -36,7 +36,7 @@ base="./data/knested_defaults/"
 # model="country.reparam.seir_int_nogamma.tnrm"
 # model="country.reparam.seir_intexp.tnrm"
 # model="country.reparam.seir_intrem.tnrm"
-model="country.reparam.seiir_int.tnrm"
+# model="country.reparam.seiir_int.tnrm"
 # model="country.reparam.seiir_int_nogamma.tnrm"
 # model="country.reparam.seiir_intexp.tnrm"
 # model="country.reparam.seiir_intrem.tnrm"

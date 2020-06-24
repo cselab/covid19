@@ -5,5 +5,7 @@ def date_fromisoformat(s):
 
     Reproduces Python 3.7's datetime.date.fromisoformat.
     """
-    year, month, day = s.split('-')
+
+    dstr = s[0:10] # sometimes s comes with hr, sec and ms
+    year, month, day = dstr.split('-')
     return datetime.date(int(year), int(month), int(day))
