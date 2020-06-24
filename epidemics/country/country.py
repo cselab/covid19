@@ -109,12 +109,15 @@ class EpidemicsCountry( EpidemicsBase ):
 
     if hasattr(sol, 'r'):
         recovered = np.diff(sol.r)
+        recovered = np.append(0, recovered)
  
     if hasattr(sol, 'e'):
         exposed = np.diff(sol.e)
+        exposed = np.append(0, exposed)
 
     if hasattr(sol, 'iu'):
         unreported = np.diff(sol.iu)
+        unreported = np.append(0, unreported)
 
     eps = 1e-32
     
