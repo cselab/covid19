@@ -98,7 +98,7 @@ class EpidemicsCountry( EpidemicsBase ):
     
     _, ir0    = y0
     incidents = np.diff(sol.y)
-    incidents = append(ir0, incidents)
+    incidents = np.append(ir0, incidents)
      
     eps = 1e-32
     incidents[incidents < eps] = eps

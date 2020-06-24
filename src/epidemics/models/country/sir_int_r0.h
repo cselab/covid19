@@ -43,10 +43,10 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         double invN = 1. / data_.N;
         
         T r0;
-        if (t < p.tact) {
+        if (t < p.tact - 0.5*p.dtact) {
            r0 = p.r0;
-        } else if (t < p.tact + p.dtact) {
-           r0 = (1. - (t - p.tact) / p.dtact * (1. - p.kbeta)) * p.r0;
+        } else if (t < p.tact + 0.5*p.dtact) {
+           r0 = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.r0;
         } else {
            r0 = p.kbeta * p.r0;
         }
