@@ -28,7 +28,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.defaults = { 
             'R0'    : (1.0, 10.0),
             'D'     : (1.0, 10.0),
-            'Z'     : (1.0, 10.0),
+            'Z'     : (1.0, 11.0),
             'mu'    : (0.0, 1.0),
             'alpha' : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
@@ -37,6 +37,11 @@ class EpidemicsCountry( EpidemicsBase ):
             'Sigma' : (0.0, 100.0),
             'r'     : (0.0, 100.0)
         }
+
+    self.constants = {
+            'gamma' : 1.0/5.2,
+            'Z'     : 2.7
+    }
     
     super().__init__( **kwargs )
   
