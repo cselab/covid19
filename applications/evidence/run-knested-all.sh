@@ -31,7 +31,7 @@ base="./data/knested_defaults/"
 # model="country.reparam.seir_int_nogamma_noZ.nbin"
 # model="country.reparam.seiir_int.nbin" 
 # model="country.reparam.seiir_int_nogamma.nbin" 
-model="country.reparam.seiir_int_nogamma_noZ.nbin" 
+# model="country.reparam.seiir_int_nogamma_noZ.nbin" 
 
 # model="country.reparam.sir_int.tnrm"
 # model="country.reparam.sir_int_nogamma.tnrm"
