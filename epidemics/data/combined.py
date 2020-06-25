@@ -2,22 +2,26 @@ import numpy as np
 
 from epidemics.data.cases import get_region_cases
 from epidemics.data.population import get_region_population
-from epidemics.data.preprocessor import preprocess_data
+from epidemics.data.preprocessor import preprocess_data, cut_data_intervention
 
 class RegionalData:
     """Stores cases and population date for a given region.
 
     Strips away leading zeros in the number of cases.
     """
-    def __init__(self, region,preprocess=False):
+    def __init__(self, region,preprocess=False,up_to_int=False):
         self.region = region
         self.populationSize = get_region_population(region)
         self.preprocess = preprocess
+        self.up_to_int = up_to_int
 
         cases = get_region_cases(region)
 
         if self.preprocess==True:
+            print('Preprocessing')
             cases = preprocess_data(cases)
+        elif self.up_to_int==True:
+            cases = cut_data_intervention(cases,region)
 
         skip = next((i for i, x in enumerate(cases.confirmed) if x), None)
         if skip is None:

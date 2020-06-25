@@ -69,8 +69,8 @@ def run_phase_2_auto(phase_1_path,phase_2_path,variables):
 
     # Starting Korali's Engine and running experiment
     k = korali.Engine()
-    k["Conduit"]["Type"] = "Concurrent"
-    k["Conduit"]["Concurrent Jobs"] = 12
+    # k["Conduit"]["Type"] = "Concurrent"
+    # k["Conduit"]["Concurrent Jobs"] = 12
     k.run(e)
 
 if __name__ == "__main__":  
@@ -85,6 +85,7 @@ if __name__ == "__main__":
 
     if args.regions == 'all':
         regions = [region for region in os.listdir(args.phase_1_path) if not region.startswith('_')]
+        print(regions)
         folder_name = '/all_countries'
     elif args.regions == '/cantons':
         regions = CANTON_LIST
@@ -108,6 +109,8 @@ if __name__ == "__main__":
                     {'name':'kbeta','cond_type':'Normal',   'Mean':(0.0,1.0),'Std':(0.0,0.1)},
                     {'name':'[r]','cond_type':'Normal',     'Mean':(0.0,5.0),'Std':(0.0,2.5)}] 
 
-
+    variables = [   {'name':'R0','cond_type':'Normal',      'Mean':(0.1,10.0),'Std':(0.0,5.0)},
+                    {'name':'D','cond_type':'Normal',       'Mean':(0.0,30.0),'Std':(0.0,10.0)},
+                    {'name':'[r]','cond_type':'Normal',     'Mean':(0.0,5.0),'Std':(0.0,2.5)}] 
     # run_phase_2(phase_1_data,phase_2_path)
     run_phase_2_auto(phase_1_data,phase_2_path,variables)

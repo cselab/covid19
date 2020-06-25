@@ -7,7 +7,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sir_int.nbin'
+    self.modelName        = 'country.reparam_2R.sir_int.nbin'
     self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
@@ -18,11 +18,11 @@ class Model( ModelBase ):
  
     self.nParameters = 6
     js = self.get_uniform_priors(
-            ('R0', 0.5, 100.0), 
+            ('R0', 0.5, 10.0), 
             ('D', 1.0, 30.), 
             ('tact', 0, 100),
             ('dtact', 0.0, 14.),
-            ('kbeta', 0.0, 1.0),
+            ('R01', 0.5, 10.0),
             ('r', 1e-6, 1.0),
             )
     

@@ -3,6 +3,10 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+sys.path.append('../../')
+sys.path.append('../../build')
+
+
 import argparse
 import copy
 from epidemics.tools.tools import import_from
@@ -22,6 +26,8 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--sampler', '-sa', default='TMCMC', help='Choose sampler TMCMC or mTMCMC')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
+parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
+parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
 
 args = parser.parse_args()
 
