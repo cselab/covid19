@@ -566,6 +566,7 @@ class EpidemicsBase:
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
+    ax.set_xlim(left=x[1])
     if( self.logPlot and cummulate < 1 ): 
         ax.set_yscale('log')
         ax.set_ylim(bottom=1e-1)
