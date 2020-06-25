@@ -220,7 +220,7 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
-  def sample_knested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
+  def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1 ):
 
     self.e = korali.Experiment()
 
@@ -232,8 +232,8 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Sampler/Nested"
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
     self.e["Solver"]["Number Live Points"] = nLiveSamples
-    self.e["Solver"]["Proposal Update Frequency"] = nLiveSamples
-    self.e["Solver"]["Ellipsoidal Scaling"] = 1.00
+    self.e["Solver"]["Proposal Update Frequency"] = freq
+    self.e["Solver"]["Ellipsoidal Scaling"] = 1.10
     self.e["Solver"]["Batch Size"] = 1
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
@@ -566,7 +566,9 @@ class EpidemicsBase:
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
-    if( self.logPlot and cummulate < 1 ): ax.set_yscale('log')
+    if( self.logPlot and cummulate < 1 ): 
+        ax.set_yscale('log')
+        ax.set_ylim(bottom=1e-1)
 
     plt.draw()
     plt.pause(0.001)
@@ -604,8 +606,10 @@ class EpidemicsBase:
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
  
-    if( self.logPlot and cummulate < 1 ): ax.set_yscale('log')
-
+    if( self.logPlot and cummulate < 1 ): 
+        ax.set_yscale('log')
+        ax.set_ylim(bottom=1e-1)
+    
     plt.draw()
     plt.pause(0.001)
 

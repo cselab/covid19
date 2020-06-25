@@ -45,10 +45,10 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     {
 
         T beta;
-        if (t < p.tact) {
+        if (t < p.tact - 0.5*p.dtact) {
            beta = p.beta;
-        } else if (t < p.tact + p.dtact) {
-           beta = (1. - (t - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta;
+        } else if (t < p.tact + 0.5*p.dtact) {
+           beta = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta;
         } else {
            beta = p.kbeta * p.beta;
         }

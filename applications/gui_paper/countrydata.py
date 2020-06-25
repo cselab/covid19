@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import re
+import sys
 import json
 import numpy as np
 from glob import glob
@@ -11,6 +12,9 @@ from countries import LAST_DAY
 def days_to_delta(t):
     return np.timedelta64(int(t + 0.5), 'D')
 
+def printerr(m ,end='\n'):
+    sys.stderr.write(str(m) + end)
+    sys.stderr.flush()
 
 folder_to_fullname = {
     "RussianFederation": "Russia",
@@ -118,6 +122,8 @@ def GetSampleStat(df, datafolder, expr, plow=0.1, phigh=0.9):
         Mean values.
     median: `list`, len(df)
         Median values.
+    std: `list`, len(df)
+        Standard deviation.
     low: `list`, len(df)
         Quantile `plow`.
     high: `list`, len(df)
@@ -125,6 +131,7 @@ def GetSampleStat(df, datafolder, expr, plow=0.1, phigh=0.9):
     """
     v_mean = []
     v_median = []
+    v_std = []
     v_low = []
     v_high = []
     for folder in df['folder']:
@@ -132,14 +139,20 @@ def GetSampleStat(df, datafolder, expr, plow=0.1, phigh=0.9):
         assert os.path.isfile(samples_path)
         samples = np.genfromtxt(samples_path, names=True)
         pars = {parname: samples[parname] for parname in samples.dtype.names}
-        values = eval(expr, pars)
+        try:
+            values = eval(expr, pars)
+        except:
+            print("Can't evaluate '{:}'".format(expr))
+            return dict()
         v_mean.append(np.mean(values))
         v_median.append(np.median(values))
+        v_std.append(np.std(values))
         v_low.append(np.quantile(values, plow))
         v_high.append(np.quantile(values, phigh))
     return {
         'mean': v_mean,
         'median': v_median,
+        'std': v_std,
         'low': v_low,
         'high': v_high,
     }
@@ -166,6 +179,7 @@ def cache_to_file(target):
 
         def load(path):
             with open(path, 'rb') as f:
+                print("Loading cache '{}'".format(path))
                 return pickle.load(f)
 
         def save(content, path):
@@ -194,15 +208,34 @@ def cache_to_file(target):
 def AppendInferred(df, datafolder, plow=0.1, phigh=0.9):
     """
     Appends country data from CollectCountryData() by inferred intervenion time.
-    Columns: `[..., tint_mean, tint_low, tint_high]`
+    Columns: `[..., tint_mean, tint_std, tint_low, tint_high]`
+
+    Fields representing date (tint, tintstart) are converted to `pandas.datetime`
+    except for `*_std` which is kept `float`, number of days.
     """
-    parname = 'tint'
-    stat = GetSampleStat(df, datafolder, parname, plow, phigh)
-    for k, v in stat.items():
-        df[f"{parname}_{k}"] = [
+    df = df.copy()
+
+    def add_startday(k, v):
+        if k in ['std']: return v
+        return [
             startday + days_to_delta(d)
             for startday, d in zip(df['startday'], v)
         ]
+
+    parname = 'tint'
+    stat = GetSampleStat(df, datafolder, parname, plow, phigh)
+    for k, v in stat.items():
+        df[f"{parname}_{k}"] = add_startday(k, v)
+
+    parname = 'tintstart'
+    stat = GetSampleStat(df, datafolder, "tint - dint * 0.5", plow, phigh)
+    for k, v in stat.items():
+        df[f"{parname}_{k}"] = add_startday(k, v)
+
+    parname = 'dint'
+    stat = GetSampleStat(df, datafolder, parname, plow, phigh)
+    for k, v in stat.items():
+        df[f"{parname}_{k}"] = v
 
     parname = 'R0'
     stat = GetSampleStat(df, datafolder, parname, plow, phigh)
@@ -211,8 +244,6 @@ def AppendInferred(df, datafolder, plow=0.1, phigh=0.9):
 
     parname = 'R0int'
     stat = GetSampleStat(df, datafolder, "R0 * kbeta", plow, phigh)
-
-    df = df.copy()
     for k, v in stat.items():
         df[f"{parname}_{k}"] = stat[k]
     return df
