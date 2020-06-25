@@ -23,7 +23,7 @@ print(fpath)
 with open(fpath, 'w') as f:
     f.write("country,inferred,official,delay\n")
     for i, row in enumerate(df.sort_values(by='fullname').itertuples()):
-        inferred = row.tint_mean
+        inferred = row.tintstart_mean
         official = row.official_lockdown
         if not pd.isnull(official):
             delay = "{:+d}".format((inferred - official).days)
@@ -31,6 +31,6 @@ with open(fpath, 'w') as f:
         else:
             delay = ""
             official = ""
-        inferred = inferred.strftime('%Y-%m-%d')
+        inferred = inferred.strftime('%Y-%m-%d') + ' ± {:.1f}'.format(row.tintstart_std)
         country = "{} ({})".format(row.fullname, ABBREV2[row.folder])
         f.write(','.join([country, inferred, official, delay]) + '\n')

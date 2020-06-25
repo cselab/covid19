@@ -30,11 +30,15 @@ class ModelBase( EpidemicsCountry ):
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     
     infected  = np.zeros(len(cpp_res))
+    recovered = np.zeros(len(cpp_res))
+    exposed   = np.zeros(len(cpp_res))
     gradmu    = []
     gradsig   = []
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx] = N-entry.S().val()-entry.E().val()
+        infected[idx]  = N-entry.S().val()-entry.E().val()
+        exposed[idx]   = N-entry.S().val()
+        recovered[idx] = entry.R().val()
         gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), -entry.S().d(1)-entry.E().d(1), -entry.S().d(2)-entry.E().d(2), -entry.S().d(3)-entry.E().d(3), -entry.S().d(4)-entry.E().d(4), -entry.S().d(5)-entry.E().d(5), 0.0 ])) 
         gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
 
@@ -44,6 +48,8 @@ class ModelBase( EpidemicsCountry ):
     # Create Solution Object
     sol = Object()
     sol.y       = infected
+    sol.e       = exposed
+    sol.r       = recovered
     sol.gradMu  = gradmu
     sol.gradSig = gradsig
  
@@ -89,39 +95,4 @@ class ModelBase( EpidemicsCountry ):
     elif self.likelihoodModel == 'Positive Normal':
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
     elif self.likelihoodModel == 'Negative Binomial':
-        s['Dispersion'] = ( p[-1] * y ).tolist()
-
-
-  def computational_model_propagate( self, s ):
-    p = s['Parameters']
-    t  = self.data['Propagation']['x-data']
-    y0 = self.data['Model']['Initial Condition']
-    N  = self.data['Model']['Population Size']
-
-    tt = [t[0]-1] + t.tolist()
-    sol = self.solve_ode(y0=y0,T=t[-1],t_eval=t.tolist(), N=N,p=p)
-    
-    y = np.diff(sol.y)
-    y = np.append(0, y)
-
-    eps = 1e-32
-    y[y < eps] = eps
-    
-    js = {}
-    js['Variables'] = []
-
-    js['Variables'].append({})
-    js['Variables'][0]['Name']   = 'Daily Incidence'
-    js['Variables'][0]['Values'] = list(y)
-
-    js['Number of Variables'] = len(js['Variables'])
-    js['Length of Variables'] = len(t)
-
-    if self.likelihoodModel == 'Normal':
-        js['Standard Deviation'] = ( p[-1] * y ).tolist()
-    elif self.likelihoodModel == 'Positive Normal':
-        js['Standard Deviation'] = ( p[-1] * y ).tolist()
-    elif self.likelihoodModel == 'Negative Binomial':
-        js['Dispersion'] = (len(y)) * [p[-1]]
-
-    s['Saved Results'] = js
+        s['Dispersion'] = [p[-1]] * len(y)

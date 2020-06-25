@@ -42,7 +42,7 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample_knested( args.nSamples )
+a.sample_knested(nLiveSamples=args.nSamples,freq=args.nSamples)
 
 a.propagate( args.nPropagation )
 

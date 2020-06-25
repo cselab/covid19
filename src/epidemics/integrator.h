@@ -21,13 +21,17 @@ std::vector<State> integrate(
 }  // namespace epidemics
 
 
+namespace boost {
+namespace numeric {
+namespace odeint {
+
 /// Partial template specialization of boost's internal vector resize functor
 /// for DynamicAD types, which need to know their size at construct time.
 template <class T>
 #if BOOST_VERSION >= 105600
-struct boost::numeric::odeint::resize_impl_sfinae
+struct resize_impl_sfinae
 #else
-struct boost::numeric::odeint::resize_impl
+struct resize_impl
 #endif
     <std::vector<epidemics::DynamicAutoDiff<T>>,
      std::vector<epidemics::DynamicAutoDiff<T>>>
@@ -39,3 +43,6 @@ struct boost::numeric::odeint::resize_impl
         x1.resize(x2.size(), AD((typename AD::size_tag){}, x2[0].N()));
     }
 };
+}  // namespace odeint
+}  // namespace numeric
+}  // namespace boost

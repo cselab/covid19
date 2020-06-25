@@ -18,7 +18,7 @@ struct Parameters {
     T kbeta;  /// Multiplicator beta after intervention.
 };
 
-/// SIR state has 3 elements: S, E, I, R.
+/// SEIR state has 4 elements: S, E, I, R.
 template <typename T>
 struct State : StateBase<T, 4> {
     using StateBase<T, 4>::StateBase;
@@ -45,10 +45,10 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     {
 
         T beta;
-        if (t < p.tact) {
+        if (t < p.tact - 0.5*p.dtact) {
            beta = p.beta;
-        } else if (t < p.tact + p.dtact) {
-           beta = (1. - (t - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta;
+        } else if (t < p.tact + 0.5*p.dtact) {
+           beta = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta;
         } else {
            beta = p.kbeta * p.beta;
         }

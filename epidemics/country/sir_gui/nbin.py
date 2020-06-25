@@ -18,10 +18,10 @@ class Model(ModelBase):
 
         self.nParameters = 4
         js = self.get_uniform_priors(
-            ('R0', 1, 4),
+            ('R0', 1, 10),
             ('tact', 0, 80),
-            ('kbeta', 0.1, 10),
-            ('[r]', 0, 50),
+            ('kbeta', 0.1, 1),
+            ('r', 0, 50),
         )
 
         return js
@@ -45,7 +45,7 @@ class Model(ModelBase):
             raise RuntimeError("mTMCMC not yet available for nbin")
 
         s['Reference Evaluations'] = list(y)
-        s['Dispersion'] = (p[-1] * y).tolist()
+        s['Dispersion'] = [p[-1]] * len(y)
 
     def computational_model_propagate(self, s):
         p = s['Parameters']

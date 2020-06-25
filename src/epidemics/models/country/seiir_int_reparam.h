@@ -56,10 +56,10 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto factor   = 1.;
 
         T r0;
-        if (t < p.tact) {
+        if (t < p.tact - 0.5*p.dtact) {
            r0 = p.R0;
-        } else if (t < p.tact + p.dtact) {
-           r0 = (1. - (t - p.tact) / p.dtact * (1. - p.kbeta)) * p.R0;
+        } else if (t < p.tact + 0.5*p.dtact) {
+           r0 = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.R0;
         } else {
            r0 = p.kbeta * p.R0;
         }
@@ -68,12 +68,14 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto C2 = invN * r0 * invD * factor * x.S() * (p.mu * x.Iu());
         auto C3 = p.alpha * (invZ * x.E());
         auto C4 = (1 - p.alpha) * (invZ * x.E());
-
+        auto C5 = invD * x.Ir();
+        auto C6 = invD * x.Iu();
+            
         dxdt.S()  = -(C1 + C2);
-        dxdt.E()  = C1 + C2 - invZ * x.E();
-        dxdt.Ir() = C3 - invD * x.Ir();
-        dxdt.Iu() = C4 - invD * x.Iu();
-        dxdt.R()  = -dxdt.S() - dxdt.E() - dxdt.Ir() - dxdt.Iu();
+        dxdt.E()  = C1 + C2 - C3 - C4;
+        dxdt.Ir() = C3 - C5;
+        dxdt.Iu() = C4 - C6;
+        dxdt.R()  = +C5 + C6;
     }
 };
 

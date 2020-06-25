@@ -25,6 +25,7 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--sampler', '-sa', default='TMCMC', help='Choose sampler TMCMC or mTMCMC')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
+parser.add_argument('--tcov', '-tc', type=float, default=1.0, help='Target Coefficient of Variation.')
 
 args = parser.parse_args()
 
@@ -34,12 +35,13 @@ del x.compModel
 del x.nSamples
 del x.nPropagation
 del x.nGenerations
+del x.tcov
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample( args.nSamples, 0.4 )
+a.sample( args.nSamples, args.tcov )
 
 a.propagate( args.nPropagation )
 

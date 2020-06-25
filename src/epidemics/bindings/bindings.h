@@ -12,10 +12,37 @@
 
 namespace py = pybind11;
 
+
+/*
 // Specialization of pybind type_caster for boost::array.
 template <typename Type, size_t Size>
 struct py::detail::type_caster<boost::array<Type, Size>>
     : py::detail::array_caster<boost::array<Type, Size>, Type, false, Size> { };
+*/
+
+
+
+
+namespace pybind11 {
+namespace detail {
+template <typename Type, size_t Size>
+struct type_caster<boost::array<Type, Size>>
+    : array_caster<boost::array<Type, Size>, Type, false, Size> { };
+}  // namespace detail
+}  // namespace pybind11
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 namespace epidemics {
