@@ -7,7 +7,6 @@ import os
 import sys
 from osp import *
 from mpl_toolkits.mplot3d import axes3d
-from plot import Renderer
 from matplotlib.pyplot import figure
 import json
 import itertools
@@ -320,78 +319,6 @@ class Renderer:
             self.base_colors[code] = np.array(matplotlib.colors.to_rgb(
                     code_to_rgb[code]))
 
-#############################
-def plot_all_cantons(v_list):
-#############################
-  # v_list = utility[ number of sensors ] [ canton ] [ day ]
-  sensors = len(v_list)
-  cantons = 26
-  days    = len(v_list[0][0])
-
-  v = np.zeros( (sensors,cantons*days) )
-  for i in range(sensors):
-    for j in range(cantons):
-      for k in range(days  ):
-        v[i][ j*days + k ] = v_list[i][j][k]
-
-
-  print (days)
-  max_v = np.max(v_list)
-  locations = np.arange(1,days+1)
-  locations_x = [0,20,40,60,80,100]
-  
-  locations_y = np.arange(0, int(max_v+1),2)
-
-  fig, axs = plt.subplots(6,5)
-  axs.titlesize      : xx-small
-  for i0 in range (6):
-    for i1 in range (5):
-      index = i0 * 5 + i1
-      print(i0,i1)
-      if index > 25:
-      	#fig.delaxes(axs[i0][i1])
-        break
-      else:
-        for s in range(sensors):
-          lab = str(s+1) + " sensors "
-          if s == 0:
-          	lab = str(s+1) + " sensor "
-          axs[i0,i1].plot(locations,v_list[s][index][:],label=lab)
-        axs[i0,i1].grid()
-        axs[i0,i1].set_ylim([0.0,max_v])
-        axs[i0,i1].text(.5,1.05,name[index],
-            horizontalalignment='center',
-            transform=axs[i0,i1].transAxes)
-        axs[i0,i1].set_xticks(locations_x)
-        axs[i0,i1].set_yticks(locations_y)
-
-        axs[i0,i1].set(xlabel='Day', ylabel='Utility')
-        if i0 != 4:
-        	axs[i0,i1].label_outer()
-  
-
-  handles, labels = axs[4,1].get_legend_handles_labels()
-  fig.legend(handles, labels, loc='lower center',ncol=sensors,bbox_to_anchor=(0.6, 0.1))
-  
-  i0 = 4
-  axs[i0,0].set_xticks(locations_x)
-  axs[i0,0].set_xlabel("")
-  axs[i0,0].set_xticklabels("")
-
-  for i1 in range(1,5):
-        axs[i0,i1].set_xticks(locations_x)
-        axs[i0,i1].set_ylabel("")
-        axs[i0,i1].set_yticklabels("")
-
-  for i0 in range (6):
-      for i1 in range (5):
-        index = i0 * 5 + i1
-        print(i0,i1)
-        if index > 25:
-        	fig.delaxes(axs[i0][i1])
-
-  fig.set_size_inches(14.5, 10.5)
-  fig.savefig('slice.pdf', dpi=100 ,format='pdf')
 
 
 #################################
@@ -437,7 +364,6 @@ if __name__ == '__main__':
 
   parser.add_argument('--result',help='utility result.npy file',type=str)
   parser.add_argument('--output',help='model evaluations output.npy file',type=str)
-  parser.add_argument('--movie' ,help='make movie or not (1 or 0)',type=int)
 
   args = vars(parser.parse_args())
 
@@ -445,13 +371,9 @@ if __name__ == '__main__':
   print(args["output"])
 
   utility = np.load(args["result"])
-
-  plot_all_cantons(utility)
   
-  #this fails on Euler!
-  if args["movie"] == 1:
-     results = np.load(args["output"])
-     print (results)
-     make_movie(results,utility,0)
-     #for n in range(0,utility.shape[0]):
-     #    make_movie(res,utility,n)
+  results = np.load(args["output"])
+  print (results)
+  make_movie(results,utility,0)
+  #for n in range(0,utility.shape[0]):
+  #    make_movie(res,utility,n)
