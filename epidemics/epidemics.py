@@ -220,7 +220,7 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
-  def sample_knested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
+  def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1 ):
 
     self.e = korali.Experiment()
 
@@ -232,7 +232,7 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Sampler/Nested"
     self.e["Solver"]["Resampling Method"] = "Multi Ellipse"
     self.e["Solver"]["Number Live Points"] = nLiveSamples
-    self.e["Solver"]["Proposal Update Frequency"] = nLiveSamples
+    self.e["Solver"]["Proposal Update Frequency"] = freq
     self.e["Solver"]["Ellipsoidal Scaling"] = 1.10
     self.e["Solver"]["Batch Size"] = 1
  
