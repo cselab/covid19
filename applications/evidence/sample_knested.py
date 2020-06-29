@@ -22,7 +22,7 @@ parser.add_argument('--silent', action='store_true', help='No output on screen.'
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--sampler', '-sa', default='TMCMC', help='Choose sampler TMCMC or mTMCMC')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
-parser.add_argument('--plotMeanMedian', '-pmm', type=bool, default=True, help='Plot mean and median of states.')
+parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
 
 args = parser.parse_args()
 

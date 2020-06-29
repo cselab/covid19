@@ -25,12 +25,13 @@ class EpidemicsCountry( EpidemicsBase ):
     self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess     = kwargs.pop('preprocess', False)
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
+    print(self.plotMeanMedian)
     
     self.defaults = { 
-            'R0'    : (1.0, 10.0),
-            'D'     : (1.0, 10.0),
-            'Z'     : (1.0, 11.0),
-            'mu'    : (0.0, 1.0),
+            'R0'    : (1.0, 15.0),
+            'D'     : (1.0, 20.0),
+            'Z'     : (1.0, 20.0),
+            'mu'    : (0.0, 5.0),
             'alpha' : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
             'dtact' : (0.0, 14.0),
@@ -183,6 +184,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cumulative number of infected', cumulate=1)
  
     if self.plotMeanMedian:
+
         self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[0], 'Daily Incidence' )
         self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[1], 'Daily Incidence', cumulate=1 )
 

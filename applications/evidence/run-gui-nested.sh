@@ -11,7 +11,7 @@ declare -a models=(
 "seir_gui"
 )
 
-base="./gui/nested/"
+base="./gui2/nested/"
 mkdir ${base} -p
 
 for c in "${countries[@]}"
@@ -21,7 +21,7 @@ do
        model="country.${m}.nbin"
        
        time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-           --silentPlot -ns 1500 -cm ${model} -c ${c} -df $base -nv 45 -pmm False
+           --silentPlot -ns 1500 -cm ${model} -c ${c} -df $base -nv 45
        
        folder="${base}/${c}/${model}/"
 
