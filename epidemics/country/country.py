@@ -76,15 +76,18 @@ class EpidemicsCountry( EpidemicsBase ):
     else:
       self.data['Model']['x-data'] = t[1:-self.nValidation]
       self.data['Model']['y-data'] = incidents[0:-self.nValidation]
-      self.data['Validation']['x-data'] = t[-self.nValidation:]
-      self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
+      #self.data['Validation']['x-data'] = t[-self.nValidation:]
+      #self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
 
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size'] = self.regionalData.populationSize
 
-    T = np.ceil( t[-1] + self.futureDays )
+    if self.nValidation == 0:
+        T = np.ceil( t[-1] + self.futureDays )
+    else:
+        T = np.ceil( t[-self.nValidation] + self.futureDays )
+    
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
-
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
   def computational_model_propagate( self, s ):
@@ -168,8 +171,8 @@ class EpidemicsCountry( EpidemicsBase ):
 
     ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
 
-    if self.nValidation > 0:
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
+    #if self.nValidation > 0:
+    #  ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
     z = np.cumsum(self.data['Model']['y-data'])
     ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')

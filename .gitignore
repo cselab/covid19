@@ -1,3 +1,6 @@
+*.pyc
+*.so
+*.a
 *.swp
 .DS_Store
 ._*
