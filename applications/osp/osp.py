@@ -1,8 +1,11 @@
 import numpy as np
 import scipy.stats as sp
 
-class OSP:
+def distance(t1,t2,tau):
+    dt = np.abs(t1-t2)/tau
+    return np.exp(-dt)
 
+class OSP:
   #########################################################################################################
   def __init__(self, path, nSensors = 1, Ntheta = 100, Ny = 100 ,korali = True, start_day = -1,days=-1):
   #########################################################################################################
@@ -14,10 +17,9 @@ class OSP:
     self.days       = days        # how many days (i.e. sensor locations)
     self.start_day  = start_day      
     self.sigma_mean = np.zeros(self.days)  
-    self.sigma      = [0.025,0.075,0.125,0.175,0.225,0.275]
-    #self.sigma      = [0.1]
-    #self.tau        = [4.0]
-    self.tau        = [2.0,4.0,6.0]
+
+    self.sigma      = [0.05,0.10,0.15,0.20]
+    self.tau        = [1.0,2.0,3.0]
     self.wtau       = 1.0/len(self.tau)
     self.wsigma     = 1.0/len(self.sigma)
     #self.sigma_mean1 = np.zeros((self.days,26))
@@ -26,8 +28,7 @@ class OSP:
       temp = np.load(path+"/tensor_Ntheta={:05d}.npy".format(i))
       self.sigma_mean[i] = np.mean(temp.flatten())
       #for c in range(26):
-      #    self.sigma_mean1[i,c] = min(np.mean(temp[:,:,c].flatten()),1000)
-
+      #    self.sigma_mean1[i,c] = np.mean(temp[:,:,c].flatten())
   #############################################################################################
   def EvaluateUtility(self,argument):
   #############################################################################################
@@ -53,6 +54,8 @@ class OSP:
         if time[i] < self.start_day:
           argument["F(x)"] = 0.0
           return
+
+
     for i in range(n-1):
         if time[n-1] == time[i] and space[n-1] == space[i]:
            st = []
@@ -87,19 +90,26 @@ class OSP:
        aux = np.zeros((n,n))
        for i in range(n):
           for j in range(n):
-              t1 = time [i] 
+              t1 = time [i]
               t2 = time [j] 
               s1 = space[i] 
               s2 = space[j] 
               if s1 == s2:
-                 aux[i,j] = sigma_mean[i]*sigma_mean[j]*np.exp(-(np.abs(t1-t2)/self.tau[i_tau]))
+                 coef = distance(t1,t2,self.tau[i_tau])  
+                 #Small hack. When coef --> 1, two measurements are correlated and should not be both made
+                 #If coef is not explicitly set to 1.0, we get covariance matrices that are ill-conditioned (det(cov)--> 0)
+                 #and the results are weird. This hack guarantees numerical stability by explicitly making the covariance
+                 #exactly singular.
+                 if coef > 0.99:
+                    coef = 1.0
+                 aux[i,j] = (sigma_mean[i]*sigma_mean[j])*coef
               else:
                  aux[i,j] = 0.0 
+
        for i_sigma in range(len(self.sigma)):
           aux1 = self.sigma[i_sigma]**2 * aux
           rv_list.append(sp.multivariate_normal(np.zeros(n), aux1, allow_singular=True))
           covariances.append(aux1)
-
 
     #compute utility
     retval = 0.0
