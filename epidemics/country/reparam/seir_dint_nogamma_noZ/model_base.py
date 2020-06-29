@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from epidemics.country.country import EpidemicsCountry
@@ -16,28 +17,30 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    sir_int   = libepidemics.country.sir_int_reparam
+    seir_int  = libepidemics.country.seir_int_reparam
     data      = libepidemics.country.ModelData(N=N)
-    cppsolver = sir_int.Solver(data)
+    cppsolver = seir_int.Solver(data)
 
-    params = sir_int.Parameters(R0=p[0], D=p[1], tact=p[2], dtact=self.constants['dtact'], kbeta=p[3])
+    params = seir_int.Parameters(R0=p[0], D=1.0/self.constants['gamma'], Z=self.constants['Z'], tact=p[1], dtact=self.constans['dtact'], kbeta=p[3])
     
-    s0, i0 = y0
-    y0cpp   = (s0, i0, 0.0)
-    initial = sir_int.State(y0cpp)
+    s0, i0  = y0
+    y0cpp   = (s0, 0.0, i0, 0.0)
+    initial = seir_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     
-    infected   = np.zeros(len(cpp_res))
-    recovered  = np.zeros(len(cpp_res))
-    gradmu  = []
-    gradsig = []
+    infected  = np.zeros(len(cpp_res))
+    recovered = np.zeros(len(cpp_res))
+    exposed   = np.zeros(len(cpp_res))
+    gradmu    = []
+    gradsig   = []
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx]  = N-entry.S().val()
+        infected[idx]  = N-entry.S().val()-entry.E().val()
+        exposed[idx]   = N-entry.S().val()
         recovered[idx] = entry.R().val()
-        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), -entry.S().d(3), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), -entry.S().d(1)-entry.E().d(1), -entry.S().d(2)-entry.E().d(2), -entry.S().d(3)-entry.E().d(3), -entry.S().d(4)-entry.E().d(4), -entry.S().d(5)-entry.E().d(5), 0.0 ])) 
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
@@ -45,15 +48,15 @@ class ModelBase( EpidemicsCountry ):
     # Create Solution Object
     sol = Object()
     sol.y       = infected
+    sol.e       = exposed
     sol.r       = recovered
     sol.gradMu  = gradmu
     sol.gradSig = gradsig
  
     return sol
 
-
   def computational_model( self, s ):
-    p = s['Parameters']
+    p  = s['Parameters']
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
@@ -62,17 +65,16 @@ class ModelBase( EpidemicsCountry ):
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidents
-    y = np.diff(sol.y)
-     
+    y   = np.diff(sol.y)
     eps = 1e-32
     y[y < eps] = eps
-    
+
     # Transform gradients
     if(self.sampler == 'mTMCMC' and self.likelihoodModel != 'Negative Binomial' ):
         sgrad    = []
         diffgrad = []
         for idx in range(len(y)):
-            tmp = -(sol.gradMu[idx+1]-sol.gradMu[idx])
+            tmp = (sol.gradMu[idx+1]-sol.gradMu[idx])
             diffgrad.append(list(tmp))
             
             tmp = tmp*p[-1]
@@ -81,14 +83,13 @@ class ModelBase( EpidemicsCountry ):
 
         s['Gradient Mean'] = diffgrad
         s['Gradient Standard Deviation'] = sgrad
-        
+
     elif (self.sampler == 'mTMCMC' and self.likelihoodModel == 'Negative Binomial' ) : 
         print("[Epidemics] mTMCMC not yet available for nbin")
         sys.exit(0)
-    
 
     s['Reference Evaluations'] = list(y)
-
+    
     if self.likelihoodModel == 'Normal':
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
     elif self.likelihoodModel == 'Positive Normal':

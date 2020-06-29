@@ -41,7 +41,8 @@ class EpidemicsCountry( EpidemicsBase ):
 
     self.constants = {
             'gamma' : 1.0/5.2,
-            'Z'     : 2.7
+            'Z'     : 2.7,
+            'dtact' : 10.0
     }
     
     super().__init__( **kwargs )

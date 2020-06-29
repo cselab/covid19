@@ -22,9 +22,9 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/test/"
+base="./data/test2/"
 
-model="country.reparam.sir_int.nbin"
+model="country.reparam.sir_dint.nbin"
 # model="country.reparam.sir_dint.nbin"
 # model="country.reparam.sir_int_nogamma.nbin"
 # model="country.reparam.seir_int.nbin"

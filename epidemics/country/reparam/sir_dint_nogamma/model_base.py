@@ -20,14 +20,14 @@ class ModelBase( EpidemicsCountry ):
     data      = libepidemics.country.ModelData(N=N)
     cppsolver = sir_int.Solver(data)
 
-    params = sir_int.Parameters(R0=p[0], D=p[1], tact=p[2], dtact=self.constants['dtact'], kbeta=p[3])
+    params = sir_int.Parameters(R0=p[0], D=5.2, tact=p[1], dtact=self.constants['dtact'], kbeta=p[2])
     
     s0, i0 = y0
     y0cpp   = (s0, i0, 0.0)
     initial = sir_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
-    
+     
     infected   = np.zeros(len(cpp_res))
     recovered  = np.zeros(len(cpp_res))
     gradmu  = []
@@ -36,8 +36,8 @@ class ModelBase( EpidemicsCountry ):
     for idx,entry in enumerate(cpp_res):
         infected[idx]  = N-entry.S().val()
         recovered[idx] = entry.R().val()
-        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), -entry.S().d(3), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), 0.0 ])) 
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
@@ -50,7 +50,6 @@ class ModelBase( EpidemicsCountry ):
     sol.gradSig = gradsig
  
     return sol
-
 
   def computational_model( self, s ):
     p = s['Parameters']
