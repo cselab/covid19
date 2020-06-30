@@ -2,11 +2,12 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__),'..',  '..', '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__),'..',  '..', '..', 'build'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), '..', '..', '..', 'build'))
 import numpy as np
 import matplotlib.pyplot as plt
-from copy import copy
+import copy
 
 from epidemics.epidemics import EpidemicsBase
 from epidemics.tools.tools import save_file
@@ -14,15 +15,15 @@ import libepidemics
 
 
 class Par:
-    R0 = 2.4
+    R0 = 2.25
     gamma = 1. / 5.2
-    tint = 30
-    dint = 3
-    kint = 0.2
+    tint = 25
+    dint = 24.5
+    kint = 0.27
     N = int(8e6)
-    I0 = 100
-    E0 = 100
-    incubation = 5.
+    I0 = 3
+    E0 = 0
+    alpha = 1 / 10.
     tmax = 100
 
 
@@ -35,7 +36,7 @@ def solve_sir_r0(p):
 
     params = model.Parameters(r0=p.R0,
                               gamma=p.gamma,
-                              tact=p.tint,
+                              tact=p.tint - p.dint * 0.5,
                               dtact=p.dint,
                               kbeta=p.kint)
 
@@ -48,7 +49,7 @@ def solve_sir_r0(p):
     for i, e in enumerate(cpp_res):
         S[i] = e.S()
     daily = -np.diff(S)
-    return daily, copy(p)
+    return daily, copy.deepcopy(p)
 
 
 def solve_sir(p):
@@ -60,7 +61,7 @@ def solve_sir(p):
 
     params = model.Parameters(beta=p.R0 * p.gamma,
                               gamma=p.gamma,
-                              tact=p.tint,
+                              tact=p.tint - p.dint * 0.5,
                               dtact=p.dint,
                               kbeta=p.kint)
     S0 = p.N - p.I0
@@ -72,7 +73,7 @@ def solve_sir(p):
     for i, e in enumerate(cpp_res):
         S[i] = e.S()
     daily = -np.diff(S)
-    return daily, copy(p)
+    return daily, copy.deepcopy(p)
 
 
 def solve_seir(p):
@@ -81,9 +82,9 @@ def solve_seir(p):
     cppsolver = model.Solver(data)
 
     params = model.Parameters(beta=p.R0 * p.gamma,
-                              a=1./p.incubation,
+                              a=p.alpha,
                               gamma=p.gamma,
-                              tact=p.tint,
+                              tact=p.tint - p.dint * 0.5,
                               dtact=p.dint,
                               kbeta=p.kint)
 
@@ -96,25 +97,33 @@ def solve_seir(p):
     for i, e in enumerate(cpp_res):
         S[i] = e.S()
     daily = -np.diff(S)
-    return daily, copy(p)
+    return daily, copy.deepcopy(p)
+
 
 p = Par()
 sir = solve_sir(p)
-k = 2.3
-p_seir = copy(p)
-p_seir.R0 *= k
-p_seir.kint /= k ** 2
+
+
+def SirToSeir(R0, gamma, alpha):
+    return R0 * (1 + (R0 - 1) * gamma / alpha)
+
+
+p_seir = copy.deepcopy(p)
+p_seir.R0 = SirToSeir(p.R0, p.gamma, p.alpha)
+p_seir.kint = SirToSeir(p.R0 * p.kint, p.gamma, p.alpha) / SirToSeir(
+    p.R0, p.gamma, p.alpha)
 seir = solve_seir(p_seir)
 
-# R0seir from doc/linear_sir_vs_seir
-R0seir = p.R0 * (1 + (p.R0 - 1) * p.gamma * p.incubation)
-print("fitted R0 = ", p_seir.R0)
-print("analytical R0 = ", R0seir)
-
 #plt.plot(sir_r0, label="sirR0")
-plt.plot(sir[0], label="sir,R0={:.3g},kin={:.3g}".format(sir[1].R0, sir[1].kint))
-plt.plot(seir[0], label="seir,R0={:.3g},kin={:.3g}".format(seir[1].R0, seir[1].kint))
+plt.plot(sir[0],
+         label=r"SIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
+             sir[1].R0, sir[1].kint))
+plt.plot(seir[0],
+         label=r"SEIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
+             seir[1].R0, seir[1].kint))
+plt.axvline(x=p.tint-p.dint*0.5, c='k')
+plt.axvline(x=p.tint+p.dint*0.5, c='k')
+plt.xlim(0, 70)
 plt.yscale('log')
 plt.legend()
 plt.savefig("sir_vs_seir.pdf")
-
