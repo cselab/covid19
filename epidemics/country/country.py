@@ -25,7 +25,6 @@ class EpidemicsCountry( EpidemicsBase ):
     self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess     = kwargs.pop('preprocess', False)
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
-    print(self.plotMeanMedian)
     
     self.defaults = { 
             'R0'    : (1.0, 15.0),
@@ -69,7 +68,10 @@ class EpidemicsCountry( EpidemicsBase ):
 
     incidents = np.diff( y[0:] )
     if ((incidents < 0).any()):
-        print("[Epidemics] Warning, removing negative values from daily infections!!!")
+        print("[Epidemics] Warning, clipping negative values from daily infections!!!")
+    
+    if ((incidents > 1e32).any()):
+        print("[Epidemics] Warning, clipping extremely large (>1e32) values from daily infections!!!")
 
     incidents = np.clip(incidents, a_min=0, a_max=1e32)
 
@@ -83,7 +85,7 @@ class EpidemicsCountry( EpidemicsBase ):
       #self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
+    self.data['Model']['Population Size']   = N
 
     if self.nValidation == 0:
         T = np.ceil( t[-1] + self.futureDays )
