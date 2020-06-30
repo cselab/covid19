@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base.h"
+#include "intervention.h"
 
 namespace epidemics {
 namespace country {
@@ -55,14 +56,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         // auto factor   = 1. / (p.alpha + (1 - p.alpha * p.mu));
         auto factor   = 1.;
 
-        T r0;
-        if (t < p.tact - 0.5*p.dtact) {
-           r0 = p.R0;
-        } else if (t < p.tact + 0.5*p.dtact) {
-           r0 = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.R0;
-        } else {
-           r0 = p.kbeta * p.R0;
-        }
+        T r0 = intervention(p.R0, t, p.kbeta, p.tact, p.dtact);
 
         auto C1 = invN * r0 * invD * factor * x.S() * x.Ir();
         auto C2 = invN * r0 * invD * factor * x.S() * (p.mu * x.Iu());

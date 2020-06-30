@@ -11,7 +11,7 @@ declare -a models=(
 "seir_gui"
 )
 
-base="./gui2/nested/"
+base="./gui3/nested/"
 mkdir ${base} -p
 
 for c in "${countries[@]}"
