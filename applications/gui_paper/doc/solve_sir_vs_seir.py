@@ -17,40 +17,14 @@ import libepidemics
 class Par:
     R0 = 2.25
     gamma = 1. / 5.2
-    tint = 25
-    dint = 24.5
+    tint = 25.
+    dint = 25.
     kint = 0.27
     N = int(8e6)
     I0 = 3
     E0 = 0
-    alpha = 1 / 10.
-    tmax = 100
-
-
-def solve_sir_r0(p):
-    model = libepidemics.country.sir_int_r0
-    data = libepidemics.country.ModelData(N=p.N)
-    cppsolver = model.Solver(data)
-
-    y0 = [p.N - p.I0, p.I0]
-
-    params = model.Parameters(r0=p.R0,
-                              gamma=p.gamma,
-                              tact=p.tint - p.dint * 0.5,
-                              dtact=p.dint,
-                              kbeta=p.kint)
-
-    s0, i0 = y0
-    y0cpp = (s0, i0, 0.0)
-    initial = model.State(y0cpp)
-    t_eval = np.arange(p.tmax)
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt=0.1)
-    S = np.zeros(len(cpp_res))
-    for i, e in enumerate(cpp_res):
-        S[i] = e.S()
-    daily = -np.diff(S)
-    return daily, copy.deepcopy(p)
-
+    alpha = 1 / 2.9
+    tmax = 70
 
 def solve_sir(p):
     model = libepidemics.country.sir_int
@@ -61,7 +35,7 @@ def solve_sir(p):
 
     params = model.Parameters(beta=p.R0 * p.gamma,
                               gamma=p.gamma,
-                              tact=p.tint - p.dint * 0.5,
+                              tact=p.tint,
                               dtact=p.dint,
                               kbeta=p.kint)
     S0 = p.N - p.I0
@@ -84,7 +58,7 @@ def solve_seir(p):
     params = model.Parameters(beta=p.R0 * p.gamma,
                               a=p.alpha,
                               gamma=p.gamma,
-                              tact=p.tint - p.dint * 0.5,
+                              tact=p.tint,
                               dtact=p.dint,
                               kbeta=p.kint)
 
@@ -114,16 +88,20 @@ p_seir.kint = SirToSeir(p.R0 * p.kint, p.gamma, p.alpha) / SirToSeir(
     p.R0, p.gamma, p.alpha)
 seir = solve_seir(p_seir)
 
-#plt.plot(sir_r0, label="sirR0")
-plt.plot(sir[0],
+fig,ax = plt.subplots(figsize=(5,4))
+plt.plot(sir[0], marker='s', markevery=5,
          label=r"SIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
              sir[1].R0, sir[1].kint))
-plt.plot(seir[0],
+plt.plot(seir[0], marker='o', markevery=5,
          label=r"SEIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
              seir[1].R0, seir[1].kint))
-plt.axvline(x=p.tint-p.dint*0.5, c='k')
-plt.axvline(x=p.tint+p.dint*0.5, c='k')
+plt.axvline(x=p.tint-p.dint*0.5, c='k', ls='--')
+plt.axvline(x=p.tint+p.dint*0.5, c='k', ls='--')
+plt.xlabel("time (days)")
+plt.ylabel("daily infected")
 plt.xlim(0, 70)
+plt.ylim(0.1, 1000)
 plt.yscale('log')
 plt.legend()
+plt.tight_layout()
 plt.savefig("sir_vs_seir.pdf")
