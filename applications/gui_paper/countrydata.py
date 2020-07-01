@@ -104,7 +104,7 @@ def AppendOfficalLockdown(df, path="official_lockdowns.csv"):
     return df
 
 
-def GetSampleStat(df, datafolder, expr, plow=0.1, phigh=0.9):
+def GetSampleStat(df, datafolder, expr, plow, phigh):
     """
     Statistics of inferred parameters computed from an evaluated expression.
     df: `pandas.DataFrame`
@@ -205,7 +205,7 @@ def cache_to_file(target):
 
 
 @cache_to_file("_cache_AppendInferred.df.pickle")
-def AppendInferred(df, datafolder, plow=0.1, phigh=0.9):
+def AppendInferred(df, datafolder):
     """
     Appends country data from CollectCountryData() by inferred intervenion time.
     Columns: `[..., tint_mean, tint_std, tint_low, tint_high]`
@@ -214,6 +214,10 @@ def AppendInferred(df, datafolder, plow=0.1, phigh=0.9):
     except for `*_std` which is kept `float`, number of days.
     """
     df = df.copy()
+
+    p = 0.9  # confidence level
+    plow = 0.5 - p / 2
+    phigh = 0.5 + p / 2
 
     def add_startday(k, v):
         if k in ['std']: return v
