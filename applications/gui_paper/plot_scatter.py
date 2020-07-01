@@ -46,7 +46,7 @@ for before, parname, ax in zip([False, True], ['R0int', 'R0'], axes):
     ax.set_xlim(*xlim)
     ax.text(0.03 if not before else 0.55,
             1.01,
-            r"$R_0$ {:} intervention".format("before" if before else "after"),
+            r"$R_0$ before intervention" if before else r"$R_t$ after intervention",
             transform=ax.transAxes,
             fontsize=15)
 

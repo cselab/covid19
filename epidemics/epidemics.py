@@ -496,7 +496,7 @@ class EpidemicsBase:
 
     return fig
 
-  def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
+  def compute_plot_intervals( self, varName, ns, ax, ylabel, cumulate=-1):
 
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
@@ -536,8 +536,8 @@ class EpidemicsBase:
     else:
       abort("Likelihood not found in compute_plot_intervals.")
 
-    if cummulate>0 :
-      samples = np.cumsum(samples,axis=cummulate)
+    if cumulate>0 :
+      samples = np.cumsum(samples,axis=cumulate)
 
     elapsed = time.process_time() - start
     printlog(f" elapsed {elapsed:.2f} sec")
@@ -567,7 +567,7 @@ class EpidemicsBase:
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
     ax.set_xlim(left=x[1])
-    if( self.logPlot and cummulate < 1 ): 
+    if( self.logPlot and cumulate < 1 ): 
         ax.set_yscale('log')
         ax.set_ylim(bottom=1e-1)
 
@@ -575,7 +575,7 @@ class EpidemicsBase:
     plt.pause(0.001)
  
 
-  def compute_mean_median( self, varName, color, ns, ax, ylabel, cummulate=-1):
+  def compute_mean_median( self, varName, color, ns, ax, ylabel, cumulate=-1):
 
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
@@ -586,7 +586,7 @@ class EpidemicsBase:
 
     y = self.propagatedVariables[varName]
 
-    if( cummulate == 1):
+    if( cumulate == 1):
         y = np.cumsum(y, axis=1)
     
     for k in range(Nt):
@@ -602,12 +602,12 @@ class EpidemicsBase:
     ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=0.5, color=color )
 
     ax.legend(loc='upper left')
-    ax.set_ylabel( ylabel )
+    #ax.set_ylabel( ylabel )
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
  
-    if( self.logPlot and cummulate < 1 ): 
+    if( self.logPlot and cumulate < 1 ): 
         ax.set_yscale('log')
         ax.set_ylim(bottom=1e-1)
     

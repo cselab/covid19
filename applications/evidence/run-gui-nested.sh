@@ -11,7 +11,7 @@ declare -a models=(
 "seir_gui"
 )
 
-base="./gui/nested/"
+base="./gui3/nested/"
 mkdir ${base} -p
 
 for c in "${countries[@]}"
@@ -20,9 +20,10 @@ do
     do
        model="country.${m}.nbin"
        
-       time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm ${model} -c ${c} -df $base -nv 20
+       time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
+           --silentPlot -ns 1500 -cm ${model} -c ${c} -df $base -nv 45
        
-       folder="${base}/${country}/${model}/"
+       folder="${base}/${c}/${model}/"
 
        python3 -m korali.plotter --dir "$folder/_korali_samples" --output "$folder/figures/samples.png"
 

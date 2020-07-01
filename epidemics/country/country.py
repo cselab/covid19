@@ -17,19 +17,20 @@ class EpidemicsCountry( EpidemicsBase ):
 
   def __init__( self, **kwargs ):
     
-    self.country      = kwargs.pop('country', 'switzerland')
-    self.futureDays   = kwargs.pop('futureDays', 2)
-    self.nPropagation = kwargs.pop('nPropagation', 100)
-    self.logPlot      = kwargs.pop('logPlot', True)
-    self.nValidation  = kwargs.pop('nValidation', 0)
-    self.percentages  = kwargs.pop('percentages', [0.5, 0.95, 0.99])
-    self.preprocess   = kwargs.pop('preprocess', False)
+    self.country        = kwargs.pop('country', 'switzerland')
+    self.futureDays     = kwargs.pop('futureDays', 2)
+    self.nPropagation   = kwargs.pop('nPropagation', 100)
+    self.logPlot        = kwargs.pop('logPlot', True)
+    self.nValidation    = kwargs.pop('nValidation', 0)
+    self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
+    self.preprocess     = kwargs.pop('preprocess', False)
+    self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
     
     self.defaults = { 
-            'R0'    : (1.0, 10.0),
-            'D'     : (1.0, 10.0),
-            'Z'     : (1.0, 11.0),
-            'mu'    : (0.0, 1.0),
+            'R0'    : (1.0, 15.0),
+            'D'     : (1.0, 20.0),
+            'Z'     : (1.0, 20.0),
+            'mu'    : (0.0, 5.0),
             'alpha' : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
             'dtact' : (0.0, 14.0),
@@ -40,7 +41,8 @@ class EpidemicsCountry( EpidemicsBase ):
 
     self.constants = {
             'gamma' : 1.0/5.2,
-            'Z'     : 2.7
+            'Z'     : 2.7,
+            'dtact' : 10.0
     }
     
     super().__init__( **kwargs )
@@ -66,7 +68,10 @@ class EpidemicsCountry( EpidemicsBase ):
 
     incidents = np.diff( y[0:] )
     if ((incidents < 0).any()):
-        print("[Epidemics] Warning, removing negative values from daily infections!!!")
+        print("[Epidemics] Warning, clipping negative values from daily infections!!!")
+    
+    if ((incidents > 1e32).any()):
+        print("[Epidemics] Warning, clipping extremely large (>1e32) values from daily infections!!!")
 
     incidents = np.clip(incidents, a_min=0, a_max=1e32)
 
@@ -80,7 +85,7 @@ class EpidemicsCountry( EpidemicsBase ):
       #self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
 
     self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size'] = self.regionalData.populationSize
+    self.data['Model']['Population Size']   = N
 
     if self.nValidation == 0:
         T = np.ceil( t[-1] + self.futureDays )
@@ -175,22 +180,27 @@ class EpidemicsCountry( EpidemicsBase ):
     #  ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
     z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cummulative Infected(data)', color='black')
+    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cumulative Infected(data)', color='black')
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cummulative number of infected', cummulate=1)
-    
-    if 'Daily Recovered' in self.propagatedVariables:
-      self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[0], 'Daily Recovered')
-      self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[1], 'Cummulative number of recovered', cummulate=1)
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cumulative number of infected', cumulate=1)
+ 
+    if self.plotMeanMedian:
 
-    if 'Daily Exposed' in self.propagatedVariables:
-      self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[0], 'Daily Exposed')
-      self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[1], 'Cummulative number of exposed', cummulate=1)
+        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[0], 'Daily Incidence' )
+        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[1], 'Daily Incidence', cumulate=1 )
 
-    if 'Daily Unreported' in self.propagatedVariables:
-      self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[0], 'Daily Unreported')
-      self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[1], 'Cummulative number of unreported', cummulate=1)
+        if 'Daily Recovered' in self.propagatedVariables:
+          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[0], 'Daily Recovered')
+          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[1], 'Cumulative number of recovered', cumulate=1)
+
+        if 'Daily Exposed' in self.propagatedVariables:
+          self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[0], 'Daily Exposed')
+          self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[1], 'Cumulative number of exposed', cumulate=1)
+
+        if 'Daily Unreported' in self.propagatedVariables:
+          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[0], 'Daily Unreported')
+          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[1], 'Cumulative number of unreported', cumulate=1)
 
 
     ax[-1].set_xlabel('time in days')
