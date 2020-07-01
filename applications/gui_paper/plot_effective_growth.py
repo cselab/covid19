@@ -141,8 +141,10 @@ for i in range(Nt):
     lambdaeff[i, :] = beta - gamma
     vR0[i, :] = beta / gamma
 
-Q_LO = 0.1
-Q_HI = 0.9
+# confidence level
+Q_LEVEL = 0.9
+Q_LO = 0.5 - Q_LEVEL * 0.5
+Q_HI = 0.5 + Q_LEVEL * 0.5
 
 if args.xrotation:
     fig.autofmt_xdate(rotation=45)
