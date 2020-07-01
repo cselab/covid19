@@ -23,10 +23,10 @@ class ModelBase(EpidemicsCountry):
         beta = p[0]/5.2
         params = seir_int.Parameters(beta=beta, 
                                      gamma=1/5.2, 
-                                     a=1./10, 
+                                     a=1./2.9, 
                                      tact=p[1]-5.0, 
-                                     dtact=10, 
-                                     kbeta=p[2])
+                                     dtact=p[2], 
+                                     kbeta=p[3])
 
         s0, i0 = y0
         y0cpp = (s0, 0.0, i0, 0.0)

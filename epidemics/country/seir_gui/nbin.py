@@ -16,10 +16,11 @@ class Model(ModelBase):
 
     def get_variables_and_distributions(self):
 
-        self.nParameters = 4
+        self.nParameters = 5
         js = self.get_uniform_priors(
             ('R0', 1, 10),
             ('tact', 0, 80),
+            ('dtact', 0, 30),
             ('kbeta', 0.0, 1),
             ('r', 0, 50),
         )

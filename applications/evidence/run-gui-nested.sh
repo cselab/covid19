@@ -2,16 +2,16 @@
 
 declare -a countries=(
 "switzerland"
-"france"
+#"france"
 "germany"
 )
 
 declare -a models=(
-"sir_gui"
+#"sir_gui"
 "seir_gui"
 )
 
-base="./gui3/nested/"
+base="./gui/nested2/"
 mkdir ${base} -p
 
 for c in "${countries[@]}"

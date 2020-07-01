@@ -23,8 +23,8 @@ class ModelBase(EpidemicsCountry):
         params = sir_int_r0.Parameters(r0=p[0],
                                        gamma=1./5.2,
                                        tact=p[1]-5.0,
-                                       dtact=10.0,
-                                       kbeta=p[2])
+                                       dtact=p[2],
+                                       kbeta=p[3])
 
         s0, i0 = y0
         y0cpp = (s0, i0, 0.0)
