@@ -93,9 +93,6 @@ def days_to_delta(t):
 day0 = np.datetime64(LAST_DAY) - days_to_delta(max(xdata))
 days = day0 + days_to_delta(t)
 
-print(xdata.shape)
-print(t.shape)
-
 daysdata = day0 + days_to_delta(xdata)
 
 lambdaeff = np.zeros_like(t)
@@ -130,8 +127,6 @@ kbeta2_div_kbeta = get_samples('kbeta2_div_kbeta')
 
 Nt = len(t)
 Ns = R0.shape[0]
-print(Nt)
-print(Ns)
 
 lambdaeff = np.zeros((Nt, Ns))
 vR0 = np.zeros((Nt, Ns))
@@ -170,15 +165,13 @@ else:
     q2 = np.quantile(y, Q_HI, axis=1)
     ax1.fill_between(days, q1, q2, alpha=ALPHA)
     ax1.axhline(y=1, color='black', linestyle=':')
-    ax1.set_ylabel(r'reproduction number $R_0$')
+    ax1.set_ylabel(r'reproduction number $R_t$')
 ax1.set_xlim(left=days.min())
 
 ydata = np.array(d['y-data']).astype(float)
 
 mean = d['Daily Infected']['Mean']
-median = d['Daily Infected']['Median'][1:]
-print(median)
-line, = ax2.plot(days[1:], median)
+line, = ax2.plot(days[1:], mean[1:])
 for v in d['Daily Infected']['Intervals']:
     perc = v['Percentage']
     if perc < 0.7:
@@ -194,7 +187,6 @@ ax2.set_xlim(left=days.min())
 ax2.set_ylim(bottom=1)
 
 mean = d['Total Infected']['Mean']
-median = d['Total Infected']['Median']
 line, = ax3.plot(days, mean)
 for v in d['Total Infected']['Intervals']:
     perc = v['Percentage']
@@ -221,5 +213,4 @@ fig.tight_layout()
 output_dir = os.path.dirname(args.output)
 os.makedirs(output_dir, exist_ok=True)
 p = args.output
-print(p)
 fig.savefig(p)

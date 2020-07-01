@@ -6,16 +6,11 @@ import argparse
 
 
 pretty_dict = {
-    'I0': r'$k_I$',
     'R0': r'$R^\\star_0$',
-    '[Dispersion]': r'[Dispersion]',
-    'gamma': r'$\\gamma$',
-    'tint': r'$t_{\\mathrm{int}}$',
-    'dint': r'$\\delta_{\\mathrm{int}}$',
+    'r': r'[Dispersion]',
+    'tact': r'$t_{\\mathrm{int}}$',
+    'dtact': r'$\\delta_{\\mathrm{int}}$',
     'kbeta': r'$k_{\\mathrm{int}}$',
-    'tint2_minus_tint': r'$t^{(2)}_{\\mathrm{int}}-t_{\\mathrm{int}}$',
-    'dint2': r'$\\delta^{(2)}_{\\mathrm{int}}$',
-    'kbeta2_div_kbeta': r'$k^{(2)}_{\\mathrm{int}}/k_{\\mathrm{int}}$',
 }
 
 parser = argparse.ArgumentParser(
