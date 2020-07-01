@@ -8,6 +8,7 @@ for f in */intervals.json ; do
   outfile=$d/growth.pdf
   if [ -f "$outfile" ] ; then
     echo "skip existing '$outfile'"
+    continue
   fi
   ./plot_effective_growth.py --dataDir "$d" --output "$d/growth.pdf" --title "$d"
 done
