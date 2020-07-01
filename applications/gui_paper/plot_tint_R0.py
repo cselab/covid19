@@ -53,7 +53,7 @@ for before, parname, ax in zip([False, True], ['R0int', 'R0'], axes):
     ax.set_ylim(0, 45)
     ax.text(0.2,
             1.03,
-            r"$R_0$ {:} intervention".format("before" if before else "after"),
+            r"$R_0$ before intervention" if before else r"$R_t$ after intervention",
             transform=ax.transAxes,
             fontsize=15)
     ax.set_ylabel('days from first cases to intervention')
