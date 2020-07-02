@@ -22,9 +22,9 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/test3/"
+base="./data/knested/"
 
-model="country.reparam.sir_dint.nbin"
+model="country.reparam.seir_dint_nogamma_noZ.tnrm"
 # model="country.reparam.sir_dint.nbin"
 # model="country.reparam.sir_int_nogamma.nbin"
 # model="country.reparam.seir_int.nbin"
@@ -56,7 +56,7 @@ mkdir ${base} -p
 for c in "${arr[@]}"
 do
    outfile="${base}/knested_${c}_${model}.out"
-   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 300 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
 
    folder="$base/$c/$model"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

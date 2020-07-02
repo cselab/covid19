@@ -2,8 +2,8 @@
 
 declare -a arr=(
 "switzerland"
-"germany"
-"france"
+#"germany"
+#"france"
 )
 
 # OTHER
@@ -17,8 +17,8 @@ declare -a arr=(
 # "china"
 # "cosovo"
 
-base="./data/adaptive/"
-model="country.sir_int_r0.tnrm"
+base="./data/knested/"
+model="country.seir_dint_nogamma_noZ.tnrm"
 
 for c in "${arr[@]}"
 do
