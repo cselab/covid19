@@ -6,7 +6,7 @@ import argparse
 
 
 pretty_dict = {
-    'R0': r'$R^\\star_0$',
+    'R0': r'$R_0$',
     'r': r'[Dispersion]',
     'tact': r'$t_{\\mathrm{int}}$',
     'dtact': r'$\\delta_{\\mathrm{int}}$',
