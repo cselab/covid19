@@ -6,22 +6,6 @@ declare -a arr=(
 #"germany"
 )
 
-# OTHER (TOP 10 by Population)
-
-# "russia"
-# "germany"
-# "turkey"
-# "france"
-# "united kingdom" @test link
-# "italy"
-# "spain"
-# "ukraine"
-# "poland" @test link
-# "romania @test link
-
-# "switzerland"
-# "sweden"
-
 base="./data/optimization/"
 
 # for test
@@ -29,6 +13,7 @@ declare -a models0=(
 "country.reparam.sir_int.nbin"
 )
 
+# batches to run
 declare -a models1=(
 "country.reparam.sir_int.nbin"
 "country.reparam.sir_int_nogamma.nbin"
@@ -76,7 +61,8 @@ declare -a models4=(
 
 mkdir ${base} -p
 
-for model in "${models0[@]}"
+# exchange batch
+for model in "${models1[@]}"
 do
     for c in "${arr[@]}"
     do
@@ -85,6 +71,6 @@ do
 
         outfile="${folder}/cmaes.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python optimize.py \
-            --silentPlot -ns 16 -nt 4 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 16 -nt 4 -ng 1000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
         done
 done

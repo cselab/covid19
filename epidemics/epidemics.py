@@ -32,7 +32,6 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
-    self.maxGen      = kwargs.pop('maxGen', 100)
     self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
 
@@ -50,7 +49,8 @@ class EpidemicsBase:
       'inference data': './data_for_inference.pickle',
       'nested results': './nested_res.pickle',
       'figures': './figures/',
-      'evidence': 'evidence.json'
+      'evidence': 'evidence.json',
+      'cmaes': 'cmaes.json'
     }
 
     for x in self.saveInfo.keys():
@@ -173,7 +173,7 @@ class EpidemicsBase:
     return js
 
 
-  def sample(self, nSamples=1000, cov=0.4):
+  def sample(self, nSamples=1000, cov=0.4, maxiter=100 ):
 
     self.e = korali.Experiment()
 
@@ -189,11 +189,11 @@ class EpidemicsBase:
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = cov
-    self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
+    self.e['Solver']['Termination Criteria']['Max Generations'] = maxiter
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], 100 )
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -331,7 +331,7 @@ class EpidemicsBase:
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
   
-  def optimize( self, populationSize ):
+  def optimize( self, populationSize, maxiter=1000 ):
 
     self.nSamples = 1
 
@@ -344,13 +344,13 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Optimizer/CMAES"
     self.e["Solver"]["Population Size"] = populationSize
-    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGen
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
     self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-12
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], self.maxGen )
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
 
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
@@ -373,6 +373,17 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
+    names = []
+    best = []
+    for j in range(self.nParameters):
+      best.append(myDatabase[j])
+      names.append(self.parameters[j]['Name'])
+    
+    js = {}
+    js["Value"]     = self.e['Results']['Best Sample']['F(x)']
+    js["Parameter"] = best
+    js["Names"]     = names
+    save_file( js, self.saveInfo['cmaes'], 'Optimum', fileType='json' )
 
   def set_variables_and_distributions( self, js ):
 

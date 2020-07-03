@@ -6,17 +6,6 @@ declare -a arr=(
 #"france"
 )
 
-# OTHER
-# "italy"
-# "russia"
-# "sweden"
-# "ukraine"
-# "austria"
-
-# NOT WORKING
-# "china"
-# "cosovo"
-
 base="./data/knested/"
 model="country.seir_dint_nogamma_noZ.tnrm"
 

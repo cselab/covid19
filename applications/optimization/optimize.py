@@ -31,6 +31,6 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.optimize( args.nGenerations )
+a.optimize( args.nSamples, args.nGenerations )
 
 a.save()
