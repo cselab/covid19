@@ -7,7 +7,7 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sir_dint.nbin'
+    self.modelName        = 'country.reparam.sir_int_nogamma.nbin'
     self.modelDescription = 'Fit SIR with Intervention on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 

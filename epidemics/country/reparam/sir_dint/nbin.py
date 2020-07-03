@@ -4,7 +4,6 @@ from .model_base import ModelBase
 
 class Model( ModelBase ):
 
-
   def __init__( self, **kwargs ):
 
     self.modelName        = 'country.reparam.sir_dint.nbin'
