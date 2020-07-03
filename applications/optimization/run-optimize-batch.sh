@@ -62,7 +62,7 @@ declare -a models4=(
 mkdir ${base} -p
 
 # exchange batch
-for model in "${models1[@]}"
+for model in "${models4[@]}"
 do
     for c in "${arr[@]}"
     do

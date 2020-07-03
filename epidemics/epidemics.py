@@ -324,9 +324,10 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     
     printlog('Done copying variables.')
- 
+  
     js = {}
     js['Evidence'] = res.logz[-1]
+
     printlog(f"Log Evidence = {js['Evidence']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
@@ -345,7 +346,7 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Optimizer/CMAES"
     self.e["Solver"]["Population Size"] = populationSize
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-12
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-6
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
