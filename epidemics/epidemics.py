@@ -331,7 +331,7 @@ class EpidemicsBase:
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
   
-  def optimize( self, nSamples ):
+  def optimize( self, populationSize ):
 
     self.nSamples = 1
 
@@ -342,15 +342,16 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
-    self.e["Solver"]["Type"] = "CMAES"
-    self.e["Solver"]["Population Size"] = nSamples
+    self.e["Solver"]["Type"] = "Optimizer/CMAES"
+    self.e["Solver"]["Population Size"] = populationSize
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGen
     self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-12
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], 1 )
+    self.set_korali_output_files( self.saveInfo['korali samples'], self.maxGen )
+    self.e['Console Output']['Verbosity'] = 'Detailed'
 
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
 
@@ -390,7 +391,7 @@ class EpidemicsBase:
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
 
 
-    if self.e["Solver"]["Type"] == "CMAES":
+    if self.e["Solver"]["Type"] == "Optimizer/CMAES":
       for k in range(nP):
         self.e["Variables"][k]["Lower Bound"] = js['Distributions'][k]['Minimum']
         self.e["Variables"][k]["Upper Bound"] = js['Distributions'][k]['Maximum']

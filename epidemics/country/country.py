@@ -59,7 +59,7 @@ class EpidemicsCountry( EpidemicsBase ):
  
   def process_data( self ):
     y = self.regionalData.infected
-    t = self.regionalData.time
+    t = self.regionalData.time[1:]
     N = self.regionalData.populationSize
 
     I0 = y[0]
@@ -68,19 +68,25 @@ class EpidemicsCountry( EpidemicsBase ):
 
     incidents = np.diff( y[0:] )
     if ((incidents < 0).any()):
-        print("[Epidemics] Warning, clipping negative values from daily infections!!!")
+        print("[Epidemics] Warning, removing negative values from daily infections!!!")
+        valid = incidents >= 0
+        incidents = incidents[valid]
+        t = t[valid]
     
     if ((incidents > 1e32).any()):
-        print("[Epidemics] Warning, clipping extremely large (>1e32) values from daily infections!!!")
-
+        print("[Epidemics] Warning, removing extremely large (>1e32) values from daily infections!!!")
+        valid = incidents <= 1e32
+        incidents = incidents[valid]
+        t = t[valid]
+ 
     incidents = np.clip(incidents, a_min=0, a_max=1e32)
 
     if self.nValidation == 0:
-      self.data['Model']['x-data'] = t[1:]
+      self.data['Model']['x-data'] = t
       self.data['Model']['y-data'] = incidents
     else:
-      self.data['Model']['x-data'] = t[1:-self.nValidation]
-      self.data['Model']['y-data'] = incidents[0:-self.nValidation]
+      self.data['Model']['x-data'] = t[:-self.nValidation]
+      self.data['Model']['y-data'] = incidents[:-self.nValidation]
       #self.data['Validation']['x-data'] = t[-self.nValidation:]
       #self.data['Validation']['y-data'] = incidents[-self.nValidation-1:]
 

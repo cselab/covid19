@@ -1,0 +1,98 @@
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #1
+[Korali] Sigma:                        +2.592e+01
+[Korali] Current Function Value: Max = -9.275e+02 - Best = -9.275e+02
+[Korali] Diagonal Covariance:    Min = +1.889e-04 -  Max = +2.773e+00
+[Korali] Covariance Eigenvalues: Min = +2.891e-04 -  Max = +2.891e+00
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #2
+[Korali] Sigma:                        +2.899e+01
+[Korali] Current Function Value: Max = -8.666e+02 - Best = -8.666e+02
+[Korali] Diagonal Covariance:    Min = +9.237e-05 -  Max = +1.047e+00
+[Korali] Covariance Eigenvalues: Min = +1.834e-04 -  Max = +2.789e+00
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #3
+[Korali] Sigma:                        +3.258e+01
+[Korali] Current Function Value: Max = -8.432e+02 - Best = -8.432e+02
+[Korali] Diagonal Covariance:    Min = +5.890e-05 -  Max = +6.135e-01
+[Korali] Covariance Eigenvalues: Min = +8.841e-05 -  Max = +1.049e+00
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #4
+[Korali] Sigma:                        +3.654e+01
+[Korali] Current Function Value: Max = -8.405e+02 - Best = -8.405e+02
+[Korali] Diagonal Covariance:    Min = +5.190e-05 -  Max = +4.082e-01
+[Korali] Covariance Eigenvalues: Min = +5.747e-05 -  Max = +6.156e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #5
+[Korali] Sigma:                        +4.032e+01
+[Korali] Current Function Value: Max = -8.345e+02 - Best = -8.345e+02
+[Korali] Diagonal Covariance:    Min = +3.211e-05 -  Max = +3.358e-01
+[Korali] Covariance Eigenvalues: Min = +4.811e-05 -  Max = +4.087e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #6
+[Korali] Sigma:                        +4.561e+01
+[Korali] Current Function Value: Max = -8.272e+02 - Best = -8.272e+02
+[Korali] Diagonal Covariance:    Min = +2.894e-05 -  Max = +2.631e-01
+[Korali] Covariance Eigenvalues: Min = +3.113e-05 -  Max = +3.363e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #7
+[Korali] Sigma:                        +5.268e+01
+[Korali] Current Function Value: Max = -7.949e+02 - Best = -7.949e+02
+[Korali] Diagonal Covariance:    Min = +2.362e-05 -  Max = +1.912e-01
+[Korali] Covariance Eigenvalues: Min = +2.789e-05 -  Max = +2.634e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #8
+[Korali] Sigma:                        +5.734e+01
+[Korali] Current Function Value: Max = -7.677e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +1.709e-05 -  Max = +1.257e-01
+[Korali] Covariance Eigenvalues: Min = +2.255e-05 -  Max = +1.914e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #9
+[Korali] Sigma:                        +6.377e+01
+[Korali] Current Function Value: Max = -7.749e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +3.366e-06 -  Max = +7.899e-02
+[Korali] Covariance Eigenvalues: Min = +1.695e-05 -  Max = +1.258e-01
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #10
+[Korali] Sigma:                        +7.631e+01
+[Korali] Current Function Value: Max = -8.253e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +1.267e-06 -  Max = +3.136e-02
+[Korali] Covariance Eigenvalues: Min = +3.270e-06 -  Max = +7.905e-02
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #11
+[Korali] Sigma:                        +9.097e+01
+[Korali] Current Function Value: Max = -8.193e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +7.102e-07 -  Max = +1.196e-02
+[Korali] Covariance Eigenvalues: Min = +1.207e-06 -  Max = +3.140e-02
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #12
+[Korali] Sigma:                        +1.148e+02
+[Korali] Current Function Value: Max = -8.174e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +4.272e-07 -  Max = +5.279e-03
+[Korali] Covariance Eigenvalues: Min = +5.868e-07 -  Max = +1.201e-02
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #13
+[Korali] Sigma:                        +1.415e+02
+[Korali] Current Function Value: Max = -8.142e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +2.139e-07 -  Max = +2.630e-03
+[Korali] Covariance Eigenvalues: Min = +3.551e-07 -  Max = +5.329e-03
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #14
+[Korali] Sigma:                        +1.720e+02
+[Korali] Current Function Value: Max = -8.135e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +1.225e-07 -  Max = +1.222e-03
+[Korali] Covariance Eigenvalues: Min = +1.825e-07 -  Max = +2.681e-03
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #15
+[Korali] Sigma:                        +2.090e+02
+[Korali] Current Function Value: Max = -8.094e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +7.217e-08 -  Max = +6.881e-04
+[Korali] Covariance Eigenvalues: Min = +1.099e-07 -  Max = +1.245e-03
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #16
+[Korali] Sigma:                        +2.681e+02
+[Korali] Current Function Value: Max = -8.110e+02 - Best = -7.677e+02
+[Korali] Diagonal Covariance:    Min = +4.577e-08 -  Max = +3.756e-04
+[Korali] Covariance Eigenvalues: Min = +5.960e-08 -  Max = +7.045e-04
+[Korali] --------------------------------------------------------------------
+[Korali] Current Generation: #17

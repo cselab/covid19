@@ -2,8 +2,8 @@
 
 declare -a arr=(
 "switzerland"
-"france"
-"germany"
+#"france"
+#"germany"
 )
 
 # OTHER (TOP 10 by Population)
@@ -22,7 +22,7 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested/"
+base="./data/test/"
 
 model="country.reparam.seir_dint_nogamma_noZ.tnrm"
 # model="country.reparam.sir_dint.nbin"
@@ -55,9 +55,11 @@ mkdir ${base} -p
 
 for c in "${arr[@]}"
 do
-   outfile="${base}/knested_${c}_${model}.out"
-   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+   folder="$base/$c/$model" -p
+   
+   outfile="${folder}/knested.out"
+   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
+       --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
 
-   folder="$base/$c/$model"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
 done
