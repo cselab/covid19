@@ -13,9 +13,10 @@ from itertools import groupby
 from operator import itemgetter
 
 
-def joinres(a,b):
-    dct = dict(b)
-    ret = [ (k, [v]+list(dct[k])) for k,v in a if k in dct]
+def joinres(a,b,c):
+    dct0 = dict(b)
+    dct1 = dict(c)
+    ret = [ (k, [v]+[dct0[k]]+list(dct1[k])) for k,v in a if k in dct1 ]
     return ret
 
 
@@ -71,6 +72,17 @@ def getEvidence(resfiles):
   return evidence
 
 
+def getBestLLk(resfiles):
+  best = []
+  for m, file in resfiles:
+    with open(file) as f:
+      r = json.load(f)
+    
+      e = r['Solver']['Max Evaluation']
+      best.append( (m, e) )
+
+  return best
+
 
 def getStats(samples, pct):
     mean = np.mean(samples)
@@ -94,15 +106,13 @@ if __name__ == '__main__':
 
     samples = getSamples(dirs, args.par)
     stats = [ (m,getStats(s, 0.9)) for m,s in samples]
-#    print(stats)
 
     evidence = getEvidence(dirs)
-#    print(evidence)
+    best = getBestLLk(dirs)
 
-    out = joinres(evidence, stats)
-    print(out)
+    out = joinres(evidence, best, stats)
     
     df = pd.DataFrame(out,columns=["model", "values"])
-    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'mean', 'median', 'high', 'low'], index=df.model)
+    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
     print(df3)
     df3.to_csv(args.out, index=True, header=True)
