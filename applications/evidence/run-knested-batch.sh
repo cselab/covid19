@@ -22,7 +22,7 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested2/"
+base="./data/knested/"
 
 declare -a models1=(
 "country.reparam.sir_int.nbin"

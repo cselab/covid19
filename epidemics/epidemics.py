@@ -346,7 +346,7 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Optimizer/CMAES"
     self.e["Solver"]["Population Size"] = populationSize
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-6
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-9
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
