@@ -3,7 +3,7 @@
 declare -a arr=(
 "switzerland"
 "france"
-"germany"
+#"germany"
 )
 
 # OTHER (TOP 10 by Population)
@@ -22,7 +22,7 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested_defaults2/"
+base="./data/knested/"
 
 declare -a models1=(
 "country.reparam.sir_int.nbin"
@@ -47,6 +47,7 @@ declare -a models2=(
 )
 
 declare -a models3=(
+<<<<<<< HEAD
 "country.reparam.seiir_int.tnrm"
 "country.reparam.seiir_int_nogamma.tnrm"
 "country.reparam.seiir_int_nogamma_noZ.tnrm"
@@ -54,12 +55,17 @@ declare -a models3=(
 "country.reparam.seiir_int_nogamma.nbin"
 "country.reparam.seiir_int_nogamma_noZ.nbin"
 )
-# model="country.reparam.sir_intexp.tnrm"
-# model="country.reparam.sir_intrem.tnrm"
-# model="country.reparam.seir_intexp.tnrm"
-# model="country.reparam.seir_intrem.tnrm"
-# model="country.reparam.seiir_intexp.tnrm"
-# model="country.reparam.seiir_intrem.tnrm"
+
+declare -a models4=(
+"country.reparam.sir_dint.tnrm"
+"country.reparam.sir_dint_nogamma.tnrm"
+"country.reparam.seir_dint.tnrm"
+"country.reparam.seir_dint_nogamma.tnrm"
+"country.reparam.seir_dint_nogamma_noZ.tnrm"
+"country.reparam.seiir_dint.tnrm" 
+"country.reparam.seiir_dint_nogamma.tnrm" 
+"country.reparam.seiir_dint_nogamma_noZ.tnrm" 
+)
 
 
 mkdir ${base} -p
@@ -68,10 +74,13 @@ for model in "${models3[@]}"
 do
     for c in "${arr[@]}"
     do
-        outfile="${base}/knested_${c}_${model}.out"
-        time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
-
         folder="$base/$c/$model"
+        mkdir ${folder} -p
+
+        outfile="${folder}/knested.out"
+        time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
+            --silentPlot -ns 1000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         done
 done

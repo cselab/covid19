@@ -1,23 +1,31 @@
  #!/bin/bash
 
-country="france"
+declare -a countries=(
+"switzerland"
+#"france"
+"germany"
+)
 
-declare -a arr=(
-"sir_gui"
+declare -a models=(
+#"sir_gui"
 "seir_gui"
 )
 
-base="./gui/nested/"
+base="./gui/nested2/"
 mkdir ${base} -p
 
-for c in "${arr[@]}"
+for c in "${countries[@]}"
 do
-   model="country.${c}.nbin"
-   
-   time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -cm ${model} -c ${country} -df $base
-   
-   folder="${base}/${country}/${model}/"
+    for m in "${models[@]}"
+    do
+       model="country.${m}.nbin"
+       
+       time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
+           --silentPlot -ns 1500 -cm ${model} -c ${c} -df $base -nv 45
+       
+       folder="${base}/${c}/${model}/"
 
-   python3 -m korali.plotter --dir "$folder/_korali_samples" --output "$folder/figures/samples.png"
+       python3 -m korali.plotter --dir "$folder/_korali_samples" --output "$folder/figures/samples.png"
 
+    done
 done

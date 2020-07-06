@@ -41,7 +41,7 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample( args.nSamples, args.tcov )
+a.sample( args.nSamples, args.tcov, args.nGenerations )
 
 a.propagate( args.nPropagation )
 

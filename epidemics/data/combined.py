@@ -23,25 +23,29 @@ class RegionalData:
         elif self.up_to_int==True:
             cases = cut_data_intervention(cases,region)
 
-        skip = next((i for i, x in enumerate(cases.confirmed) if x), None)
+        threshold = 2e-6*self.populationSize # 2 per million
+        skip = next((i for i, x in enumerate(cases.confirmed) if (x>threshold)), None)
+        zeros = next((i for i, x in enumerate(cases.confirmed) if x), None)
+        
         if skip is None:
             raise ValueError(f"Region `{region}` has no cases.")
         else:
-            print('[Epidemics] Removing {} leading zeros, {} days of usable data'.format(skip,
+            print('[Epidemics] Data contain {} leading zeros.'.format(zeros))
+            print('[Epidemics] Removing {} entries below threshold (2p. million), {} days of usable data'.format(skip,
                                                     len(cases.confirmed[skip:])))
-        # TODO: 'infected' or 'confirmed'?
-        self.infected  = add_attribute(cases.confirmed,skip)
-        self.recovered = add_attribute(cases.recovered,skip)
-        self.deaths    = add_attribute(cases.deaths,skip)
 
-        self.hospitalized = add_attribute(cases.hospitalized,skip)
-        self.icu = add_attribute(cases.icu,skip)
-        self.ventilated = add_attribute(cases.ventilated,skip)
-        self.released = add_attribute(cases.released,skip)
+        self.infected  = add_and_cut_attribute(cases.confirmed,skip) # confirmed
+        self.recovered = add_and_cut_attribute(cases.recovered,skip)
+        self.deaths    = add_and_cut_attribute(cases.deaths,skip)
+
+        self.hospitalized = add_and_cut_attribute(cases.hospitalized,skip)
+        self.icu = add_and_cut_attribute(cases.icu,skip)
+        self.ventilated = add_and_cut_attribute(cases.ventilated,skip)
+        self.released = add_and_cut_attribute(cases.released,skip)
 
         self.time = np.asarray(range(len(self.infected)))
 
-def add_attribute(data,skip):
+def add_and_cut_attribute(data,skip):
     if data is not None:
         return np.asarray(data[skip:])
     else:

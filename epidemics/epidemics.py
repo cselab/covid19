@@ -32,7 +32,6 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
-    self.maxGen      = kwargs.pop('maxGen', 100)
     self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
 
@@ -50,7 +49,8 @@ class EpidemicsBase:
       'inference data': './data_for_inference.pickle',
       'nested results': './nested_res.pickle',
       'figures': './figures/',
-      'evidence': 'evidence.json'
+      'evidence': 'evidence.json',
+      'cmaes': 'cmaes.json'
     }
 
     for x in self.saveInfo.keys():
@@ -173,7 +173,7 @@ class EpidemicsBase:
     return js
 
 
-  def sample(self, nSamples=1000, cov=0.4):
+  def sample(self, nSamples=1000, cov=0.4, maxiter=100 ):
 
     self.e = korali.Experiment()
 
@@ -189,11 +189,11 @@ class EpidemicsBase:
     self.e['Solver']['Step Size'] = 0.1
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = cov
-    self.e['Solver']['Termination Criteria']['Max Generations'] = self.maxGen
+    self.e['Solver']['Termination Criteria']['Max Generations'] = maxiter
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], 100 )
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -324,14 +324,15 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     
     printlog('Done copying variables.')
- 
+  
     js = {}
     js['Evidence'] = res.logz[-1]
+
     printlog(f"Log Evidence = {js['Evidence']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
   
-  def optimize( self, nSamples ):
+  def optimize( self, populationSize, maxiter=1000 ):
 
     self.nSamples = 1
 
@@ -342,15 +343,16 @@ class EpidemicsBase:
     self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
     self.e['Problem']['Computational Model'] = self.computational_model
 
-    self.e["Solver"]["Type"] = "CMAES"
-    self.e["Solver"]["Population Size"] = nSamples
-    self.e["Solver"]["Termination Criteria"]["Max Generations"] = self.maxGen
-    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-12
+    self.e["Solver"]["Type"] = "Optimizer/CMAES"
+    self.e["Solver"]["Population Size"] = populationSize
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
+    self.e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-9
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 
-    self.set_korali_output_files( self.saveInfo['korali samples'], 1 )
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
+    self.e['Console Output']['Verbosity'] = 'Detailed'
 
     if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
 
@@ -372,6 +374,17 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
+    names = []
+    best = []
+    for j in range(self.nParameters):
+      best.append(myDatabase[j])
+      names.append(self.parameters[j]['Name'])
+    
+    js = {}
+    js["Value"]     = self.e['Results']['Best Sample']['F(x)']
+    js["Parameter"] = best
+    js["Names"]     = names
+    save_file( js, self.saveInfo['cmaes'], 'Optimum', fileType='json' )
 
   def set_variables_and_distributions( self, js ):
 
@@ -390,7 +403,7 @@ class EpidemicsBase:
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
 
 
-    if self.e["Solver"]["Type"] == "CMAES":
+    if self.e["Solver"]["Type"] == "Optimizer/CMAES":
       for k in range(nP):
         self.e["Variables"][k]["Lower Bound"] = js['Distributions'][k]['Minimum']
         self.e["Variables"][k]["Upper Bound"] = js['Distributions'][k]['Maximum']
@@ -496,7 +509,7 @@ class EpidemicsBase:
 
     return fig
 
-  def compute_plot_intervals( self, varName, ns, ax, ylabel, cummulate=-1):
+  def compute_plot_intervals( self, varName, ns, ax, ylabel, cumulate=-1):
 
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
@@ -536,8 +549,8 @@ class EpidemicsBase:
     else:
       abort("Likelihood not found in compute_plot_intervals.")
 
-    if cummulate>0 :
-      samples = np.cumsum(samples,axis=cummulate)
+    if cumulate>0 :
+      samples = np.cumsum(samples,axis=cumulate)
 
     elapsed = time.process_time() - start
     printlog(f" elapsed {elapsed:.2f} sec")
@@ -566,7 +579,8 @@ class EpidemicsBase:
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
-    if( self.logPlot and cummulate < 1 ): 
+    ax.set_xlim(left=x[1])
+    if( self.logPlot and cumulate < 1 ): 
         ax.set_yscale('log')
         ax.set_ylim(bottom=1e-1)
 
@@ -574,7 +588,7 @@ class EpidemicsBase:
     plt.pause(0.001)
  
 
-  def compute_mean_median( self, varName, color, ns, ax, ylabel, cummulate=-1):
+  def compute_mean_median( self, varName, color, ns, ax, ylabel, cumulate=-1):
 
     Np = self.propagatedVariables[varName].shape[0]
     Nt = self.propagatedVariables[varName].shape[1]
@@ -585,7 +599,7 @@ class EpidemicsBase:
 
     y = self.propagatedVariables[varName]
 
-    if( cummulate == 1):
+    if( cumulate == 1):
         y = np.cumsum(y, axis=1)
     
     for k in range(Nt):
@@ -601,12 +615,12 @@ class EpidemicsBase:
     ax.plot( self.data['Propagation']['x-data'], mean-sdev, '-', lw=0.5, color=color )
 
     ax.legend(loc='upper left')
-    ax.set_ylabel( ylabel )
+    #ax.set_ylabel( ylabel )
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
     ax.set_xticks( x[0:-1:3] )
     ax.grid()
  
-    if( self.logPlot and cummulate < 1 ): 
+    if( self.logPlot and cumulate < 1 ): 
         ax.set_yscale('log')
         ax.set_ylim(bottom=1e-1)
     

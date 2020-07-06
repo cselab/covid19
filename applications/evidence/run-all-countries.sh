@@ -2,23 +2,12 @@
 
 declare -a arr=(
 "switzerland"
-"germany"
-"france"
+#"germany"
+#"france"
 )
 
-# OTHER
-# "italy"
-# "russia"
-# "sweden"
-# "ukraine"
-# "austria"
-
-# NOT WORKING
-# "china"
-# "cosovo"
-
-base="./data/adaptive/"
-model="country.sir_int_r0.tnrm"
+base="./data/knested/"
+model="country.seir_dint_nogamma_noZ.tnrm"
 
 for c in "${arr[@]}"
 do

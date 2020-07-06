@@ -94,7 +94,7 @@ class Norm(mcolors.Normalize):
 norm = Norm(vmin=0.5, vmax=2.5, vcenter=1)
 cmap = plt.get_cmap('coolwarm')
 
-ax.set_title(r"$R_0$ after intervention", fontsize=15)
+ax.set_title(r"$R_t$ after intervention", fontsize=15)
 shapes.plot(column='R0int_mean',
             ax=ax,
             edgecolor='black',
