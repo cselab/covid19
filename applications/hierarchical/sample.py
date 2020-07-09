@@ -25,6 +25,7 @@ parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that 
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
+parser.add_argument('--data_fields','-f',type=str,default=['infected'],help='Preprocess infection data')
 
 args = parser.parse_args()
 

@@ -123,6 +123,7 @@ def main():
     generate_country_model('sir_intrem_reparam', 'S I R', 'R0 D tact l')
     generate_country_model('seir_reparam', 'S E I R', 'R0 D Z')
     generate_country_model('seir_int_reparam', 'S E I R', 'R0 D Z tact dtact kbeta')
+    generate_country_model('seird_int_reparam', 'S E I R D', 'R0 D Z eps tact dtact kbeta')
     generate_country_model('seir_intexp_reparam', 'S E I R', 'R0 D Z tact k')
     generate_country_model('seir_intrem_reparam', 'S E I R', 'R0 D Z tact l')
     generate_country_model('seiir_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha')
@@ -132,7 +133,9 @@ def main():
 
     # add model here as argument
     generate_country('sir', 'sir_int', 'sir_int_r0', 'seir', 'seir_int', 'seiir', 'seiir_int',
-                     'sir_reparam', 'sir_int_reparam', 'sir_intexp_reparam', 'sir_intrem_reparam', 'seir_reparam', 'seir_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 'seiir_reparam', 'seiir_int_reparam','seiir_intexp_reparam', 'seiir_intrem_reparam')
+                     'sir_reparam', 'sir_int_reparam', 'sir_intexp_reparam', 'sir_intrem_reparam',
+                     'seir_reparam', 'seir_int_reparam', 'seird_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
+                     'seiir_reparam', 'seiir_int_reparam','seiir_intexp_reparam', 'seiir_intrem_reparam')
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
 
