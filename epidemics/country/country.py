@@ -64,8 +64,9 @@ class EpidemicsCountry( EpidemicsBase ):
  
   def process_data( self ):
 
-    infected = []
-    t_infected = []
+    t = []
+    incidences = []
+    t_incidences = []
     I0 = 0
     if 'infected' in self.data_fields:
         y = self.regionalData.infected
@@ -74,6 +75,8 @@ class EpidemicsCountry( EpidemicsBase ):
         incidences, t_incidences = self.filter_daily_data('daily incidences',incidences,t_incidences)
         incidences = np.clip(incidences, a_min=0, a_max=1e32)
         I0 = y[0]
+        t = t_incidences
+
 
     deaths = []
     t_deaths = []
@@ -83,31 +86,35 @@ class EpidemicsCountry( EpidemicsBase ):
         deaths = np.diff( y[0:] )
         deaths, t_deaths = self.filter_daily_data('daily deaths',deaths,t_deaths)
         deaths = np.clip(deaths, a_min=0, a_max=1e32)
+        if len(t) == 0:
+            t = t_deaths
+
 
     N = self.regionalData.populationSize
     S0 = N - I0
     y0 = S0, I0
 
     if self.nValidation == 0:
-      t = t_incidences
-      self.data['Model']['x-data'] = t
-      self.data['Model']['y-data'] = np.concatenate([incidences,deaths])
-      print('Lengths incidences {} deaths {} total {}'.format(len(incidences),
+        self.data['Model']['x-data'] = t
+        self.data['Model']['y-data'] = np.concatenate([incidences,deaths])
+
+        # For the SEIRD model
+        self.data['Model']['x-eval'] = self.regionalData.time[1:]
+        self.data['Model']['x-infected'] = t_incidences
+        self.data['Model']['x-deaths'] = t_deaths
+        self.data['Model']['y-infected'] = incidences
+        self.data['Model']['y-deaths'] = deaths
+
+        print('Lengths incidences {} deaths {} total {}'.format(len(incidences),
                 len(deaths),len(np.concatenate([incidences,deaths]))))
-      print(len(t_incidences),len(t_deaths))
-      # For the SEIRD model
-      self.data['Model']['x-eval'] = self.regionalData.time[1:]
-      self.data['Model']['x-infected'] = t_incidences
-      self.data['Model']['x-deaths'] = t_deaths
-      # self.data['Model']['y-infected'] = incidences
-      # self.data['Model']['y-deaths'] = deaths
+        print(len(t_incidences),len(t_deaths))
 
     else:
-      print('TODO, need to take into account diff between t_incidences and t_deaths')
-      self.data['Model']['x-data'] = t[:-self.nValidation]
-      self.data['Model']['y-data'] = incidences[:-self.nValidation]
-      #self.data['Validation']['x-data'] = t[-self.nValidation:]
-      #self.data['Validation']['y-data'] = incidences[-self.nValidation-1:]
+        print('TODO, need to take into account diff between t_incidences and t_deaths')
+        self.data['Model']['x-data'] = t[:-self.nValidation]
+        self.data['Model']['y-data'] = incidences[:-self.nValidation]
+        #self.data['Validation']['x-data'] = t[-self.nValidation:]
+        #self.data['Validation']['y-data'] = incidences[-self.nValidation-1:]
 
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size']   = N
@@ -121,6 +128,7 @@ class EpidemicsCountry( EpidemicsBase ):
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
 
   def computational_model_propagate( self, s ):
+
     p  = s['Parameters']
     t  = self.data['Propagation']['x-data']
     y0 = self.data['Model']['Initial Condition']
@@ -139,18 +147,28 @@ class EpidemicsCountry( EpidemicsBase ):
     recovered  = None
     exposed    = None
     unreported = None
+    deaths     = None
 
     if hasattr(sol, 'r'):
         recovered = np.diff(sol.r)
         recovered = np.append(0, recovered)
+        eps = 1e-32
+        recovered[recovered < eps] = eps
  
     if hasattr(sol, 'e'):
         exposed = np.diff(sol.e)
         exposed = np.append(0, exposed)
+        exposed[exposed < eps] = eps
 
     if hasattr(sol, 'iu'):
         unreported = np.diff(sol.iu)
         unreported = np.append(0, unreported)
+        unreported[unreported < eps] = eps
+
+    if hasattr(sol, 'd'):
+        deaths = np.diff(sol.d)
+        deaths = np.append(0, deaths)
+        deaths[deaths < eps] = eps
 
     eps = 1e-32
     
@@ -181,6 +199,12 @@ class EpidemicsCountry( EpidemicsBase ):
        js['Variables'][k]['Values'] = list(unreported)
        k += 1
 
+    if deaths is not None:
+        js['Variables'].append({})
+        js['Variables'][k]['Name'] = 'Daily Deaths'
+        js['Variables'][k]['Values'] = list(deaths)
+        k += 1
+
     js['Number of Variables'] = len(js['Variables'])
     js['Length of Variables'] = len(t)
 
@@ -192,43 +216,69 @@ class EpidemicsCountry( EpidemicsBase ):
         js['Dispersion'] = (len(incidences)) * [p[-1]]
 
     s['Saved Results'] = js
+
+
   
   def plot_intervals( self, ns=10):
 
     fig = self.new_figure()
 
-    ax  = fig.subplots( 2 )
+    if 'deaths' in self.data_fields:
+        ax  = fig.subplots(2,2)
+        ax_daily = ax[0][0]
+        ax_daily_deaths = ax[0][1]
+        ax_cumul = ax[1][0]
+        ax_cumul_deaths = ax[1][1]
+        ax_cumul.set_xlabel('time in days')
+        ax_cumul_deaths.set_xlabel('time in days')
 
-    ax[0].plot( self.data['Model']['x-data'], self.data['Model']['y-data'], 'o', lw=2, label='Daily Infected(data)', color='black')
+
+        ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'o', lw=2, label='Daily Deaths(data)', color='black')
+        z = np.cumsum(self.data['Model']['y-deaths'])
+        ax_cumul.plot( self.data['Model']['x-deaths'], z, 'o', lw=2, label='Cumulative Deaths(data)', color='black')
+
+    else:
+        ax  = fig.subplots( 2 )
+        ax_daily = ax[0]
+        ax_cumul = ax[1]
+        ax_daily_deaths = ax_daily
+        ax_cumul_deatsh = ax_cumul
+        ax_cumul.set_xlabel('time in days')
+
+
+    ax_daily.plot( self.data['Model']['x-infected'], self.data['Model']['y-infected'], 'o', lw=2, label='Daily Infected(data)', color='black')
+    z = np.cumsum(self.data['Model']['y-infected'])
+    ax_cumul.plot( self.data['Model']['x-infected'], z, 'o', lw=2, label='Cumulative Infected(data)', color='black')
+
+
 
     #if self.nValidation > 0:
     #  ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
-    z = np.cumsum(self.data['Model']['y-data'])
-    ax[1].plot( self.data['Model']['x-data'], z, 'o', lw=2, label='Cumulative Infected(data)', color='black')
 
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[0], 'Daily Incidence' )
-    self.compute_plot_intervals( 'Daily Incidence', ns, ax[1], 'Cumulative number of infected', cumulate=1)
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax_daily, 'Daily Incidence' )
+    self.compute_plot_intervals( 'Daily Incidence', ns, ax_cumul, 'Cumulative number of infected', cumulate=1)
  
     if self.plotMeanMedian:
 
-        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[0], 'Daily Incidence' )
-        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax[1], 'Daily Incidence', cumulate=1 )
+        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax_daily, 'Daily Incidence' )
+        self.compute_mean_median( 'Daily Incidence', 'blue', ns, ax_cumul, 'Daily Incidence', cumulate=1 )
 
         if 'Daily Recovered' in self.propagatedVariables:
-          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[0], 'Daily Recovered')
-          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax[1], 'Cumulative number of recovered', cumulate=1)
+          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax_daily, 'Daily Recovered')
+          self.compute_mean_median( 'Daily Recovered', 'green', ns, ax_cumul, 'Cumulative number of recovered', cumulate=1)
 
         if 'Daily Exposed' in self.propagatedVariables:
-          self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[0], 'Daily Exposed')
+          self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax_daily, 'Daily Exposed')
           self.compute_mean_median( 'Daily Exposed', 'yellow', ns, ax[1], 'Cumulative number of exposed', cumulate=1)
 
         if 'Daily Unreported' in self.propagatedVariables:
-          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[0], 'Daily Unreported')
-          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax[1], 'Cumulative number of unreported', cumulate=1)
+          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax_daily, 'Daily Unreported')
+          self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax_cumul, 'Cumulative number of unreported', cumulate=1)
 
-
-    ax[-1].set_xlabel('time in days')
+        if 'Daily Deaths' in self.propagatedVariables:
+          self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_daily_deaths, 'Daily Deaths')
+          self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_cumul_deatsh, 'Cumulative number of deaths', cumulate=1)
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )

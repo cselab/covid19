@@ -51,7 +51,7 @@ class ModelBase( EpidemicsCountry ):
     
     # Create Solution Object
     sol = Object()
-    sol.i       = infected
+    sol.y       = infected
     sol.e       = exposed
     sol.r       = recovered
     sol.d       = deaths
@@ -61,6 +61,7 @@ class ModelBase( EpidemicsCountry ):
     return sol
 
   def computational_model( self, s ):
+
     p  = s['Parameters']
     t  = self.data['Model']['x-eval']
     y0 = self.data['Model']['Initial Condition']
@@ -70,20 +71,26 @@ class ModelBase( EpidemicsCountry ):
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
 
     # get incidences
-    infected   = np.diff(sol.i) 
+    infected   = np.diff(sol.y) 
     eps = 1e-32
     infected[infected < eps] = eps
-    infected   = infected[self.data['Model']['x-infected']-1] 
-    
+    if len(self.data['Model']['x-infected']) != 0:
+        infected = infected[self.data['Model']['x-infected']-1] 
+    else:
+        infected = []
+
     # get deaths
     deaths   = np.diff(sol.d)
     eps = 1e-32
     deaths[deaths < eps] = eps
-    deaths   = deaths[self.data['Model']['x-deaths']-1] 
+    if len(self.data['Model']['x-deaths']) != 0:
+        deaths = deaths[self.data['Model']['x-deaths']-1] 
+    else:
+        deaths = []
 
     # Concat 
     y = np.concatenate([infected,deaths])
-    
+
     # Transform gradients
     if(self.sampler == 'mTMCMC' and self.likelihoodModel != 'Negative Binomial' ):
         sgrad    = []
@@ -111,3 +118,7 @@ class ModelBase( EpidemicsCountry ):
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
     elif self.likelihoodModel == 'Negative Binomial':
         s['Dispersion'] = [p[-1]] * len(y)
+
+
+
+

@@ -412,16 +412,23 @@ class EpidemicsBase:
 
   def load_parameters(self,samples_path):
 
-      printlog('Loading posterior samples')
+      printlog('Loading posterior samples from {}'.format(samples_path))
 
       files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
       files.sort()
       filename = files[-1]
 
       variable_names = []
-      with open(samples_path+'/'+files[-1]) as json_file:
+      with open(samples_path+'/latest') as json_file:
         data = json.load(json_file)
-        samples = data['Results']['Sample Database']
+        print(data.keys())
+        if 'Sample Database' in data['Results']:
+          samples = data['Results']['Sample Database']
+        elif 'Posterior Sample Database' in data['Results']:
+          samples = data['Results']['Posterior Sample Database']
+        else:
+          print('Not avail')
+
         variables = data['Variables']
 
       self.nParameters = len(variables)
