@@ -28,7 +28,7 @@ parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of th
 parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
 parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
-parser.add_argument('--data_fields','-f',type=str,default=['infected'],help='Preprocess infection data')
+parser.add_argument('--data_fields','-f',type=str,default=['infected'],help='Data fields used for comuting likelihood possibles: ["infected","deaths"]')
 
 args = parser.parse_args()
 
@@ -43,7 +43,7 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-# a.sample_knested(nLiveSamples=args.nSamples,freq=args.nSamples)
+a.sample_knested(nLiveSamples=args.nSamples,freq=args.nSamples)
 
 a.propagate( args.nPropagation )
 

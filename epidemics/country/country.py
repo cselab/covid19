@@ -26,9 +26,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.preprocess     = kwargs.pop('preprocess', False)
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
     self.up_to_int      = kwargs.pop('up_to_int', False)
-    self.data_fields    = kwargs.pop('data_fields', 'infected')
-    print(self.data_fields)
-
+    self.data_fields    = kwargs.pop('data_fields', ['infected'])
 
     self.defaults = { 
             'R0'    : (1.0, 15.0),
@@ -86,7 +84,8 @@ class EpidemicsCountry( EpidemicsBase ):
         deaths = np.diff( y[0:] )
         deaths, t_deaths = self.filter_daily_data('daily deaths',deaths,t_deaths)
         deaths = np.clip(deaths, a_min=0, a_max=1e32)
-        if len(t) == 0:
+        
+        if len(t) == 0: # If only deaths
             t = t_deaths
 
 
@@ -95,19 +94,20 @@ class EpidemicsCountry( EpidemicsBase ):
     y0 = S0, I0
 
     if self.nValidation == 0:
+        # Default models
         self.data['Model']['x-data'] = t
         self.data['Model']['y-data'] = np.concatenate([incidences,deaths])
 
-        # For the SEIRD model
+        # For the SEIRD model (+ all models with deaths)
         self.data['Model']['x-eval'] = self.regionalData.time[1:]
         self.data['Model']['x-infected'] = t_incidences
         self.data['Model']['x-deaths'] = t_deaths
         self.data['Model']['y-infected'] = incidences
         self.data['Model']['y-deaths'] = deaths
 
-        print('Lengths incidences {} deaths {} total {}'.format(len(incidences),
-                len(deaths),len(np.concatenate([incidences,deaths]))))
-        print(len(t_incidences),len(t_deaths))
+        # print('Lengths incidences {} deaths {} total {}'.format(len(incidences),
+        #         len(deaths),len(np.concatenate([incidences,deaths]))))
+        # print(len(t_incidences),len(t_deaths))
 
     else:
         print('TODO, need to take into account diff between t_incidences and t_deaths')
@@ -234,8 +234,12 @@ class EpidemicsCountry( EpidemicsBase ):
 
 
         ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'o', lw=2, label='Daily Deaths(data)', color='black')
-        z = np.cumsum(self.data['Model']['y-deaths'])
-        ax_cumul.plot( self.data['Model']['x-deaths'], z, 'o', lw=2, label='Cumulative Deaths(data)', color='black')
+        cumul_deaths = np.cumsum(self.data['Model']['y-deaths'])
+        ax_cumul_deaths.plot( self.data['Model']['x-deaths'], cumul_deaths, 'o', lw=2, label='Cumulative Deaths(data)', color='black')
+
+        if 'Daily Deaths' in self.propagatedVariables:
+            self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_daily_deaths, 'Daily Deaths')
+            self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_cumul_deaths, 'Cumulative number of deaths', cumulate=1)
 
     else:
         ax  = fig.subplots( 2 )
@@ -247,8 +251,8 @@ class EpidemicsCountry( EpidemicsBase ):
 
 
     ax_daily.plot( self.data['Model']['x-infected'], self.data['Model']['y-infected'], 'o', lw=2, label='Daily Infected(data)', color='black')
-    z = np.cumsum(self.data['Model']['y-infected'])
-    ax_cumul.plot( self.data['Model']['x-infected'], z, 'o', lw=2, label='Cumulative Infected(data)', color='black')
+    cumul_infected = np.cumsum(self.data['Model']['y-infected'])
+    ax_cumul.plot( self.data['Model']['x-infected'], cumul_infected, 'o', lw=2, label='Cumulative Infected(data)', color='black')
 
 
 
@@ -276,9 +280,6 @@ class EpidemicsCountry( EpidemicsBase ):
           self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax_daily, 'Daily Unreported')
           self.compute_mean_median( 'Daily Unreported', 'orange', ns, ax_cumul, 'Cumulative number of unreported', cumulate=1)
 
-        if 'Daily Deaths' in self.propagatedVariables:
-          self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_daily_deaths, 'Daily Deaths')
-          self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_cumul_deatsh, 'Cumulative number of deaths', cumulate=1)
 
     file = os.path.join(self.saveInfo['figures'],'prediction.png');
     prepare_folder( os.path.dirname(file) )
