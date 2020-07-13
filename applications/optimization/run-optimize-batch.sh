@@ -58,11 +58,20 @@ declare -a models4=(
 "country.reparam.seiir_dint_nogamma_noZ.tnrm" 
 )
 
+declare -a models5=(
+#"country.reparam.sird_int.nbin"
+#"country.reparam.sird_int_nogamma.nbin"
+#"country.reparam.seird_int.nbin"
+"country.reparam.seird_int_nogamma.nbin"
+#"country.reparam.seiird_int.nbin"
+)
+
+
 
 mkdir ${base} -p
 
 # exchange batch
-for model in "${models0[@]}"
+for model in "${models5[@]}"
 do
     for c in "${arr[@]}"
     do

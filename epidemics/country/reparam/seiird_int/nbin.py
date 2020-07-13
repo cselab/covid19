@@ -7,8 +7,8 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seird_int.nbin'
-    self.modelDescription = 'Fit SEIRD with Intervention on Daily Infected Data with Negative Binomial likelihood'
+    self.modelName        = 'country.reparam.seiird_int.nbin'
+    self.modelDescription = 'Fit SEIIRD with Intervention on Daily Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )
@@ -16,16 +16,18 @@ class Model( ModelBase ):
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 8
+    self.nParameters = 10
     js = self.get_uniform_priors(
             ('R0', *self.defaults['R0']),
-            ('D', *self.defaults['D']),
+            ('D', *self.defaults['D']), 
             ('Z', *self.defaults['Z']), 
-            ('eps', *self.defaults['eps']), 
+            ('mu', *self.defaults['mu']), 
+            ('alpha', *self.defaults['alpha']),
+            ('eps', *self.defaults['eps']),
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('r', *self.defaults['r']),
+            ('r', *self.defaults['r'])
             )
     
     return js

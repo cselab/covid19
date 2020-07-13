@@ -31,8 +31,8 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
-    self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
+    self.display     = os.environ['HOME']
 
 
     if(self.synthetic):

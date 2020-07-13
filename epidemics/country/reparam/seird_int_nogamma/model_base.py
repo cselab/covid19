@@ -21,7 +21,7 @@ class ModelBase( EpidemicsCountry ):
     data      = libepidemics.country.ModelData(N=N)
     cppsolver = seird_int_reparam.Solver(data)
 
-    params = seird_int_reparam.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=p[4], dtact=p[5], kbeta=p[6])
+    params = seird_int_reparam.Parameters(R0=p[0], D=1.0/self.constants['gamma'], Z=p[1], eps=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
     s0, i0  = y0
     y0cpp   = (s0, 0.0, i0, 0.0, 0.0)

@@ -63,7 +63,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         dxdt.S() = -A;
         dxdt.E() = +A-B;
         dxdt.I() = +B-C;
-        dxdt.R() = (1-p.eps)*C;
+        dxdt.R() = (1.0-p.eps)*C;
         dxdt.D() = p.eps*C;
 
     }

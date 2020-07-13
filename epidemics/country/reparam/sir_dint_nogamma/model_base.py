@@ -20,7 +20,7 @@ class ModelBase( EpidemicsCountry ):
     data      = libepidemics.country.ModelData(N=N)
     cppsolver = sir_int.Solver(data)
 
-    params = sir_int.Parameters(R0=p[0], D=5.2, tact=p[1], dtact=self.constants['dtact'], kbeta=p[2])
+    params = sir_int.Parameters(R0=p[0], D=1.0/self.constants['gamma'], tact=p[1], dtact=self.constants['dtact'], kbeta=p[2])
     
     s0, i0 = y0
     y0cpp   = (s0, i0, 0.0)

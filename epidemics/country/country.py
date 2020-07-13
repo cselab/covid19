@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import datetime
 from scipy.stats import truncnorm
@@ -19,16 +20,16 @@ class EpidemicsCountry( EpidemicsBase ):
   def __init__( self, **kwargs ):
     
     self.country        = kwargs.pop('country', 'switzerland')
-    self.futureDays     = kwargs.pop('futureDays', 2)
+    self.futureDays     = kwargs.pop('futureDays', 3)
     self.nPropagation   = kwargs.pop('nPropagation', 100)
     self.logPlot        = kwargs.pop('logPlot', True)
     self.nValidation    = kwargs.pop('nValidation', 0)
-    self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
-    self.preprocess     = kwargs.pop('preprocess', False)
+    self.percentages    = kwargs.pop('percentages', [0.5])
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
     self.up_to_int      = kwargs.pop('up_to_int', False)
-    self.data_fields    = kwargs.pop('data_fields', ['infected'])
-    self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay', datetime.date.today().strftime("%Y-%m-%d")),"%Y-%m-%d").date()
+    self.preprocess     = kwargs.pop('preprocess')
+    self.observations   = kwargs.pop('observations')
+    self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
 
     self.defaults = { 
             'R0'    : (1.0, 15.0),
@@ -36,7 +37,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'Z'     : (1.0, 20.0),
             'mu'    : (0.0, 5.0),
             'alpha' : (0.0, 1.0),
-            'eps'    : (0.0, 0.2),
+            'eps'   : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
             'dtact' : (0.0, 30.0),
             'kbeta' : (0.0, 1.0),
@@ -63,56 +64,47 @@ class EpidemicsCountry( EpidemicsBase ):
       return ( self.dataFolder, self.country, self.modelName )
  
   def process_data( self ):
-
-    t = []
-    incidences = []
-    t_incidences = []
-    I0 = 0
-    if 'infected' in self.data_fields:
-        y = self.regionalData.infected
-        t_incidences = self.regionalData.time[1:]
-        incidences = np.diff( y[0:] )
-        incidences, t_incidences = self.filter_daily_data('daily incidences',incidences,t_incidences)
-        incidences = np.clip(incidences, a_min=0, a_max=1e32)
-        I0 = y[0]
-        t = t_incidences
-
-
-    deaths = []
-    t_deaths = []
-    if 'deaths' in self.data_fields:
-        y = self.regionalData.deaths
-        t_deaths = self.regionalData.time[1:]
-        deaths = np.diff( y[0:] )
-        deaths, t_deaths = self.filter_daily_data('daily deaths',deaths,t_deaths)
-        deaths = np.clip(deaths, a_min=0, a_max=1e32)
-        
-        if len(t) == 0: # If only deaths
-            t = t_deaths
-
-
+  
     N = self.regionalData.populationSize
+    infected = self.regionalData.infected
+    deaths   = self.regionalData.deaths
+
+    I0 = infected[0]
+ 
     S0 = N - I0
     y0 = S0, I0
+
+
+    t = self.regionalData.time[1:]
+       
+    incidences = np.diff( infected )
+    incidences, t_incidences = self.filter_daily_data('daily incidences',incidences,t)
+
+    deaths = np.diff( deaths )
+    deaths, t_deaths = self.filter_daily_data('daily deaths',deaths,t)
+ 
+    t = list(set(np.concatenate([t_incidences, t_deaths])))
 
     if self.nValidation == 0:
         # Default models
         self.data['Model']['x-data'] = t
         self.data['Model']['y-data'] = np.concatenate([incidences,deaths])
 
-        # For the SEIRD model (+ all models with deaths)
-        self.data['Model']['x-eval'] = self.regionalData.time[1:]
+        # For models with deaths
         self.data['Model']['x-infected'] = t_incidences
-        self.data['Model']['x-deaths'] = t_deaths
+        self.data['Model']['x-deaths']   = t_deaths
         self.data['Model']['y-infected'] = incidences
-        self.data['Model']['y-deaths'] = deaths
+        self.data['Model']['y-deaths']   = deaths
 
-        # print('Lengths incidences {} deaths {} total {}'.format(len(incidences),
-        #         len(deaths),len(np.concatenate([incidences,deaths]))))
-        # print(len(t_incidences),len(t_deaths))
+        print('[Epidemics] Lengths incidences {} deaths {} total {}'.format(len(incidences), \
+                len(deaths),len(np.concatenate([incidences,deaths]))))
+
+        print(len(incidences))
+        print(len(deaths),flush=True)
 
     else:
         print('TODO, need to take into account diff between t_incidences and t_deaths')
+        sys.exit()
         self.data['Model']['x-data'] = t[:-self.nValidation]
         self.data['Model']['y-data'] = incidences[:-self.nValidation]
         #self.data['Validation']['x-data'] = t[-self.nValidation:]
@@ -128,6 +120,59 @@ class EpidemicsCountry( EpidemicsBase ):
     
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
+
+
+  def getCases( self, data, tidx):
+    cases = []
+    for t in tidx:
+        cases = cases + [data[t-1]]
+    
+    return cases
+
+
+  def computational_model( self, s ):
+
+    p  = s['Parameters']
+    t  = self.data['Model']['x-data']
+    y0 = self.data['Model']['Initial Condition']
+    N  = self.data['Model']['Population Size']
+
+    tt = [t[0]-1] + t
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
+
+    # get incidences
+    infected = np.diff(sol.y) 
+    eps = 1e-32
+    infected[infected < eps] = eps
+    
+    # get deaths
+    deaths   = np.diff(sol.d)
+    eps = 1e-32
+    deaths[deaths < eps] = eps
+
+    # concatenate
+    y = []
+    if len(self.data['Model']['x-infected']) != 0:
+        y = self.getCases( infected, self.data['Model']['x-infected'] )
+
+    if len(self.data['Model']['x-deaths']) != 0:
+        deaths = self.getCases( deaths, self.data['Model']['x-deaths'])
+        y = np.concatenate([y, deaths])
+ 
+    # Transform gradients
+    if(self.sampler == 'mTMCMC'):
+        print("[Epidemics] mTMCMC not yet available")
+        sys.exit(0)
+
+    s['Reference Evaluations'] = list(y)
+    
+    if self.likelihoodModel == 'Normal':
+        s['Standard Deviation'] = ( p[-1] * y ).tolist()
+    elif self.likelihoodModel == 'Positive Normal':
+        s['Standard Deviation'] = ( p[-1] * y ).tolist()
+    elif self.likelihoodModel == 'Negative Binomial':
+        s['Dispersion'] = [p[-1]] * len(y)
+
 
   def computational_model_propagate( self, s ):
 
@@ -172,8 +217,6 @@ class EpidemicsCountry( EpidemicsBase ):
         deaths = np.append(0, deaths)
         deaths[deaths < eps] = eps
 
-    eps = 1e-32
-    
     k = 0
     js = {}
     js['Variables'] = []
@@ -225,7 +268,7 @@ class EpidemicsCountry( EpidemicsBase ):
 
     fig = self.new_figure()
 
-    if 'deaths' in self.data_fields:
+    if 'deaths' in self.observations:
         ax  = fig.subplots(2,2)
         ax_daily = ax[0][0]
         ax_daily_deaths = ax[0][1]
@@ -258,8 +301,9 @@ class EpidemicsCountry( EpidemicsBase ):
 
 
 
-    #if self.nValidation > 0:
-    #  ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
+    if self.nValidation > 0:
+      sys.exit()
+      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
 
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax_daily, 'Daily Incidence' )
@@ -294,11 +338,8 @@ class EpidemicsCountry( EpidemicsBase ):
 
     plt.close(fig)
 
-    #----------------------------------------------------------------------------------------------------------------------------------
-    #----------------------------------------------------------------------------------------------------------------------------------
 
     fig = self.new_figure()
-
     ax  = fig.subplots( 1 )
 
     found = False
@@ -385,3 +426,6 @@ class EpidemicsCountry( EpidemicsBase ):
         t = t[valid]
 
     return field, t
+
+
+
