@@ -1,4 +1,5 @@
 import numpy as np
+from datetime import date
 
 from epidemics.data.cases import get_region_cases
 from epidemics.data.population import get_region_population
@@ -9,7 +10,7 @@ class RegionalData:
 
     Strips away leading zeros in the number of cases.
     """
-    def __init__(self, region,preprocess=False,up_to_int=False):
+    def __init__(self, region, lastDay=date.today(), preprocess=False,up_to_int=False):
         self.region = region
         self.populationSize = get_region_population(region)
         self.preprocess = preprocess
@@ -24,8 +25,9 @@ class RegionalData:
             cases = cut_data_intervention(cases,region)
 
         threshold = 2e-6*self.populationSize # 2 per million
-        skip = next((i for i, x in enumerate(cases.confirmed) if (x>threshold)), None)
+        skip  = next((i for i, x in enumerate(cases.confirmed) if (x>threshold)), None)
         zeros = next((i for i, x in enumerate(cases.confirmed) if x), None)
+        end   = min((lastDay - cases.start_date).days, len(cases.confirmed))
         
         if skip is None:
             raise ValueError(f"Region `{region}` has no cases.")
@@ -33,20 +35,22 @@ class RegionalData:
             print('[Epidemics] Data contain {} leading zeros.'.format(zeros))
             print('[Epidemics] Removing {} entries below threshold (2p. million), {} days of usable data'.format(skip,
                                                     len(cases.confirmed[skip:])))
+            print('[Epidemics] Omitting last {} entries'.format(len(cases.confirmed)-end))
 
-        self.infected  = add_and_cut_attribute(cases.confirmed,skip) # confirmed
-        self.recovered = add_and_cut_attribute(cases.recovered,skip)
-        self.deaths    = add_and_cut_attribute(cases.deaths,skip)
+        
+        self.infected  = add_and_cut_attribute(cases.confirmed,skip, end) # confirmed
+        self.recovered = add_and_cut_attribute(cases.recovered,skip, end)
+        self.deaths    = add_and_cut_attribute(cases.deaths,skip, end)
 
-        self.hospitalized = add_and_cut_attribute(cases.hospitalized,skip)
-        self.icu = add_and_cut_attribute(cases.icu,skip)
-        self.ventilated = add_and_cut_attribute(cases.ventilated,skip)
-        self.released = add_and_cut_attribute(cases.released,skip)
+        self.hospitalized = add_and_cut_attribute(cases.hospitalized,skip, end)
+        self.icu = add_and_cut_attribute(cases.icu,skip, end)
+        self.ventilated = add_and_cut_attribute(cases.ventilated,skip, end)
+        self.released = add_and_cut_attribute(cases.released,skip, end)
 
         self.time = np.asarray(range(len(self.infected)))
 
-def add_and_cut_attribute(data,skip):
+def add_and_cut_attribute(data,start,end):
     if data is not None:
-        return np.asarray(data[skip:])
+        return np.asarray(data[start:end])
     else:
         return None

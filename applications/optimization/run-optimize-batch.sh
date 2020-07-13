@@ -6,7 +6,7 @@ declare -a arr=(
 "germany"
 )
 
-base="./data/optimization/"
+base="./test/"
 
 # for test
 declare -a models0=(
@@ -62,7 +62,7 @@ declare -a models4=(
 mkdir ${base} -p
 
 # exchange batch
-for model in "${models4[@]}"
+for model in "${models0[@]}"
 do
     for c in "${arr[@]}"
     do

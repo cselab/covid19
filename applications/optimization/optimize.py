@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('--compModel', '-cm', default='sir.altone_nbin', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
+parser.add_argument('--lastDay', '-ld', default='2020-06-13', help='Last day of data sequence in format %Y-%m-%d./')
 parser.add_argument('--nSamples', '-ns', type=int, default=16, help='Number of samples for CMAES.')
 parser.add_argument('--nGenerations', '-ng', type=int, default=1000, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
