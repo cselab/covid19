@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import datetime
 from scipy.stats import truncnorm
 from scipy.special import loggamma
 
@@ -25,7 +26,8 @@ class EpidemicsCountry( EpidemicsBase ):
     self.percentages    = kwargs.pop('percentages', [0.5, 0.95, 0.99])
     self.preprocess     = kwargs.pop('preprocess', False)
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
-    self.up_to_int    = kwargs.pop('up_to_int', False)
+    self.up_to_int      = kwargs.pop('up_to_int', False)
+    self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay', datetime.date.today().strftime("%Y-%m-%d")),"%Y-%m-%d").date()
 
     self.defaults = { 
             'R0'    : (1.0, 15.0),
@@ -51,7 +53,7 @@ class EpidemicsCountry( EpidemicsBase ):
     if(self.synthetic):
         self.regionalData = SyntheticData( self.datafile )
     else:
-        self.regionalData = RegionalData( self.country,self.preprocess,self.up_to_int)
+        self.regionalData = RegionalData( self.country, self.lastDay, self.preprocess, self.up_to_int)
 
     self.process_data()
  

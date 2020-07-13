@@ -19,7 +19,7 @@ class ModelBase( EpidemicsCountry ):
     data      = libepidemics.country.ModelData(N=N)
     cppsolver = seiir_int.Solver(data)
 
-    params = seiir_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4],  tact=p[5], self.constants['dtact'], kbeta=p[6])
+    params = seiir_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4],  tact=p[5], dtact=self.constants['dtact'], kbeta=p[6])
 
     s0, ir0 = y0
     y0cpp   = (s0, 0.0, ir0, 0.0, 0.0) # S E Ir Iu  R

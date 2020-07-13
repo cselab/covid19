@@ -56,7 +56,7 @@ def load_and_process_hgis_data(*, days_to_remove=1):
     # Note: if you need US and China data, check the coronavirus GUI repo.
 
     url = 'https://hgis.uw.edu/virus/assets/virus.csv'
-    data = download_and_save(url, DATA_DOWNLOADS_DIR / 'hgis.virus.csv', cache_duration=3600)
+    data = download_and_save(url, DATA_DOWNLOADS_DIR / 'hgis.virus.csv', cache_duration=7200)
     data = data.decode('utf-8')
     header, *rows = data.split('\n')
 
