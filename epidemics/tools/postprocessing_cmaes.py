@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--src', type=str, help='Directory to traverse and look for result files.', required=True)
     parser.add_argument('--res', type=str, help='Name of sample folders.', required=True)
-    parser.add_argument('--out', type=str, default='cames_post.csv', help='Output file.')
+    parser.add_argument('--out', type=str, default='cmaes_post.csv', help='Output file.')
     args = parser.parse_args()
 
     dirs = findResults(args.src, args.res)
