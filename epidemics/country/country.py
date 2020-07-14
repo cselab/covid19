@@ -162,7 +162,7 @@ class EpidemicsCountry( EpidemicsBase ):
         y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-infected'])) )
 
     if self.useDeaths:
-        y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-deaths'])) )
+        y = np.concatenate( (y, self.getCases( deaths, self.data['Model']['x-deaths'])) )
  
     s['Reference Evaluations'] = list(y)
     
@@ -271,16 +271,19 @@ class EpidemicsCountry( EpidemicsBase ):
     if self.useDeaths:
         ax  = fig.subplots(2,2)
         ax_daily = ax[0][0]
-        ax_daily_deaths = ax[0][1]
         ax_cumul = ax[1][0]
+        
+        ax_daily_deaths = ax[0][1]
         ax_cumul_deaths = ax[1][1]
-        ax_cumul.set_xlabel('time in days')
-        ax_cumul_deaths.set_xlabel('time in days')
 
 
-        ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'o', lw=2, label='Daily Deaths(data)', color='black')
+        ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'o', \
+                lw=2, label='Daily Deaths (data)', color='black')
+        
         cumul_deaths = np.cumsum(self.data['Model']['y-deaths'])
-        ax_cumul_deaths.plot( self.data['Model']['x-deaths'], cumul_deaths, 'o', lw=2, label='Cumulative Deaths(data)', color='black')
+        ax_cumul_deaths.set_xlabel('time in days')
+        ax_cumul_deaths.plot( self.data['Model']['x-deaths'], cumul_deaths, 'o', \
+                lw=2, label='Cumulative Deaths (data)', color='black')
 
         if 'Daily Deaths' in self.propagatedVariables:
             self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_daily_deaths, 'Daily Deaths')
@@ -290,20 +293,22 @@ class EpidemicsCountry( EpidemicsBase ):
         ax  = fig.subplots( 2 )
         ax_daily = ax[0]
         ax_cumul = ax[1]
-        ax_daily_deaths = ax_daily
-        ax_cumul_deatsh = ax_cumul
         ax_cumul.set_xlabel('time in days')
 
 
-    ax_daily.plot( self.data['Model']['x-infected'], self.data['Model']['y-infected'], 'o', lw=2, label='Daily Infected(data)', color='black')
+    ax_daily.plot( self.data['Model']['x-infected'], self.data['Model']['y-infected'], 'o', \
+            lw=2, label='Daily Infected(data)', color='black')
+    
     cumul_infected = np.cumsum(self.data['Model']['y-infected'])
-    ax_cumul.plot( self.data['Model']['x-infected'], cumul_infected, 'o', lw=2, label='Cumulative Infected(data)', color='black')
-
+    ax_cumul.set_xlabel('time in days')
+    ax_cumul.plot( self.data['Model']['x-infected'], cumul_infected, 'o', \
+            lw=2, label='Cumulative Infected(data)', color='black')
 
 
     if self.nValidation > 0:
       sys.exit()
-      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', lw=2, label='Daily Infected (validation data)', color='black')
+      ax[0].plot( self.data['Validation']['x-data'], self.data['Validation']['y-data'], 'x', \
+              lw=2, label='Daily Infected (validation data)', color='black')
 
 
     self.compute_plot_intervals( 'Daily Incidence', ns, ax_daily, 'Daily Incidence' )
@@ -388,53 +393,3 @@ class EpidemicsCountry( EpidemicsBase ):
         t = t[valid]
 
     return field, t
-
-
-  def llk_model_nbin ( self, p, t, refy, y0, N ):
-    """ model for dynesty """
-
-    tt = [t[0]-1] + t.tolist()
-    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-
-    # get incidences
-    y = np.diff(sol.y)
- 
-    eps = 1e-32
-    y[y < eps] = eps
-    refy[refy < 0] = 0
-  
-    llk = 0.0
-    for idx, incident in enumerate(y):
-        llk -= loggamma ( refy[idx] + 1. )
-        m    = incident
-        r    = incident*p[-1]
-        prob = m / (m+r)
-
-        llk += loggamma ( refy[idx] + r )
-        llk -= loggamma ( r )
-        llk += r * np.log(1-prob)
-        llk += refy[idx] * np.log(prob)
-
-    return llk
-
-  def llk_model_tnrm ( self, p, t, refy, y0, N ):
-    """ model for dynesty """
-
-    tt = [t[0]-1] + t.tolist()
-    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
-
-    # get incidences
-    y = np.diff(sol.y)
- 
-    eps = 1e-32
-    y[y < eps] = eps
-    refy[refy < 0] = 0
-  
-    llk = 0.0
-    for idx, incident in enumerate(y):
-        std  = incident*p[-1]
-        a    = -1.0*incident/std
-        b    = np.inf
-        llk += truncnorm.logpdf(refy[idx], a, b, incident, std)
-
-    return llk
