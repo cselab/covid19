@@ -289,7 +289,7 @@ class EpidemicsCountry( EpidemicsBase ):
 
     fig = self.new_figure()
 
-    if 'deaths' in self.observations:
+    if self.useDeaths:
         ax  = fig.subplots(2,2)
         ax_daily = ax[0][0]
         ax_daily_deaths = ax[0][1]
