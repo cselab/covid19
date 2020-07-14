@@ -60,22 +60,43 @@ declare -a models4=(
 
 declare -a models5=(
 "country.reparam.sird_int.nbin"
+"country.reparam.sird_dint.nbin"
 "country.reparam.sird_int_nogamma.nbin"
+"country.reparam.sird_dint_nogamma.nbin"
 "country.reparam.seird_int.nbin"
+"country.reparam.seird_dint.nbin"
 "country.reparam.seird_int_nogamma.nbin"
+"country.reparam.seird_dint_nogamma.nbin"
+"country.reparam.seird_int_nogamma_noZ.nbin"
+"country.reparam.seird_dint_nogamma_noZ.nbin"
 "country.reparam.seiird_int.nbin"
+"country.reparam.seiird_dint.nbin"
 "country.reparam.seiird_int_nogamma.nbin"
+"country.reparam.seiird_dint_nogamma.nbin"
+"country.reparam.seiird_int_nogamma_noZ.nbin"
+"country.reparam.seiird_dint_nogamma_noZ.nbin"
 )
 
 # replica
 declare -a models6=(
 "country.reparam.sir_int.nbin"
+"country.reparam.sir_dint.nbin"
 "country.reparam.sir_int_nogamma.nbin"
+"country.reparam.sir_dint_nogamma.nbin"
 "country.reparam.seir_int.nbin"
+"country.reparam.seir_dint.nbin"
 "country.reparam.seir_int_nogamma.nbin"
+"country.reparam.seir_dint_nogamma.nbin"
+"country.reparam.seir_int_nogamma_noZ.nbin"
+"country.reparam.seir_dint_nogamma_noZ.nbin"
 "country.reparam.seiir_int.nbin"
+"country.reparam.seiir_dint.nbin"
 "country.reparam.seiir_int_nogamma.nbin"
+"country.reparam.seiir_dint_nogamma.nbin"
+"country.reparam.seiir_int_nogamma_noZ.nbin"
+"country.reparam.seiir_dint_nogamma_noZ.nbin"
 )
+
 
 
 
@@ -91,6 +112,6 @@ do
 
         outfile="${folder}/cmaes.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python optimize.py \
-            --silentPlot -ns 8 -nt 4 -ng 5000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 16 -nt 4 -ng 5000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
         done
 done
