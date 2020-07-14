@@ -62,8 +62,9 @@ declare -a models5=(
 #"country.reparam.sird_int.nbin"
 #"country.reparam.sird_int_nogamma.nbin"
 #"country.reparam.seird_int.nbin"
-"country.reparam.seird_int_nogamma.nbin"
+#"country.reparam.seird_int_nogamma.nbin"
 #"country.reparam.seiird_int.nbin"
+"country.reparam.seiird_int_nogamma.nbin"
 )
 
 

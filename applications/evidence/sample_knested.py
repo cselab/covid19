@@ -29,7 +29,7 @@ parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of th
 parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
 parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
-parser.add_argument('--observations','-obs', default=['infected'],help='Observations used for comuting likelihood (options: ["infected","deaths"])')
+parser.add_argument('--observations','-obs', default=['infected'], help='Observations used for computing likelihood (options: ["infected","deaths"])')
 
 args = parser.parse_args()
 

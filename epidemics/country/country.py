@@ -28,8 +28,23 @@ class EpidemicsCountry( EpidemicsBase ):
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
     self.up_to_int      = kwargs.pop('up_to_int', False)
     self.preprocess     = kwargs.pop('preprocess')
-    self.observations   = kwargs.pop('observations')
     self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
+    
+    self.useInfections = False
+    self.useDeaths     = False
+    observations = set(kwargs.pop('observations'))
+    
+    if 'infections' in observations:
+        self.useInfections = True
+        observations.remove('infections')
+
+    if 'deaths' in observations:
+        self.useDeaths = True
+        observations.remove('deaths')
+
+    if len(observations) > 0:
+        print('[Epidemics] Unrecognize value in observations ({}).'.format(observations), flush=True)
+        sys.exit()
 
     self.defaults = { 
             'R0'    : (1.0, 15.0),
@@ -65,42 +80,44 @@ class EpidemicsCountry( EpidemicsBase ):
  
   def process_data( self ):
   
-    N = self.regionalData.populationSize
+    N        = self.regionalData.populationSize
     infected = self.regionalData.infected
     deaths   = self.regionalData.deaths
+    t        = self.regionalData.time[1:]
 
     I0 = infected[0]
  
     S0 = N - I0
     y0 = S0, I0
-
-
-    t = self.regionalData.time[1:]
-       
-    incidences = np.diff( infected )
-    incidences, t_incidences = self.filter_daily_data('daily incidences',incidences,t)
-
-    deaths = np.diff( deaths )
-    deaths, t_deaths = self.filter_daily_data('daily deaths',deaths,t)
  
+    self.data['Model']['Initial Condition'] = y0
+    self.data['Model']['Population Size']   = N
+       
+    if self.useInfections:
+        incidences = np.diff( infected )
+        incidences, t_incidences = self.filter_daily_data('daily incidences', incidences, t)
+    else:
+        incidences, t_incidences = [], []
+
+    if self.useDeaths:
+        deaths = np.diff( deaths )
+        deaths, t_deaths = self.filter_daily_data('daily deaths', deaths, t)
+    else:
+        deaths, t_deaths = [], []
+    
     t = list(set(np.concatenate([t_incidences, t_deaths])))
+    t.sort()
 
     if self.nValidation == 0:
-        # Default models
         self.data['Model']['x-data'] = t
-        self.data['Model']['y-data'] = np.concatenate([incidences,deaths])
-
-        # For models with deaths
+        self.data['Model']['y-data'] = np.concatenate([incidences, deaths])
         self.data['Model']['x-infected'] = t_incidences
-        self.data['Model']['x-deaths']   = t_deaths
         self.data['Model']['y-infected'] = incidences
+        self.data['Model']['x-deaths']   = t_deaths
         self.data['Model']['y-deaths']   = deaths
 
         print('[Epidemics] Lengths incidences {} deaths {} total {}'.format(len(incidences), \
                 len(deaths),len(np.concatenate([incidences,deaths]))))
-
-        print(len(incidences))
-        print(len(deaths),flush=True)
 
     else:
         print('TODO, need to take into account diff between t_incidences and t_deaths')
@@ -109,9 +126,6 @@ class EpidemicsCountry( EpidemicsBase ):
         self.data['Model']['y-data'] = incidences[:-self.nValidation]
         #self.data['Validation']['x-data'] = t[-self.nValidation:]
         #self.data['Validation']['y-data'] = incidences[-self.nValidation-1:]
-
-    self.data['Model']['Initial Condition'] = y0
-    self.data['Model']['Population Size']   = N
 
     if self.nValidation == 0:
         T = np.ceil( t[-1] + self.futureDays )
@@ -136,9 +150,10 @@ class EpidemicsCountry( EpidemicsBase ):
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']
-
-    tt = [t[0]-1] + t
-    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
+    
+    T   = np.ceil(t[-1])
+    tt  = np.linspace(0, t[-1], int(T+1))
+    sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt, N=N, p=p)
 
     # get incidences
     infected = np.diff(sol.y) 
@@ -146,18 +161,24 @@ class EpidemicsCountry( EpidemicsBase ):
     infected[infected < eps] = eps
     
     # get deaths
-    deaths   = np.diff(sol.d)
-    eps = 1e-32
-    deaths[deaths < eps] = eps
+    if hasattr(sol, 'd'):
+        deaths = np.diff(sol.d)
+        eps = 1e-32
+        deaths[deaths < eps] = eps
+    else:
+        deaths = []
+
+#    print(len(infected))
+#    print(self.data['Model']['x-infected'])
+#    print(len(self.data['Model']['x-infected']), flush=True)
 
     # concatenate
-    y = []
-    if len(self.data['Model']['x-infected']) != 0:
-        y = self.getCases( infected, self.data['Model']['x-infected'] )
+    y = np.array([])
+    if self.useInfections:
+        y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-infected'])) )
 
-    if len(self.data['Model']['x-deaths']) != 0:
-        deaths = self.getCases( deaths, self.data['Model']['x-deaths'])
-        y = np.concatenate([y, deaths])
+    if self.useDeaths:
+        y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-deaths'])) )
  
     # Transform gradients
     if(self.sampler == 'mTMCMC'):
