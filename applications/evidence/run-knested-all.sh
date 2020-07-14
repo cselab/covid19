@@ -30,7 +30,7 @@ declare -a arr=(
 base="./test/"
 
 
-model="country.reparam.sird_int.nbin"
+#model="country.reparam.sird_int.nbin"
 #model="country.reparam.sird_int_nogamma.nbin"
 #model="country.reparam.seir_dint_nogamma_noZ.tnrm"
 

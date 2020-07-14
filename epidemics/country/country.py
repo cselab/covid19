@@ -28,6 +28,8 @@ class EpidemicsCountry( EpidemicsBase ):
     self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
     self.up_to_int      = kwargs.pop('up_to_int', False)
     self.preprocess     = kwargs.pop('preprocess')
+    self.includeDeaths  = kwargs.pop('includeDeaths', False)
+    self.onlyDeaths     = kwargs.pop('onlyDeaths', False)
     self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
     
     self.useInfections = False
