@@ -83,10 +83,11 @@ class EpidemicsCountry( EpidemicsBase ):
     N        = self.regionalData.populationSize
     infected = self.regionalData.infected
     deaths   = self.regionalData.deaths
-    t        = self.regionalData.time[1:]
+    
+    nt = len(self.regionalData.time)
+    t  = self.regionalData.time[1:nt-self.nValidation]
 
     I0 = infected[0]
- 
     S0 = N - I0
     y0 = S0, I0
  
@@ -105,43 +106,22 @@ class EpidemicsCountry( EpidemicsBase ):
     else:
         deaths, t_deaths = [], []
     
-    t = list(set(np.concatenate([t_incidences, t_deaths])))
-    t.sort()
+    tx = list(set(np.concatenate([t_incidences, t_deaths])))
+    tx.sort()
 
-    if self.nValidation == 0:
-        self.data['Model']['x-data'] = t
-        self.data['Model']['y-data'] = np.concatenate([incidences, deaths])
-        self.data['Model']['x-infected'] = t_incidences
-        self.data['Model']['y-infected'] = incidences
-        self.data['Model']['x-deaths']   = t_deaths
-        self.data['Model']['y-deaths']   = deaths
+    self.data['Model']['x-data'] = tx
+    self.data['Model']['y-data'] = np.concatenate([incidences, deaths])
+    self.data['Model']['x-infected'] = t_incidences
+    self.data['Model']['y-infected'] = incidences
+    self.data['Model']['x-deaths']   = t_deaths
+    self.data['Model']['y-deaths']   = deaths
 
-        print('[Epidemics] Lengths incidences {} deaths {} total {}'.format(len(incidences), \
-                len(deaths),len(np.concatenate([incidences,deaths]))))
+    print('[Epidemics] Lengths incidences {} deaths {} total {}'.format(len(incidences), \
+            len(deaths),len(np.concatenate([incidences,deaths]))))
 
-    else:
-        print('TODO, need to take into account diff between t_incidences and t_deaths')
-        sys.exit()
-        self.data['Model']['x-data'] = t[:-self.nValidation]
-        self.data['Model']['y-data'] = incidences[:-self.nValidation]
-        #self.data['Validation']['x-data'] = t[-self.nValidation:]
-        #self.data['Validation']['y-data'] = incidences[-self.nValidation-1:]
-
-    if self.nValidation == 0:
-        T = np.ceil( t[-1] + self.futureDays )
-    else:
-        T = np.ceil( t[-self.nValidation] + self.futureDays )
-    
+    T = np.ceil( t[-1-self.nValidation] + self.futureDays )
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))
     save_file( self.data, self.saveInfo['inference data'], 'Data for Inference', 'pickle' )
-
-
-  def getCases( self, data, tidx):
-    cases = []
-    for t in tidx:
-        cases = cases + [data[t-1]]
-    
-    return cases
 
 
   def computational_model( self, s ):
@@ -155,7 +135,7 @@ class EpidemicsCountry( EpidemicsBase ):
     tt  = np.linspace(0, t[-1], int(T+1))
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt, N=N, p=p)
 
-    # get incidences
+    # get infected
     infected = np.diff(sol.y) 
     eps = 1e-32
     infected[infected < eps] = eps
@@ -171,8 +151,12 @@ class EpidemicsCountry( EpidemicsBase ):
 #    print(len(infected))
 #    print(self.data['Model']['x-infected'])
 #    print(len(self.data['Model']['x-infected']), flush=True)
+ 
+    # Transform gradients
+    if(self.sampler == 'mTMCMC'):
+        print("[Epidemics] mTMCMC not anymore available, fix needed")
+        sys.exit(0)
 
-    # concatenate
     y = np.array([])
     if self.useInfections:
         y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-infected'])) )
@@ -180,11 +164,6 @@ class EpidemicsCountry( EpidemicsBase ):
     if self.useDeaths:
         y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-deaths'])) )
  
-    # Transform gradients
-    if(self.sampler == 'mTMCMC'):
-        print("[Epidemics] mTMCMC not yet available")
-        sys.exit(0)
-
     s['Reference Evaluations'] = list(y)
     
     if self.likelihoodModel == 'Normal':
@@ -382,9 +361,37 @@ class EpidemicsCountry( EpidemicsBase ):
             print("[Epidemics] Cant show figure, '$DISPLAY' not set..")
 
     plt.close(fig)
+ 
+ 
+  def getCases( self, data, tidx):
+    """ helper to extract cases """
+    cases = []
+    for t in tidx:
+        cases = cases + [data[t-1]]
+
+    return cases
+
+
+  def filter_daily_data(self,field_name,field,t):
+    """ helper to remove and filter invalid data """
+
+    if ((field < 0).any()):
+        print("[Epidemics] Warning, removing negative values from {}!!!".format(field_name))
+        valid = field >= 0
+        field = field[valid]
+        t = t[valid]
+    
+    if ((field > 1e32).any()):
+        print("[Epidemics] Warning, removing extremely large (>1e32) values from {}!!!".format(field_name))
+        valid = field <= 1e32
+        field = field[valid]
+        t = t[valid]
+
+    return field, t
 
 
   def llk_model_nbin ( self, p, t, refy, y0, N ):
+    """ model for dynesty """
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
@@ -398,7 +405,7 @@ class EpidemicsCountry( EpidemicsBase ):
   
     llk = 0.0
     for idx, incident in enumerate(y):
-        llk -= loggamma ( refy[idx] + 1. ) #fix
+        llk -= loggamma ( refy[idx] + 1. )
         m    = incident
         r    = incident*p[-1]
         prob = m / (m+r)
@@ -411,6 +418,7 @@ class EpidemicsCountry( EpidemicsBase ):
     return llk
 
   def llk_model_tnrm ( self, p, t, refy, y0, N ):
+    """ model for dynesty """
 
     tt = [t[0]-1] + t.tolist()
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt,N=N,p=p)
@@ -430,23 +438,3 @@ class EpidemicsCountry( EpidemicsBase ):
         llk += truncnorm.logpdf(refy[idx], a, b, incident, std)
 
     return llk
-
-
-  def filter_daily_data(self,field_name,field,t):
-
-    if ((field < 0).any()):
-        print("[Epidemics] Warning, removing negative values from {}!!!".format(field_name))
-        valid = field >= 0
-        field = field[valid]
-        t = t[valid]
-    
-    if ((field > 1e32).any()):
-        print("[Epidemics] Warning, removing extremely large (>1e32) values from {}!!!".format(field_name))
-        valid = field <= 1e32
-        field = field[valid]
-        t = t[valid]
-
-    return field, t
-
-
-

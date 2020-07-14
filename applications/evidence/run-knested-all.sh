@@ -27,10 +27,10 @@ declare -a arr=(
 # model="country.reparam_2R.seir_int.tnrm"
 # model="country.reparam_2R.seiir_int.tnrm"
 
-base="./data/test/"
+base="./test/"
 
 
-model="country.reparam.sird_int_nogamma.nbin"
+model="country.reparam.sir_int_nogamma.nbin"
 #model="country.reparam.seir_dint_nogamma_noZ.tnrm"
 
 # model="country.reparam.sir_dint.nbin"
@@ -59,13 +59,13 @@ model="country.reparam.sird_int_nogamma.nbin"
 # model="country.reparam.seiir_intrem.tnrm"
 
 
-mkdir ${base} -p
 
 for c in "${arr[@]}"
 do
    folder="$base/$c/$model"
    outfile="${folder}/knested.out"
-   
+   mkdir ${folder} -p
+
    time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
        --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
 
