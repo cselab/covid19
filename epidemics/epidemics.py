@@ -433,7 +433,7 @@ class EpidemicsBase:
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
       varNames = ['Standard Deviation Daily Incidence', 'Standard Deviation Deaths']
     elif( self.likelihoodModel=='Negative Binomial' ):
-      varNames = ['Dispersion Daily Incidence', 'Dispersion Deaths']
+      varNames = ['Dispersion Daily Incidence', 'Dispersion Daily Deaths']
     else:
       abort('Likelihood not found in propagate.')
 
