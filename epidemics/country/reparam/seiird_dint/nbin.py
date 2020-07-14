@@ -24,6 +24,7 @@ class Model( ModelBase ):
             ('mu', *self.defaults['mu']), 
             ('alpha', *self.defaults['alpha']),
             ('eps', *self.defaults['eps']),
+            ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
             ('r', *self.defaults['r'])
             )

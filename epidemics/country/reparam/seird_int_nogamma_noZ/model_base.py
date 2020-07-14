@@ -21,11 +21,11 @@ class ModelBase( EpidemicsCountry ):
     data       = libepidemics.country.ModelData(N=N)
     cppsolver  = seird_int.Solver(data)
 
-    params = seir_int.Parameters(R0=p[0], D=1.0/self.constants['gamma'], Z=self.constants['Z'], eps=p[1], tact=p[2], dtact=p[3], kbeta=p[4])
+    params = seird_int.Parameters(R0=p[0], D=1.0/self.constants['gamma'], Z=self.constants['Z'], eps=p[1], tact=p[2], dtact=p[3], kbeta=p[4])
     
     s0, i0  = y0
     y0cpp   = (s0, 0.0, i0, 0.0, 0.0) # S E I R D
-    initial = seir_int.State(y0cpp)
+    initial = seird_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     

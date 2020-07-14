@@ -24,9 +24,9 @@ class ModelBase( EpidemicsCountry ):
     s0, ir0 = y0
     y0cpp   = (s0, 0.0, ir0, 0.0, 0.0, 0.0) # S E Ir Iu  R D
     
-    initial = seiir_int.State(y0cpp)
+    initial = seiird_int.State(y0cpp)
  
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
   
     exposed   = np.zeros(len(cpp_res))
     infected  = np.zeros(len(cpp_res))
@@ -41,6 +41,7 @@ class ModelBase( EpidemicsCountry ):
         infected[idx] = N-entry.S().val()-entry.E().val()-entry.Iu().val()
         infectedu[idx] = N-entry.S().val()-entry.E().val()-entry.Ir().val()
         recovered[idx] = entry.R().val()
+        deaths[idx]    = entry.D().val()
         
         gradmu.append(np.array([ 
             -entry.S().d(0)-entry.E().d(0)-entry.Iu().d(0),
