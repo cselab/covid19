@@ -429,16 +429,18 @@ class EpidemicsBase:
       for k, idx in enumerate(propagate_idx):
         self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][idx]['Saved Results']['Variables'][i]['Values'] )
 
+    varNames = []
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
-      varName = 'Standard Deviation'
+      varNames = ['Standard Deviation Daily Incidence', 'Standard Deviation Deaths']
     elif( self.likelihoodModel=='Negative Binomial' ):
-      varName = 'Dispersion'
+      varNames = ['Dispersion Daily Incidence', 'Dispersion Deaths']
     else:
       abort('Likelihood not found in propagate.')
 
-    self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
-    for k in range(nPropagate):
-      self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
+    for varName in varNames:
+        self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
+        for k in range(nPropagate):
+            self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
 
     printlog('Done copying variables.')
 
@@ -471,14 +473,14 @@ class EpidemicsBase:
     if self.likelihoodModel=='Normal':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Standard Deviation'][:,k]
+        r = self.propagatedVariables['Standard Deviation {0}'.format(varName)][:,k]
         x = [ np.random.normal(m,r) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 
     elif self.likelihoodModel=='Positive Normal':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        s = self.propagatedVariables['Standard Deviation'][:,k]
+        s = self.propagatedVariables['Standard Deviation {0}'.format(varName)][:,k]
         t = get_truncated_normal(m,s,0,np.Inf)
         x = [ t.rvs() for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
@@ -486,7 +488,7 @@ class EpidemicsBase:
     elif self.likelihoodModel=='Negative Binomial':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Dispersion'][:,k]
+        r = self.propagatedVariables['Dispersion {0}'.format(varName)][:,k]
         p =  m/(m+r)
         try:
           x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]

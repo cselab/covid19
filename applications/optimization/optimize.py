@@ -20,7 +20,7 @@ parser.add_argument('--nSamples', '-ns', type=int, default=16, help='Number of s
 parser.add_argument('--nGenerations', '-ng', type=int, default=1000, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
-parser.add_argument('--observations', '-obs', default=['infections', 'deaths'], help='Observations to fit data.')
+parser.add_argument('--observations', '-obs', default=['infections'], help='Observations to fit data.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 args = parser.parse_args()
 

@@ -67,7 +67,7 @@ do
    mkdir ${folder} -p
 
    time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-       --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+       --silentPlot -ns 300 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
 
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
 done

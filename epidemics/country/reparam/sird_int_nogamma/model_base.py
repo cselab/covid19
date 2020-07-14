@@ -23,7 +23,7 @@ class ModelBase( EpidemicsCountry ):
     params = sird_int.Parameters(R0=p[0], D=1.0/self.constants['gamma'], eps=p[1], tact=p[2], dtact=p[3], kbeta=p[4])
     
     s0, i0 = y0
-    y0cpp   = (s0, i0, 0.0, 0.0)
+    y0cpp   = (s0, i0, 0.0, 0.0) # S I R D
     initial = sird_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)

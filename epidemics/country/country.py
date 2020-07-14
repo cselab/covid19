@@ -191,10 +191,10 @@ class EpidemicsCountry( EpidemicsBase ):
     eps = 1e-32
     incidences[incidences < eps] = eps
  
-    recovered  = None
-    exposed    = None
-    unreported = None
-    deaths     = None
+    recovered  = np.array([])
+    exposed    = np.array([])
+    unreported = np.array([])
+    deaths     = np.array([])
 
     if hasattr(sol, 'r'):
         recovered = np.diff(sol.r)
@@ -226,25 +226,25 @@ class EpidemicsCountry( EpidemicsBase ):
     js['Variables'][k]['Values'] = list(incidences)
     k += 1
 
-    if recovered is not None:
+    if recovered.size is not 0:
         js['Variables'].append({})
         js['Variables'][k]['Name'] = 'Daily Recovered'
         js['Variables'][k]['Values'] = list(recovered)
         k += 1
 
-    if exposed is not None:
+    if exposed.size is not 0:
        js['Variables'].append({})
        js['Variables'][k]['Name'] = 'Daily Exposed'
        js['Variables'][k]['Values'] = list(exposed)
        k += 1
 
-    if unreported is not None:
+    if unreported.size is not 0:
        js['Variables'].append({})
        js['Variables'][k]['Name'] = 'Daily Unreported'
        js['Variables'][k]['Values'] = list(unreported)
        k += 1
 
-    if deaths is not None:
+    if deaths.size is not 0:
         js['Variables'].append({})
         js['Variables'][k]['Name'] = 'Daily Deaths'
         js['Variables'][k]['Values'] = list(deaths)
@@ -254,11 +254,14 @@ class EpidemicsCountry( EpidemicsBase ):
     js['Length of Variables'] = len(t)
 
     if self.likelihoodModel == 'Normal':
-        js['Standard Deviation'] = ( p[-1] * incidences ).tolist()
+        js['Standard Deviation Daily Incidence'] = ( p[-1] * incidences ).tolist()
+        js['Standard Deviation Daily Deaths']    = ( p[-1] * deaths ).tolist()
     elif self.likelihoodModel == 'Positive Normal':
-        js['Standard Deviation'] = ( p[-1] * incidences ).tolist()
+        js['Standard Deviation Daily Incidence'] = ( p[-1] * incidences ).tolist()
+        js['Standard Deviation Daily Deaths']    = ( p[-1] * deaths ).tolist()
     elif self.likelihoodModel == 'Negative Binomial':
-        js['Dispersion'] = (len(incidences)) * [p[-1]]
+        js['Dispersion Daily Incidence'] = (len(incidences)) * [p[-1]]
+        js['Dispersion Daily Deaths']    = (len(deaths)) * [p[-1]]
 
     s['Saved Results'] = js
 
@@ -277,14 +280,17 @@ class EpidemicsCountry( EpidemicsBase ):
         ax_cumul_deaths = ax[1][1]
 
 
-        ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'o', \
+        ax_daily_deaths.plot( self.data['Model']['x-deaths'], self.data['Model']['y-deaths'], 'x', \
                 lw=2, label='Daily Deaths (data)', color='black')
         
         cumul_deaths = np.cumsum(self.data['Model']['y-deaths'])
         ax_cumul_deaths.set_xlabel('time in days')
-        ax_cumul_deaths.plot( self.data['Model']['x-deaths'], cumul_deaths, 'o', \
+        ax_cumul_deaths.plot( self.data['Model']['x-deaths'], cumul_deaths, 'x', \
                 lw=2, label='Cumulative Deaths (data)', color='black')
-
+ 
+        self.compute_plot_intervals( 'Daily Deaths', ns, ax_daily_deaths, 'Daily Deaths' )
+        self.compute_plot_intervals( 'Daily Deaths', ns, ax_cumul_deaths, 'Cumulative number of deaths', cumulate=1)
+ 
         if 'Daily Deaths' in self.propagatedVariables:
             self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_daily_deaths, 'Daily Deaths')
             self.compute_mean_median( 'Daily Deaths', 'black', ns, ax_cumul_deaths, 'Cumulative number of deaths', cumulate=1)
@@ -297,12 +303,12 @@ class EpidemicsCountry( EpidemicsBase ):
 
 
     ax_daily.plot( self.data['Model']['x-infected'], self.data['Model']['y-infected'], 'o', \
-            lw=2, label='Daily Infected(data)', color='black')
+            lw=2, label='Daily Infected (data)', color='black')
     
     cumul_infected = np.cumsum(self.data['Model']['y-infected'])
     ax_cumul.set_xlabel('time in days')
     ax_cumul.plot( self.data['Model']['x-infected'], cumul_infected, 'o', \
-            lw=2, label='Cumulative Infected(data)', color='black')
+            lw=2, label='Cumulative Infected (data)', color='black')
 
 
     if self.nValidation > 0:
