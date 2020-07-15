@@ -112,6 +112,6 @@ do
 
         outfile="${folder}/cmaes.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python optimize.py \
-            --silentPlot -ns 16 -nt 4 -ng 5000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 64 -nt 4 -ng 5000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
         done
 done
