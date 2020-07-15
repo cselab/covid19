@@ -14,7 +14,7 @@ sys.path.append('../../build')
 from epidemics.tools.tools import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='country.reparam_beta.sir_int.tnrm', help='The computational mode.')
+parser.add_argument('--compModel', '-cm', default='country.reparam.seird_int.tnrm', help='The computational mode.')
 parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
@@ -24,7 +24,8 @@ parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate 
 parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that many data from the end of the data list to validate the prediction.')
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
-parser.add_argument('--preprocess','-pre',type=bool,default=True,help='Preprocess infection data')
+parser.add_argument('--preprocess','-pre',type=bool,default=False,help='Preprocess infection data')
+parser.add_argument('--data_fields','-f',type=str,default=['infected'],help='Preprocess infection data')
 
 args = parser.parse_args()
 

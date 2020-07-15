@@ -19,12 +19,12 @@ class RegionCasesData:
 
         self.confirmed = confirmed
         self.recovered = recovered
-        self.deaths = deaths
+        self.deaths    = deaths
 
         self.hospitalized = hospitalized
-        self.icu = icu
-        self.released = released
-        self.ventilated = ventilated
+        self.icu          = icu
+        self.released     = released
+        self.ventilated   = ventilated
 
     def __repr__(self):
         return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(

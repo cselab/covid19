@@ -15,10 +15,12 @@ parser.add_argument('--compModel', '-cm', default='sir.altone_nbin', help='The c
 parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--lastDay', '-ld', default='2020-06-13', help='Last day of data sequence in format %Y-%m-%d./')
+parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocess data')
 parser.add_argument('--nSamples', '-ns', type=int, default=16, help='Number of samples for CMAES.')
 parser.add_argument('--nGenerations', '-ng', type=int, default=1000, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
+parser.add_argument('--observations', '-obs', default=['infections'], help='Observations to fit data.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 args = parser.parse_args()
 

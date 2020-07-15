@@ -3,7 +3,6 @@
 declare -a arr=(
 "switzerland"
 "france"
-#"germany"
 )
 
 # OTHER (TOP 10 by Population)
@@ -36,6 +35,17 @@ declare -a models1=(
 )
 
 declare -a models2=(
+"country.reparam.sir_dint.nbin"
+"country.reparam.sir_dint_nogamma.nbin"
+"country.reparam.seir_dint.nbin"
+"country.reparam.seir_dint_nogamma.nbin"
+"country.reparam.seir_dint_nogamma_noZ.nbin"
+"country.reparam.seiir_dint.nbin" 
+"country.reparam.seiir_dint_nogamma.nbin" 
+"country.reparam.seiir_dint_nogamma_noZ.nbin" 
+)
+
+declare -a models3=(
 "country.reparam.sir_int.tnrm"
 "country.reparam.sir_int_nogamma.tnrm"
 "country.reparam.seir_int.tnrm"
@@ -46,31 +56,31 @@ declare -a models2=(
 "country.reparam.seiir_int_nogamma_noZ.tnrm"
 )
 
-declare -a models3=(
-<<<<<<< HEAD
-"country.reparam.seiir_int.tnrm"
-"country.reparam.seiir_int_nogamma.tnrm"
-"country.reparam.seiir_int_nogamma_noZ.tnrm"
-"country.reparam.seiir_int.nbin"
-"country.reparam.seiir_int_nogamma.nbin"
-"country.reparam.seiir_int_nogamma_noZ.nbin"
-)
-
 declare -a models4=(
 "country.reparam.sir_dint.tnrm"
 "country.reparam.sir_dint_nogamma.tnrm"
 "country.reparam.seir_dint.tnrm"
 "country.reparam.seir_dint_nogamma.tnrm"
 "country.reparam.seir_dint_nogamma_noZ.tnrm"
-"country.reparam.seiir_dint.tnrm" 
-"country.reparam.seiir_dint_nogamma.tnrm" 
-"country.reparam.seiir_dint_nogamma_noZ.tnrm" 
+"country.reparam.seiir_dint.tnrm"
+"country.reparam.seiir_dint_nogamma.tnrm"
+"country.reparam.seiir_dint_nogamma_noZ.tnrm"
 )
 
+declare -a models5=(
+"country.reparam.sird_int.nbin"
+"country.reparam.sird_int_nogamma.nbin"
+"country.reparam.seird_int.nbin"
+"country.reparam.seird_int_nogamma.nbin"
+"country.reparam.seird_int_nogamma_noZ.nbin"
+"country.reparam.seiird_int.nbin" 
+"country.reparam.seiird_int_nogamma.nbin" 
+"country.reparam.seiird_int_nogamma_noZ.nbin" 
+)
 
 mkdir ${base} -p
 
-for model in "${models3[@]}"
+for model in "${models5[@]}"
 do
     for c in "${arr[@]}"
     do
@@ -79,7 +89,7 @@ do
 
         outfile="${folder}/knested.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 500 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         done

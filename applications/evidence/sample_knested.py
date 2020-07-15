@@ -13,8 +13,8 @@ from epidemics.tools.tools import import_from
 sys.path.append('../../build')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='country.sir.tnrm', help='The computational model.')
-parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
+parser.add_argument('--compModel', '-cm', default='country.reparam.sir_int.tnrm', help='The computational model.')
+parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--lastDay', '-ld', default='2020-06-13', help='Last day of data sequence in format %Y-%m-%d./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of Live Samples.')
@@ -29,6 +29,7 @@ parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of th
 parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
 parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
+parser.add_argument('--observations','-obs', default=['infections', 'deaths'], help='Observations used for computing likelihood (options: ["infections","deaths"])')
 
 args = parser.parse_args()
 

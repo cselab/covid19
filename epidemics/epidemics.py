@@ -31,8 +31,8 @@ class EpidemicsBase:
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
     self.sampler     = kwargs.pop('sampler','TMCMC')
-    self.display     = os.environ['HOME']
     self.synthetic   = kwargs.pop('synthetic', False)
+    self.display     = os.environ['HOME']
 
 
     if(self.synthetic):
@@ -130,15 +130,12 @@ class EpidemicsBase:
     return os.path.split(path)[1][:-3]
 
 
-
   def save_data_path( self ):
     """
     Returns `tuple`:
     Directories to be joined to generate path for output data.
     """
     return (self.dataFolder,)
-
-
 
 
   def set_korali_output_files( self, folder, frequency = 1 ):
@@ -276,61 +273,6 @@ class EpidemicsBase:
     printlog('Done copying variables.')
 
 
-  def sample_nested(self, nLiveSamples=1500, maxiter=1e9, dlogz=0.1 ):
-   
-    from dynesty import NestedSampler
-        
-    js = self.get_variables_and_distributions()
-    ptform = lambda p : priorTransformFromJs(p, js)
-
-    ndim = len(js['Distributions'])
-
-    refy = self.data['Model']['y-data']
-    t    = self.data['Model']['x-data']
-
-    N  = self.data['Model']['Population Size']
-    y0 = self.data['Model']['Initial Condition']
- 
-    llkfunction = None
-    if self.likelihoodModel == "Positive Normal":
-        llkfunction = lambda p : self.llk_model_tnrm( p, t, refy, y0, N)
-    elif self.likelihoodModel == "Negative Binomial":
-        llkfunction = lambda p : self.llk_model_nbin( p, t, refy, y0, N)
-    else:
-       print("[Epidemics] likelihood model not recognized!")
-       sys.exit(0)
-
-
-    sampler = NestedSampler(llkfunction, ptform, ndim, nlive=nLiveSamples, bound='multi',sample='unif')
-    sampler.run_nested(maxiter=maxiter, dlogz=dlogz, add_live=True) # TODO: set parameters external
-
-    res = sampler.results
-    res.summary()
-    
-    self.save_nested( res )
-
-    myDatabase, _    = getPosteriorFromResult(res)
-    self.nSamples, _ = np.shape(myDatabase)
- 
-    printlog('Copy variables from Nested Sampler to Epidemics... ({0} samples generated)'.format(self.nSamples))
-    
-    for j in range(self.nParameters):
-      self.parameters.append({})
-      self.parameters[j]['Name']   = js['Variables'][j]['Name']
-      self.parameters[j]['Values'] = np.asarray( [sample[j] for sample in myDatabase] )
-
-    self.has_been_called['sample']    = True
-    self.has_been_called['propagate'] = False
-    
-    printlog('Done copying variables.')
-  
-    js = {}
-    js['Evidence'] = res.logz[-1]
-
-    printlog(f"Log Evidence = {js['Evidence']}")
-    save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
-
-  
   def optimize( self, populationSize, maxiter=1000 ):
 
     self.nSamples = 1
@@ -411,16 +353,23 @@ class EpidemicsBase:
 
   def load_parameters(self,samples_path):
 
-      printlog('Loading posterior samples')
+      printlog('Loading posterior samples from {}'.format(samples_path))
 
       files = list(set([filename for filename in os.listdir(samples_path) if (filename.endswith(".json"))]))
       files.sort()
       filename = files[-1]
 
       variable_names = []
-      with open(samples_path+'/'+files[-1]) as json_file:
+      with open(samples_path+'/latest') as json_file:
         data = json.load(json_file)
-        samples = data['Results']['Sample Database']
+        print(data.keys())
+        if 'Sample Database' in data['Results']:
+          samples = data['Results']['Sample Database']
+        elif 'Posterior Sample Database' in data['Results']:
+          samples = data['Results']['Posterior Sample Database']
+        else:
+          print('Not avail')
+
         variables = data['Variables']
 
       self.nParameters = len(variables)
@@ -480,16 +429,18 @@ class EpidemicsBase:
       for k, idx in enumerate(propagate_idx):
         self.propagatedVariables[x][k] = np.asarray( self.e['Samples'][idx]['Saved Results']['Variables'][i]['Values'] )
 
+    varNames = []
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
-      varName = 'Standard Deviation'
+      varNames = ['Standard Deviation Daily Incidence', 'Standard Deviation Deaths']
     elif( self.likelihoodModel=='Negative Binomial' ):
-      varName = 'Dispersion'
+      varNames = ['Dispersion Daily Incidence', 'Dispersion Daily Deaths']
     else:
       abort('Likelihood not found in propagate.')
 
-    self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
-    for k in range(nPropagate):
-      self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
+    for varName in varNames:
+        self.propagatedVariables[varName] = np.zeros((nPropagate,Nt))
+        for k in range(nPropagate):
+            self.propagatedVariables[varName][k] = np.asarray( self.e['Samples'][k]['Saved Results'][varName] )
 
     printlog('Done copying variables.')
 
@@ -522,14 +473,14 @@ class EpidemicsBase:
     if self.likelihoodModel=='Normal':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Standard Deviation'][:,k]
+        r = self.propagatedVariables['Standard Deviation {0}'.format(varName)][:,k]
         x = [ np.random.normal(m,r) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
 
     elif self.likelihoodModel=='Positive Normal':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        s = self.propagatedVariables['Standard Deviation'][:,k]
+        s = self.propagatedVariables['Standard Deviation {0}'.format(varName)][:,k]
         t = get_truncated_normal(m,s,0,np.Inf)
         x = [ t.rvs() for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
@@ -537,7 +488,7 @@ class EpidemicsBase:
     elif self.likelihoodModel=='Negative Binomial':
       for k in range(Nt):
         m = self.propagatedVariables[varName][:,k]
-        r = self.propagatedVariables['Dispersion'][:,k]
+        r = self.propagatedVariables['Dispersion {0}'.format(varName)][:,k]
         p =  m/(m+r)
         try:
           x = [ np.random.negative_binomial(r,1-p) for _ in range(ns) ]
@@ -576,7 +527,7 @@ class EpidemicsBase:
     ax.legend(loc='upper left')
     ax.set_ylabel( ylabel )
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
-    ax.set_xticks( x[0:-1:3] )
+    ax.set_xticks( x[0:-1:14] )
     ax.grid()
     ax.set_xlim(left=x[1])
     if( self.logPlot and cumulate < 1 ): 
@@ -616,7 +567,7 @@ class EpidemicsBase:
     ax.legend(loc='upper left')
     #ax.set_ylabel( ylabel )
     x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
-    ax.set_xticks( x[0:-1:3] )
+    ax.set_xticks( x[0:-1:14] )
     ax.grid()
  
     if( self.logPlot and cumulate < 1 ): 
@@ -656,4 +607,3 @@ def load_param_samples(datadir):
     comb[names_add[0]] = logprior
     comb[names_add[1]] = loglike
     return comb
-
