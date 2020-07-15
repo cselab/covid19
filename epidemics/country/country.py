@@ -67,6 +67,20 @@ class EpidemicsCountry( EpidemicsBase ):
             'Z'     : 2.7,
             'dtact' : 14.0
     }
+  
+    self.bz_constants = {
+            'sigma' : 1.0/2.6,
+            'gamma' : 1.0/2.6,
+            'omega1': 1.0/5.0,
+            'omega2': 1.0/6.0,
+            'omega3': 1.0/10.0,
+            'omega4': 1.0/11.2,
+            'omega5': 1.0/10.5,
+            'eps1'  : 0.035,
+            'eps2'  : 0.3,
+            'eps3'  : 0.35,
+            'eps4'  : 0.23,
+    }
     
     super().__init__( **kwargs )
   
