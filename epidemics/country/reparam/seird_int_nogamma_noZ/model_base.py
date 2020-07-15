@@ -46,6 +46,7 @@ class ModelBase( EpidemicsCountry ):
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
+    deaths[np.isnan(deaths)]     = 0
     
     # Create Solution Object
     sol = Object()

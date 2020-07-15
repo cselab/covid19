@@ -78,9 +78,22 @@ declare -a models5=(
 "country.reparam.seiird_int_nogamma_noZ.nbin" 
 )
 
+
+declare -a models6=(
+"country.reparam.sird_dint.nbin"
+"country.reparam.sird_dint_nogamma.nbin"
+"country.reparam.seird_dint.nbin"
+"country.reparam.seird_dint_nogamma.nbin"
+"country.reparam.seird_dint_nogamma_noZ.nbin"
+"country.reparam.seiird_dint.nbin" 
+"country.reparam.seiird_dint_nogamma.nbin" 
+"country.reparam.seiird_dint_nogamma_noZ.nbin" 
+)
+
+
 mkdir ${base} -p
 
-for model in "${models5[@]}"
+for model in "${models6[@]}"
 do
     for c in "${arr[@]}"
     do

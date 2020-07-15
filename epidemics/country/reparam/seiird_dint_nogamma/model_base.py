@@ -57,6 +57,7 @@ class ModelBase( EpidemicsCountry ):
         gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
  
     infected[np.isnan(infected)] = 0
+    deaths[np.isnan(deaths)]     = 0
     
     sol = Object()
     sol.y       = infected
