@@ -20,15 +20,26 @@ parser.add_argument('--nSamples', '-ns', type=int, default=16, help='Number of s
 parser.add_argument('--nGenerations', '-ng', type=int, default=1000, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
-parser.add_argument('--observations', '-obs', default=['infections'], help='Observations to fit data.')
+parser.add_argument('--useInfections', '-ui', action='store_true', help='Use infections to fit data.')
+parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths to fit data.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 args = parser.parse_args()
 
-
 x = copy.deepcopy(args)
+
 del x.compModel
 del x.nSamples
 del x.nGenerations
+del x.useInfections
+del x.useDeaths
+
+obs = []
+if args.useInfections:
+    obs.append('infections')
+if args.useDeaths:
+    obs.append('deaths')
+
+x.observations=obs
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 

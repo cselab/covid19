@@ -29,16 +29,25 @@ parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of th
 parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
 parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
-parser.add_argument('--observations','-obs', default=['infections', 'deaths'], help='Observations used for computing likelihood (options: ["infections","deaths"])')
+parser.add_argument('--useInfections', '-ui', action='store_true', help='Use infections to fit data.')
+parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths to fit data.')
 
 args = parser.parse_args()
-
+obs = []
+if args.useInfections:
+    obs.append('infections')
+if args.useDeaths:
+    obs.append('deaths')
 
 x = copy.deepcopy(args)
+x.observations=obs
 del x.compModel
 del x.nSamples
 del x.nPropagation
 del x.nGenerations
+del x.useInfections
+del x.useDeaths
+
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
