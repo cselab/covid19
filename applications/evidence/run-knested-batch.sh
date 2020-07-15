@@ -1,8 +1,8 @@
  #!/bin/bash
 
-declare -a arr=(
+declare -a countries=(
 "switzerland"
-"france"
+#"france"
 )
 
 # OTHER (TOP 10 by Population)
@@ -21,7 +21,7 @@ declare -a arr=(
 # "switzerland"
 # "sweden"
 
-base="./data/knested/"
+base="./data/new/"
 
 declare -a models1=(
 "country.reparam.sir_int.nbin"
@@ -95,7 +95,7 @@ mkdir ${base} -p
 
 for model in "${models6[@]}"
 do
-    for c in "${arr[@]}"
+    for c in "${countries[@]}"
     do
         folder="$base/$c/$model"
         mkdir ${folder} -p

@@ -2,13 +2,14 @@
 
 declare -a countries=(
 "switzerland"
-"france"
-"germany"
+#"france"
+#"germany"
 )
 
 base="./data/knested/"
 
-model="country.cz_int.nbin"
+#model="country.cz_int.nbin"
+model="country.reparam.sird_dint_nogamma.nbin"
 
 mkdir ${base} -p
 

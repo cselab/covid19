@@ -34,6 +34,21 @@ class EpidemicsBase:
     self.synthetic   = kwargs.pop('synthetic', False)
     self.display     = os.environ['HOME']
 
+    self.useInfections = False
+    self.useDeaths     = False
+    observations = set(kwargs.pop('observations'))
+    
+    if 'infections' in observations:
+        self.useInfections = True
+        observations.remove('infections')
+
+    if 'deaths' in observations:
+        self.useDeaths = True
+        observations.remove('deaths')
+ 
+    if len(observations) > 0:
+        print('[Epidemics] Unrecognize value in observations ({}).'.format(observations), flush=True)
+        sys.exit()
 
     if(self.synthetic):
         self.datafile     = kwargs.pop('dataFile')
@@ -431,9 +446,16 @@ class EpidemicsBase:
 
     varNames = []
     if( self.likelihoodModel=='Normal' or self.likelihoodModel=='Positive Normal' ):
-      varNames = ['Standard Deviation Daily Incidence', 'Standard Deviation Deaths']
+        if self.useInfections:
+            varNames.append('Standard Deviation Daily Incidence')
+        if self.useDeaths:
+            varNames.append('Standard Deviation Daily Deaths')
+
     elif( self.likelihoodModel=='Negative Binomial' ):
-      varNames = ['Dispersion Daily Incidence', 'Dispersion Daily Deaths']
+        if self.useInfections:
+            varNames.append('Dispersion Daily Incidence')
+        if self.useDeaths:
+            varNames.append('Dispersion Daily Deaths')
     else:
       abort('Likelihood not found in propagate.')
 

@@ -2,11 +2,11 @@
 
 declare -a arr=(
 "switzerland"
-"france"
-"germany"
+#"france"
+#"germany"
 )
 
-base="./test/"
+base="./new/"
 
 # for test
 declare -a models0=(
@@ -98,8 +98,6 @@ declare -a models6=(
 )
 
 
-
-
 mkdir ${base} -p
 
 # exchange batch
@@ -112,6 +110,6 @@ do
 
         outfile="${folder}/cmaes.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python optimize.py \
-            --silentPlot -ns 64 -nt 4 -ng 5000 -cm ${model} -c "$c" -df $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 64 -nt 4 -ng 5000 -cm ${model} -ui -ud -c "$c" -df $base 2>&1 | tee ${outfile}
         done
 done

@@ -32,22 +32,6 @@ class EpidemicsCountry( EpidemicsBase ):
     self.onlyDeaths     = kwargs.pop('onlyDeaths', False)
     self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
     
-    self.useInfections = False
-    self.useDeaths     = False
-    observations = set(kwargs.pop('observations'))
-    
-    if 'infections' in observations:
-        self.useInfections = True
-        observations.remove('infections')
-
-    if 'deaths' in observations:
-        self.useDeaths = True
-        observations.remove('deaths')
-
-    if len(observations) > 0:
-        print('[Epidemics] Unrecognize value in observations ({}).'.format(observations), flush=True)
-        sys.exit()
-
     self.defaults = { 
             'R0'    : (1.0, 15.0),
             'D'     : (1.0, 20.0),
