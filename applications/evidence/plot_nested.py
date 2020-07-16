@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import argparse
 import pickle
-from epidemics.tools.nested import plotNetsedResult
+from epidemics.utils.nested import plotNetsedResult
 
 
 if __name__ == "__main__":

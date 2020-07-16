@@ -9,7 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__),'build'))
 
 import argparse
 import copy
-from epidemics.tools.tools import import_from
+from epidemics.utils.misc import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.sir.nbin', help='The computational model.')

@@ -11,7 +11,7 @@ import copy
 import argparse
 
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import save_file
+from epidemics.utils.misc import save_file
 import libepidemics
 
 

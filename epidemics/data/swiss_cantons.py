@@ -9,9 +9,9 @@ This file provides access to all relevant data aobut Swiss cantons and COVID-19:
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR, DATA_FILES_DIR
 from epidemics.data.cases import get_region_cases
 from epidemics.data.population import get_region_population
-from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.date import date_fromisoformat
-from epidemics.tools.io import download_and_save, extract_zip
+from epidemics.utils.cache import cache, cache_to_file
+from epidemics.utils.date import date_fromisoformat
+from epidemics.utils.io import download_and_save, extract_zip
 import epidemics.data.swiss_municipalities as swiss_mun
 import numpy as np
 

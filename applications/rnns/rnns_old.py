@@ -18,7 +18,7 @@ PROJECT_DIR =  Path("/Users/pvlachas/Documents/PhD/project_covid/covid19")
 
 sys.path.append(str(PROJECT_DIR))
 
-from epidemics.tools.io import download_and_save
+from epidemics.utils.io import download_and_save
 
 
 DATA_DIR = Path("/Users/pvlachas/Documents/PhD/project_covid/covid19/rnns/data")

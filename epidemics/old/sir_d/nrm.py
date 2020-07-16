@@ -8,7 +8,7 @@ import os
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.utils.misc import prepare_folder, save_file
 from .model_base import ModelBase
 import epidemics.ode_solver as solver
 

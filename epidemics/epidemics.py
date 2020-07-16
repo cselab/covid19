@@ -15,9 +15,9 @@ import matplotlib.pyplot as plt
 plt.ioff()
 
 
-from epidemics.tools.tools import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
-from epidemics.tools.compute_credible_intervals import compute_credible_intervals
-from epidemics.tools.nested import priorTransformFromJs, getPosteriorFromResult, WorkerPool
+from epidemics.utils.misc import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
+from epidemics.utils.compute_credible_intervals import compute_credible_intervals
+from epidemics.utils.nested import priorTransformFromJs, getPosteriorFromResult, WorkerPool
 
 class EpidemicsBase:
 

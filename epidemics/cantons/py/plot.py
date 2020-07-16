@@ -23,7 +23,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
 from epidemics.cantons.py.model import DesignParameters
 from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
-from epidemics.tools.cache import cache, cache_to_file
+from epidemics.utils.cache import cache, cache_to_file
 import epidemics.data.swiss_municipalities as munic
 
 def Log(msg):

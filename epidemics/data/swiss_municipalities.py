@@ -5,8 +5,8 @@ import re
 import os
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
-from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.io import download_and_save, extract_zip
+from epidemics.utils.cache import cache, cache_to_file
+from epidemics.utils.io import download_and_save, extract_zip
 
 # Note of code design:
 # 1) "Get" functions are split into smaller ones, each on of takes cares of

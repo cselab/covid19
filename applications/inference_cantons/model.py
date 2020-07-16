@@ -1,5 +1,5 @@
 import numpy as np
-from epidemics.tools.tools import save_file
+from epidemics.utils.misc import save_file
 from epidemics.epidemics import EpidemicsBase
 
 from data import Data

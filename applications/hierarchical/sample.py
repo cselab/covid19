@@ -11,7 +11,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append('../../build')
 
-from epidemics.tools.tools import import_from
+from epidemics.utils.misc import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.reparam.seird_int.tnrm', help='The computational mode.')

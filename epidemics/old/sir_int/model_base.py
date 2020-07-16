@@ -14,7 +14,7 @@ plt.ioff()
 
 from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.utils.misc import prepare_folder, save_file
 
 
 class ModelBase( EpidemicsBase ):
