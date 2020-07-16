@@ -3,9 +3,9 @@ import libepidemics
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from common import TestCaseEx
+from common import TestCaseEx, intervention_beta
 
-def solve_sir(params, y0, t_eval, *, N):
+def solve_sir(p, y0, t_eval, *, N):
     """Solve the SIR equation with interventions.
 
     Arguments:
@@ -13,21 +13,13 @@ def solve_sir(params, y0, t_eval, *, N):
     Returns:
 
     """
-    beta, gamma, tact, dtact, kbeta = params
     def rhs(t, y):
         S, I, R = y
 
-        betareal = None
-        if (t < tact):
-            betareal = beta
-        elif (t < tact + dtact):
-            betareal = (1. - (t - tact) / dtact * (1. - kbeta)) * beta
-        else:
-            betareal = kbeta*beta
-
+        betareal = intervention_beta(t, p)
 
         A = betareal * S * I / N
-        B = gamma * I
+        B = p.gamma * I
 
         dS = -A
         dI = A - B

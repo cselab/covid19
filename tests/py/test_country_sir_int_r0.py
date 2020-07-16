@@ -5,7 +5,7 @@ import numpy as np
 
 from common import TestCaseEx
 
-def solve_sir(r0, gamma, tact, dtact, kbeta, y0, t_eval, *, N):
+def solve_sir(p, y0, t_eval, *, N):
     """Solve the SIR equation with interventions.
 
     Arguments:
@@ -16,17 +16,16 @@ def solve_sir(r0, gamma, tact, dtact, kbeta, y0, t_eval, *, N):
     def rhs(t, y):
         S, I, R = y
 
-        r0real = None
-        if (t < tact):
-            r0real = r0
-        elif (t < tact + dtact):
-            r0real = (1. - (t - tact) / dtact * (1. - kbeta)) * r0
+        t0 = p.tact - 0.5 * p.dtact
+        if t < t0:
+            r0real = p.r0
+        elif t < p.tact + 0.5 * p.dtact:
+            r0real = (1. - (t - t0) / p.dtact * (1. - p.kbeta)) * p.r0
         else:
-            r0real = kbeta*r0
+            r0real = p.kbeta * p.r0
 
-
-        A = r0real * gamma * S * I / N
-        B = gamma * I
+        A = r0real * p.gamma * S * I / N
+        B = p.gamma * I
 
         dS = -A
         dI = A - B
@@ -52,7 +51,7 @@ class TestCountrySIR(TestCaseEx):
         y0 = (1e5, 1., 200.)  # S, I, R.
         t_eval    = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial   = sir_int_r0.State(y0)
-        py_result = solve_sir(params.r0, params.gamma, params.tact, params.dtact, params.kbeta, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_sir(params, y0=y0, t_eval=t_eval, N=data.N)
         cpp_result_noad = solver.solve          (params, initial, t_eval=t_eval, dt=0.01)
         cpp_result_ad   = solver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.01)
 

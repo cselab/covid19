@@ -48,16 +48,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> &x,
              State<T> & __restrict__ dxdt) const
     {
-
         T beta = intervention(p.beta, t, p.kbeta, p.tact, p.dtact);
-
-        if (t < p.tact - 0.5*p.dtact) {
-           beta = p.beta;
-        } else if (t < p.tact + 0.5*p.dtact) {
-           beta = (1. - (t - 0.5*p.dtact - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta;
-        } else {
-           beta = p.kbeta * p.beta;
-        }
 
         auto invZ   = 1 / p.Z;
         auto invD   = 1 / p.D;

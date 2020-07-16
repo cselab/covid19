@@ -3,7 +3,7 @@ import libepidemics
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from common import TestCaseEx
+from common import TestCaseEx, intervention_beta
 
 def solve_seiir(p, y0, t_eval, *, N):
     """Solve the SEIIR equation with interventions.
@@ -16,13 +16,7 @@ def solve_seiir(p, y0, t_eval, *, N):
     def rhs(t, y):
         S, E, Ir, Iu, R = y
         
-        betareal = None
-        if (t < p.tact):
-            betareal = p.beta
-        elif (t < p.tact + p.dtact):
-            betareal = (1. - (t - p.tact) / p.dtact * (1. - p.kbeta)) * p.beta
-        else:
-            betareal = p.kbeta*p.beta
+        betareal = intervention_beta(t, p)
 
         C1 = betareal * S * Ir / N
         C2 = betareal * S * (p.mu * Iu) / N
