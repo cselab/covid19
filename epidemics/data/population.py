@@ -1,6 +1,6 @@
 from epidemics.data import DATA_FILES_DIR
 from epidemics.data.regions import region_to_key
-from epidemics.tools.cache import cache
+from epidemics.utils.cache import cache
 from epidemics.data.files.canton_population import CANTON_POPULATION
 
 import json

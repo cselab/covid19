@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 
 from epidemics.data import DATA_CACHE_DIR
 from epidemics.data.cases import get_region_cases
-from epidemics.tools.tools import flatten
+from epidemics.utils.misc import flatten
 import epidemics.data.swiss_cantons as swiss_cantons
 import epidemics.data.swiss_municipalities as swiss_municipalities
 

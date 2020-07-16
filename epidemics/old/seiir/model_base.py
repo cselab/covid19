@@ -13,7 +13,7 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 plt.ioff()
 
-from epidemics.tools.tools import prepare_folder, save_file
+from epidemics.utils.misc import prepare_folder, save_file
 from epidemics.data.combined import RegionalData
 from epidemics.epidemics import EpidemicsBase
 

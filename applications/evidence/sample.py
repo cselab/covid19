@@ -9,7 +9,7 @@ sys.path.append('../../build')
 
 import argparse
 import copy
-from epidemics.tools.tools import import_from
+from epidemics.utils.misc import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.reparam.seir_intexp.tnrm', help='The computational mode.')

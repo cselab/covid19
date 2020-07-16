@@ -4,7 +4,7 @@ import libepidemics
 from libepidemics.country import sir
 from libepidemics.cantons import seiin
 
-from epidemics.tools.autodiff import country_custom_derivatives, cantons_custom_derivatives
+from epidemics.utils.autodiff import country_custom_derivatives, cantons_custom_derivatives
 
 class TestAutoDiff(TestCaseEx):
     def test_country_custom_derivatives(self):

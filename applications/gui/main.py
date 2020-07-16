@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'build'))
 
-from epidemics.tools.tools import printlog, abort, moving_average
+from epidemics.utils.misc import printlog, abort, moving_average
 import libepidemics
 import json
 import numpy as np

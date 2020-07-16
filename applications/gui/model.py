@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import save_file
+from epidemics.utils.misc import save_file
 import libepidemics
 
 

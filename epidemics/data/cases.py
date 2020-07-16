@@ -2,9 +2,9 @@ from epidemics.data import DATA_DOWNLOADS_DIR
 from epidemics.data.files.canton_population import CANTON_POPULATION
 
 from epidemics.data.regions import region_to_key
-from epidemics.tools.cache import cache
-from epidemics.tools.date import date_fromisoformat
-from epidemics.tools.io import download_and_save
+from epidemics.utils.cache import cache
+from epidemics.utils.date import date_fromisoformat
+from epidemics.utils.io import download_and_save
 
 from collections import namedtuple
 import datetime

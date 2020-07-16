@@ -158,7 +158,7 @@ def GetSampleStat(df, datafolder, expr, plow, phigh):
     }
 
 
-# Modified copy of `epidemics/tools/cache.py`
+# Modified copy of `epidemics/utils/cache.py`
 import inspect
 import pickle
 import functools
