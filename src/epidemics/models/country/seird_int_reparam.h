@@ -52,7 +52,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 
         T r0 = intervention(p.R0, t, p.kbeta, p.tact, p.dtact);
 
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto invD = 1. / p.D;
         auto invZ = 1. / p.Z;
 

@@ -9,14 +9,12 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
-from epidemics.cantons.py.model import \
-        get_canton_model_data, get_canton_reference_data, \
-        get_municipality_model_data, ModelData
+from epidemics.cantons.py.model import get_canton_design_parameters
 
 import libepidemics
 
-data = get_canton_model_data(include_foreign=False)
-#N0  = list(data.region_population)
+dp = get_canton_design_parameters(include_foreign=False)
+#N0  = list(dp.region_population)
 #np.save("population.npy",N0)
 
 
@@ -28,11 +26,11 @@ def example_run_seiin(num_days, inputs, int_day=21):
     L = len(inputs)
     ic_cantons = len(cantons_)
 
-    N0  = list(data.region_population)
-    E0  = [0] * data.num_regions
-    IR0 = [0] * data.num_regions
-    IU0 = [0] * data.num_regions
-    IR0[data.key_to_index['TI']] = 1  # Ticino.
+    N0  = list(dp.region_population)
+    E0  = [0] * dp.num_regions
+    IR0 = [0] * dp.num_regions
+    IU0 = [0] * dp.num_regions
+    IR0[dp.key_to_index['TI']] = 1  # Ticino.
 
     if L == 6 + ic_cantons: #inference/model evaluations for case 2 
        params = libepidemics.cantons.seiin_interventions.Parameters(
@@ -60,7 +58,7 @@ def example_run_seiin(num_days, inputs, int_day=21):
        S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
        y0 = S0 + E0 + IR0 + IU0 + N0
        # Run the ODE solver.
-       solver = libepidemics.cantons.seiin_interventions.Solver(data.to_cpp())
+       solver = libepidemics.cantons.seiin_interventions.Solver(dp.to_cpp())
        y0 = libepidemics.cantons.seiin_interventions.State(y0)
        return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
@@ -92,7 +90,7 @@ def example_run_seiin(num_days, inputs, int_day=21):
        S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
        y0 = S0 + E0 + IR0 + IU0 + N0
        # Run the ODE solver.
-       solver = libepidemics.cantons.seiin_interventions.Solver(data.to_cpp())
+       solver = libepidemics.cantons.seiin_interventions.Solver(dp.to_cpp())
        y0 = libepidemics.cantons.seiin_interventions.State(y0)
        return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 

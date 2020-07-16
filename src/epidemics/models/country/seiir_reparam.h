@@ -45,7 +45,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> &x,
              State<T> & __restrict__ dxdt) const
     {
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto invZ   = 1 / p.Z;
         auto invD   = 1 / p.D;
         auto factor   = 1. / (p.alpha + (1 - p.alpha * p.mu)); 

@@ -47,7 +47,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 
         T beta = intervention(p.beta, t, p.kbeta, p.tact, p.dtact);
 
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto A = invN * beta * x.I() * x.S();
         auto B = p.a*x.E();
         auto C = p.gamma * x.I();

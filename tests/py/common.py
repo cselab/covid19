@@ -26,8 +26,8 @@ def intervention_beta(t: float, p):
         return p.kbeta * p.beta
 
 
-def gen_canton_model_data(K, days):
-    """Return a random canton ModelData object.
+def gen_canton_design_parameters(K, days):
+    """Return a random canton DesignParameters object.
 
     Arguments:
         K: number of cantons
@@ -42,7 +42,7 @@ def gen_canton_model_data(K, days):
     for i in range(K):
         Cij[i, i] = 0.0;
 
-    return libepidemics.cantons.ModelData(
+    return libepidemics.cantons.DesignParameters(
             region_keys=["C" + str(k) for k in range(K)],
             Ni=(1e6 + 1e6 * np.random.rand(K)).tolist(),
             Mij=flatten(Mij),

@@ -52,7 +52,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 
         auto invZ   = 1 / p.Z;
         auto invD   = 1 / p.D;
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
 
         auto C1 = invN * beta * x.S() * x.Ir();
         auto C2 = invN * beta * x.S() * (p.mu * x.Iu());

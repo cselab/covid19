@@ -1,4 +1,4 @@
-from common import TestCaseEx, gen_canton_model_data
+from common import TestCaseEx, gen_canton_design_parameters
 
 import libepidemics
 from libepidemics.country import sir
@@ -26,8 +26,8 @@ class TestAutoDiff(TestCaseEx):
         )
         t_eval = [float(x) for x in range(20)]
 
-        data = libepidemics.country.ModelData(N=N)
-        solver = sir.Solver(data)
+        dp = libepidemics.country.DesignParameters(N=N)
+        solver = sir.Solver(dp)
 
         py_results = solve_sir(params, y0, t_eval=t_eval, N=N)
         cpp_results, cpp_der_results = country_custom_derivatives(
@@ -67,8 +67,8 @@ class TestAutoDiff(TestCaseEx):
 
     def test_cantons_custom_derivatives(self):
         K = 3  # Number of cantons.
-        data = gen_canton_model_data(K=K, days=0)
-        solver = seiin.Solver(data)
+        dp = gen_canton_design_parameters(K=K, days=0)
+        solver = seiin.Solver(dp)
         params = seiin.Parameters(beta=0.3, mu=0.7, alpha=0.03, Z=4.0, D=5.0, theta=0.789)
 
         # S..., E..., Ir..., Iu..., N....

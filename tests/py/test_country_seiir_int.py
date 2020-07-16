@@ -44,14 +44,14 @@ class TestCountrySIR(TestCaseEx):
     def test_sir(self):
         """Test the C++ autodiff implementation of the SIR model with interventions."""
         seiir_int  = libepidemics.country.seiir_int
-        data       = libepidemics.country.ModelData(N=100500)
-        solver     = seiir_int.Solver(data)
+        dp         = libepidemics.country.DesignParameters(N=100500)
+        solver     = seiir_int.Solver(dp)
         params     = seiir_int.Parameters(beta=0.2, mu=0.1, alpha=0.15, Z=5.3, D=3.2, tact=10.0, dtact=2.0, kbeta=0.5)
 
         y0 = (1e5, 0.0, 1., 0.0, 200.)  # S, E, Ir, Iu, R
         t_eval    = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial   = seiir_int.State(y0)
-        py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=dp.N)
         cpp_result_noad = solver.solve          (params, initial, t_eval=t_eval, dt=0.01)
         cpp_result_ad   = solver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.01)
 

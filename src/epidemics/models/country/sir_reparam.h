@@ -37,7 +37,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> &x,
              State<T> & __restrict__ dxdt) const
     {
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto invD = 1. / p.D;
         auto A = invN * p.R0 * invD * x.I() * x.S();
         auto B = invD * x.I();

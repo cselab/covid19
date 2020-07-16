@@ -21,7 +21,7 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
-from epidemics.cantons.py.model import ModelData
+from epidemics.cantons.py.model import DesignParameters
 from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
 from epidemics.tools.cache import cache, cache_to_file
 import epidemics.data.swiss_municipalities as munic
@@ -91,7 +91,7 @@ for key in code_to_center_shift:
 
 
 class Renderer:
-    def __init__(self, frame_callback, data: ModelData, draw_zones=False,
+    def __init__(self, frame_callback, dp: DesignParameters, draw_zones=False,
             draw_Mij=True, draw_Cij=True, resolution=(1920,1080),
             airports=None):
         '''
@@ -102,7 +102,7 @@ class Renderer:
             It can use `set_values()` and `set_texts()` to update the state,.
         '''
 
-        self.data = data
+        self.dp = dp
         self.frame_callback = frame_callback
         # FIXME: "code" vs "key" terminology, pick one.
         self.code_to_value = {}
@@ -205,7 +205,7 @@ class Renderer:
 
     def init_plot(self):
         '''
-        Updates data and returns a list of artist to animate
+        Updates design parameters and returns a list of artist to animate
         (would make an effect in case blit=True).
         '''
         self.ax.clear()
@@ -250,20 +250,20 @@ class Renderer:
             self.zone_fills = zone_fills
 
 
-        data = self.data
+        dp = self.dp
         centers = self.centers
         def _draw_connections(matrix, color):
             max_people = np.max(matrix)
             if max_people == 0:
                 return
-            for c_home, c_work in itertools.product(data.region_keys, repeat=2):
+            for c_home, c_work in itertools.product(dp.region_keys, repeat=2):
                 if c_home == c_work:
                     continue
                 if c_home not in centers or c_work not in centers:
                     continue
                 x0, y0 = centers[c_home]
                 x1, y1 = centers[c_work]
-                n = matrix[data.key_to_index[c_home], data.key_to_index[c_work]]
+                n = matrix[dp.key_to_index[c_home], dp.key_to_index[c_work]]
                 alpha_min = 0.01
                 alpha = np.clip(n / max_people * 20, alpha_min, 0.5)
                 if alpha == alpha_min:
@@ -272,9 +272,9 @@ class Renderer:
                 ax.plot([x0, x1], [y0, y1], color=color, alpha=alpha, lw=lw)
 
         if self.draw_Mij:
-            _draw_connections(data.Mij, 'blue')
+            _draw_connections(dp.Mij, 'blue')
         if self.draw_Cij:
-            _draw_connections(data.Cij, 'green')
+            _draw_connections(dp.Cij, 'green')
 
         # Draw labels.
         texts = dict()
@@ -302,7 +302,7 @@ class Renderer:
 
     def update_plot(self, frame=-1, silent=False):
         '''
-        Updates data and returns a list of artist to update
+        Updates design parameters and returns a list of artist to update
         (would make an effect in case blit=True).
         '''
         plt.draw()
@@ -380,8 +380,8 @@ def example():
             rend.set_zone_values(vv)
 
 
-    from epidemics.cantons.py.model import get_canton_model_data
-    rend = Renderer(frame_callback, data=get_canton_model_data(),
+    from epidemics.cantons.py.model import get_canton_design_parameters
+    rend = Renderer(frame_callback, dp=get_canton_design_parameters(),
             draw_zones=True, resolution=(720,480))
 
     #rend.run_interactive(frames=50)

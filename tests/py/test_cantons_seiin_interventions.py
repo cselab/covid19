@@ -3,24 +3,24 @@ import libepidemics.cantons.seiin_interventions as model
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from common import TestCaseEx, gen_canton_model_data
+from common import TestCaseEx, gen_canton_design_parameters
 
 # TODO: Test external commuters! Set days to > 0.
 
-def py_solve(p, y0, t_eval, *, data):
+def py_solve(p, y0, t_eval, *, dp):
     """Solve the SEIIN+interventions equation.
 
     Arguments:
         p: model parameters
         y0: (S0, E0, Ir0, Iu0, N0) initial condition at t=0
         t_eval: A list of times `t` to return the values of the ODE at.
-        data: model data
+        dp: design parameters
 
     Returns:
         A list of 5-tuples, one tuple for each element of t_eval.
     """
-    K = data.num_regions
-    Mij = np.array(data.Mij).reshape((K, K))
+    K = dp.num_regions
+    Mij = np.array(dp.Mij).reshape((K, K))
 
     invD = 1 / p.D
     invZ = 1 / p.Z
@@ -86,8 +86,8 @@ class TestCantonsSEIINInterventions(TestCaseEx):
     def test_model_interventions(self):
         """Test the C++ implementation of the SEIIN model."""
         K = 3  # Number of cantons.
-        data = gen_canton_model_data(K=K, days=0)
-        solver = model.Solver(data)
+        dp = gen_canton_design_parameters(K=K, days=0)
+        solver = model.Solver(dp)
 
         # NOTE: The C++ and Python implementation do not produce exactly the
         # same results when interventions are used because the RHS is not
@@ -103,7 +103,7 @@ class TestCantonsSEIINInterventions(TestCaseEx):
         # S..., E..., Ir..., Iu..., N....
         y0 = (1.0e5, 0.9e5, 0.8e5, 1, 2, 3, 5, 6, 7, 0, 1, 2, 300000, 200000, 100000)
         t_eval = list(range(30))
-        py_result = py_solve(params, y0=y0, t_eval=t_eval, data=data)
+        py_result = py_solve(params, y0=y0, t_eval=t_eval, dp=dp)
         y0 = model.State(y0)
         cpp_result_noad = solver.solve          (params, y0, t_eval=t_eval, dt=0.1)
         cpp_result_ad   = solver.solve_params_ad(params, y0, t_eval=t_eval, dt=0.1)

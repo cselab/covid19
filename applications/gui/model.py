@@ -127,8 +127,8 @@ class Model(EpidemicsBase):
     def __solve_ode(self, y0, T, t_eval, N, p):
 
         sir_int_r0 = libepidemics.country.sir_int_r0
-        data = libepidemics.country.ModelData(N=N)
-        cppsolver = sir_int_r0.Solver(data)
+        dp = libepidemics.country.DesignParameters(N=N)
+        cppsolver = sir_int_r0.Solver(dp)
 
         pp = self.substitute_inferred(p)
 

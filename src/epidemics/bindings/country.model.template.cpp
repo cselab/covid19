@@ -55,7 +55,7 @@ void exportAll(py::module &top, py::module &m) {
 
     m.attr("StaticAD") = exportStaticAutoDiff<StaticAD>(top, "StaticAD_double_");
     m.attr("DynamicAD") = exportDynamicAutoDiff<DynamicAD>(top, "DynamicAD_double_");
-    exportSolver<Solver, ModelData, State, Parameters>(m)
+    exportSolver<Solver, DesignParameters, State, Parameters>(m)
         .def("state_size", [](const Solver &) noexcept {
             return State<double>::size();
         }, "Return the number of state variables.");

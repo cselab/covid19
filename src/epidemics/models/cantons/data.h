@@ -13,10 +13,10 @@ struct DataPoint {
     double value;
 };
 
-/// Model bulk parameters (not optimized for).
-struct ModelData {
+/// Design parameters (not optimized for).
+struct DesignParameters {
     // Note: The following files depend on the structure of this struct:
-    //       epidemics/cantons/py/model.py:ModelData.to_cpp
+    //       epidemics/cantons/py/model.py:PyDesignParameters.to_cpp
     //       src/epidemics/bindings/cantons.template.cpp
     //       tests/py/common.py
     std::vector<std::string> regionKeys;
@@ -34,13 +34,13 @@ struct ModelData {
     // for which `Mij[i][j] != 0` or  `Mij[j][i] != 0`.
     std::vector<std::vector<size_t>> nonzero_Mij;
 
-    ModelData() = default;
-    ModelData(std::vector<std::string> regionKeys,
-              std::vector<double> Ni,
-              std::vector<double> Mij,
-              std::vector<double> Cij,
-              std::vector<double> extComIu,
-              std::vector<double> Ui);
+    DesignParameters() = default;
+    DesignParameters(std::vector<std::string> regionKeys,
+                     std::vector<double> Ni,
+                     std::vector<double> Mij,
+                     std::vector<double> Cij,
+                     std::vector<double> extComIu,
+                     std::vector<double> Ui);
 
     double getExternalCommutersIu(int day, int canton) const noexcept {
         int idx = day * (int)numRegions + canton;
@@ -70,7 +70,7 @@ struct ReferenceData {
     */
 };
 
-ModelData readModelData(const char *filename = "data/cpp_model_data.dat");
+DesignParameters readDesignParameters(const char *filename = "data/cpp_design_parameters.dat");
 ReferenceData readReferenceData(const char *filename = "data/cpp_reference_data.dat");
 
 }  // namespace cantons
