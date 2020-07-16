@@ -8,12 +8,11 @@
 namespace epidemics {
 namespace country {
 
-/** Model data, shared between all models.
+/** Design parameters, shared between all models.
  *
- * Model data is not the same as model parameters!
- * These values are not fitted.
+ * As opposed to model parameters, design parameters are not fitted.
  */
-struct ModelData {
+struct DesignParameters {
     int N;  // Country population.
 };
 
@@ -52,9 +51,9 @@ template <typename Derived,
           template <typename> class Parameters>
 class SolverBase {
 public:
-    SolverBase(ModelData data) : data_{std::move(data)} { }
+    SolverBase(DesignParameters dp) : dp_{std::move(dp)} { }
 
-    const ModelData &modelData() const noexcept { return data_; }
+    const DesignParameters &designParameters() const noexcept { return dp_; }
 
     template <typename T>
     std::vector<State<T>> solve(
@@ -78,7 +77,7 @@ protected:
         return static_cast<const Derived *>(this);
     }
 
-    ModelData data_;
+    DesignParameters dp_;
 };
 
 }  // namespace country

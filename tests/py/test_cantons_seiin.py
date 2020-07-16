@@ -3,11 +3,11 @@ import libepidemics.cantons.seiin as seiin
 from scipy.integrate import solve_ivp
 import numpy as np
 
-from common import TestCaseEx, gen_canton_model_data
+from common import TestCaseEx, gen_canton_design_parameters
 
 # TODO: Test external commuters! Set days to > 0.
 
-def solve_seiin(params, y0, t_eval, *, data):
+def solve_seiin(params, y0, t_eval, *, dp):
     """Solve the SEIIN equation.
 
     Arguments:
@@ -20,8 +20,8 @@ def solve_seiin(params, y0, t_eval, *, data):
         A list of 5-tuples, one tuple for each element of t_eval.
     """
     beta, mu, alpha, Z, D, theta = params
-    K = data.num_regions
-    Mij = np.array(data.Mij).reshape((K, K))
+    K = dp.num_regions
+    Mij = np.array(dp.Mij).reshape((K, K))
 
     colsumMij = np.sum(Mij, axis=0)
     rowsumMij = np.sum(Mij, axis=1)
@@ -69,14 +69,14 @@ class TestCantonsSEIIN(TestCaseEx):
     def test_seiin(self):
         """Test the C++ implementation of the SEIIN model."""
         K = 3  # Number of cantons.
-        data = gen_canton_model_data(K=K, days=0)
-        solver = seiin.Solver(data)
+        dp = gen_canton_design_parameters(K=K, days=0)
+        solver = seiin.Solver(dp)
         params = seiin.Parameters(beta=0.3, mu=0.7, alpha=0.03, Z=4.0, D=5.0, theta=0.789)
 
         # S..., E..., Ir..., Iu..., N....
         y0 = (1.0e6, 0.9e6, 0.8e6, 1, 2, 3, 5, 6, 7, 0, 1, 2, 3000000, 2000000, 1000000)
         t_eval = [0., 0.3, 0.6, 1.]
-        py_result = solve_seiin(params, y0=y0, t_eval=t_eval, data=data)
+        py_result = solve_seiin(params, y0=y0, t_eval=t_eval, dp=dp)
         y0 = seiin.State(y0)
         cpp_result_noad = solver.solve          (params, y0, t_eval=t_eval, dt=0.1)
         cpp_result_ad   = solver.solve_params_ad(params, y0, t_eval=t_eval, dt=0.1)

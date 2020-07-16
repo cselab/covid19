@@ -38,7 +38,7 @@ void exportSolverCommon(
 
 /// Export a model Solver. Returns the Solver class handler.
 template <typename Solver,
-          typename ModelData,
+          typename DesignParameters,
           template <typename> class State,
           template <typename> class Parameters>
 auto exportSolver(py::module &m) {
@@ -47,8 +47,8 @@ auto exportSolver(py::module &m) {
     using DynamicAD = DynamicAutoDiff<double>;
 
     auto solver = py::class_<Solver>(m, "Solver")
-        .def(py::init<ModelData>(), "model_data"_a)
-        .def_property_readonly("model_data", &Solver::modelData)
+        .def(py::init<DesignParameters>(), "dp"_a)
+        .def_property_readonly("dp", &Solver::designParameters)
         .def("solve_ad", [](const Solver &, py::args, py::kwargs) {
             throw std::runtime_error("'solve_ad' has been renamed to 'solve_params_ad'");
         });

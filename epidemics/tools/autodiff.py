@@ -151,7 +151,7 @@ def cantons_custom_derivatives(solver, params, y0, params_der, y0_der, t_eval, *
     if not all(len(yi) == K for yi in y0_der):
         raise TypeError("Subarray length in `y0_der` is not consistent with `params_der`.")
 
-    num_cantons = solver.model_data.num_regions
+    num_cantons = solver.dp.num_regions
     states_per_canton = state_size // num_cantons
     assert state_size % num_cantons == 0
 

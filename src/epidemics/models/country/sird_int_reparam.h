@@ -44,7 +44,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              const State<T> &x,
              State<T> & __restrict__ dxdt) const
     {
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto invD = 1. / p.D;
 
         T r0 = intervention(p.R0, t, p.kbeta, p.tact, p.dtact);

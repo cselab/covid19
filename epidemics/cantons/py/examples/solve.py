@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..',
                              '..'))
 
 # also appends `sys.path` by `build/`
-from epidemics.cantons.py.model import ModelData
+from epidemics.cantons.py.model import PyDesignParameters
 
 import libepidemics
 
@@ -29,12 +29,12 @@ I0 = np.zeros(n_regions) + 1
 Mij = np.zeros((n_regions, n_regions))
 Cij = np.zeros((n_regions, n_regions))
 
-data = ModelData(['ZH', 'TI'], [100, 200], Mij, Cij)
+dp = PyDesignParameters(['ZH', 'TI'], [100, 200], Mij, Cij)
 
-src = np.zeros(data.num_regions)
-data.ext_com_Iu = [src]
+src = np.zeros(dp.num_regions)
+dp.ext_com_Iu = [src]
 
-solver = libepidemics.cantons.sei_c.Solver(data.to_cpp())
+solver = libepidemics.cantons.sei_c.Solver(dp.to_cpp())
 
 S0 = N0 - E0 - I0
 y0 = libepidemics.cantons.sei_c.State(np.vstack((S0, E0, I0)).flatten())

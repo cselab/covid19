@@ -48,8 +48,8 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     {
         const T ZERO = 0 * p.beta;
         int day = static_cast<int>(t);
-        for (size_t i = 0; i < modelData_.numRegions; ++i) {
-            double extComIu = modelData_.getExternalCommutersIu(day, i);
+        for (size_t i = 0; i < dp_.numRegions; ++i) {
+            double extComIu = dp_.getExternalCommutersIu(day, i);
             T A = p.beta * x.S(i) / x.N(i) * (x.Ir(i) + extComIu);
             T B = p.beta * x.S(i) / x.N(i) * p.mu * x.Iu(i);
             T E_Z = x.E(i) / p.Z;
@@ -63,7 +63,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             T inv = 1 / (x.N(i) - x.Ir(i));
             // NOTE: nonzero_Mij will not work if non-zero elements do not on symmetric places.
 
-            //for (size_t j = 0; j < modelData_.numRegions; ++j) { // XXX
+            //for (size_t j = 0; j < dp_.numRegions; ++j) { // XXX
             for (size_t j : this->nonzero_Mij(i)) {
                 auto Tij = this->M(i, j) / (x.N(j) - x.Ir(j));
                 auto Tji = this->M(j, i) * inv;

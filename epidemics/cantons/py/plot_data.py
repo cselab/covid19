@@ -10,8 +10,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data,\
-        get_municipality_model_data
+from epidemics.cantons.py.model import get_canton_design_parameters, get_canton_reference_data
 from epidemics.cantons.py.plot import Renderer
 from epidemics.data.swiss_cantons import json_to_numpy_matrix
 from epidemics.tools.tools import flatten
@@ -35,10 +34,10 @@ def plot_data():
         rend.set_values(values)
         rend.set_texts(texts)
 
-    # First render the default model data (both Mij and Cij).
-    model_data = get_canton_model_data()
+    # First render the default design parameters (both Mij and Cij).
+    dp = get_canton_design_parameters()
 
-    rend = Renderer(frame_callback, data=model_data, draw_zones=False, draw_Cij=False)
+    rend = Renderer(frame_callback, dp=dp, draw_zones=False, draw_Cij=False)
     rend.save_image(filename="data.png")
     rend.save_movie(frames=len(next(iter(IR.values()))), filename="data.mp4", fps=5)
 
@@ -47,9 +46,9 @@ def plot_data():
         Mij_json = json.load(f)
     del Mij_json['Enk.']
     del Mij_json['LIE']
-    model_data.Mij = json_to_numpy_matrix(Mij_json, model_data.region_keys)
-    model_data.Cij *= 0.0
-    rend = Renderer(frame_callback, data=model_data)
+    dp.Mij = json_to_numpy_matrix(Mij_json, dp.region_keys)
+    dp.Cij *= 0.0
+    rend = Renderer(frame_callback, dp=dp)
     rend.save_image(filename="data_2017.png")
 
 

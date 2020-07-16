@@ -2,7 +2,7 @@ from scipy.integrate import solve_ivp
 import numpy as np
 
 # also appends `sys.path` by `build/`
-from epidemics.cantons.py.model import ModelData
+from epidemics.cantons.py.model import PyDesignParameters
 import libepidemics.cantons.sei_c as sei_c
 
 
@@ -174,17 +174,17 @@ class SeirCpp(Seir):
         n_regions = y0.shape[1]
         n_days = int(max(t_span)) + 1
 
-        data = ModelData(keys, N, Mij, Cij)
+        dp = PyDesignParameters(keys, N, Mij, Cij)
         src = np.zeros(n_regions)
         src += params['theta_a'] * np.array(params['Qa'])
         src += params['theta_b'] * np.array(params['Qb'])
-        data.ext_com_Iu = [src] * n_days
-        data.Ui = [0] * n_regions
+        dp.ext_com_Iu = [src] * n_days
+        dp.Ui = [0] * n_regions
         for var in ['beta_corr' + str(i) for i in range(26)]:
             for i in params["beta_corr_regions"].get(var, []):
-                data.Ui[i] = params[var]
+                dp.Ui[i] = params[var]
 
-        solver = sei_c.Solver(data.to_cpp())
+        solver = sei_c.Solver(dp.to_cpp())
 
         p = sei_c.Parameters(
                 beta=beta,

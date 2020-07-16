@@ -12,7 +12,7 @@ std::vector<double> ReferenceData::getReferenceData() const {
     return out;
 }
 
-ModelData::ModelData(
+DesignParameters::DesignParameters(
         std::vector<std::string> regionKeys_,
         std::vector<double> Ni_,
         std::vector<double> Mij_,
@@ -29,7 +29,7 @@ ModelData::ModelData(
     init();
 }
 
-void ModelData::init() {
+void DesignParameters::init() {
     size_t K = regionKeys.size();
     numRegions = K;
     invNi.resize(Ni.size(), 0.0);
@@ -63,7 +63,7 @@ std::vector<double> ReferenceData::getReferenceEvaluations(
 }
 */
 
-ModelData readModelData(const char *filename) {
+DesignParameters readDesignParameters(const char *filename) {
     FILE *f = fopen(filename, "r");
     if (f == nullptr)
         DIE("Error opening file \"%s\". Did you forget to run ./py/data.py?\n", filename);
@@ -72,7 +72,7 @@ ModelData readModelData(const char *filename) {
     if (fscanf(f, "%d", &N) != 1)
         DIE("Reading number of regions failed.");
 
-    ModelData out;
+    DesignParameters out;
     out.regionKeys.resize(N);
     for (int i = 0; i < N; ++i) {
         char name[64];

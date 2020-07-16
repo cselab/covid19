@@ -12,11 +12,10 @@ import collections
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-import epidemics.data
 from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
 from epidemics.cantons.py.model import \
-        get_canton_model_data, get_canton_reference_data, \
-        get_municipality_model_data, ModelData
+        get_canton_design_parameters, get_canton_reference_data, \
+        get_municipality_design_parameters, PyDesignParameters
 from epidemics.cantons.py.plot import Renderer
 
 import libepidemics
@@ -73,7 +72,7 @@ def get_foreign_commuters():
     return r
 
 
-def example_run_seiin(data: ModelData, num_days: int, level):
+def example_run_seiin(dp: PyDesignParameters, num_days: int, level):
     """Runs the SEIIN model for some set of parameters and some initial conditions."""
 
     # Parameters.
@@ -82,81 +81,81 @@ def example_run_seiin(data: ModelData, num_days: int, level):
             beta=1.12, mu=0., alpha=1., Z=3.69, D=3.47, theta=1.36)
 
     # Initial state.
-    N0 = list(data.region_population)
-    E0 = [0] * data.num_regions
-    IR0 = [0] * data.num_regions
-    IU0 = [0] * data.num_regions
+    N0 = list(dp.region_population)
+    E0 = [0] * dp.num_regions
+    IR0 = [0] * dp.num_regions
+    IU0 = [0] * dp.num_regions
 
-    src = np.zeros(data.num_regions)
+    src = np.zeros(dp.num_regions)
     if level == Level.canton:
-        IR0[data.key_to_index['TI']] = 0  # Ticino.
-        IU0[data.key_to_index['TI']] = 0
+        IR0[dp.key_to_index['TI']] = 0  # Ticino.
+        IU0[dp.key_to_index['TI']] = 0
 
         # sources from airports
-        if data.airports:
+        if dp.airports:
             k_air = 1.
-            for a in data.airports:
-                src[data.key_to_index[a[0]]] = a[2] * k_air
+            for a in dp.airports:
+                src[dp.key_to_index[a[0]]] = a[2] * k_air
 
         # sources from foreign commuters
-        if data.foreign:
+        if dp.foreign:
             foreign = get_foreign_commuters()
             print(foreign)
             k_foreign = 1e-8
-            for k in data.key_to_index:
-                src[data.key_to_index[k]] = foreign[k] * k_foreign
+            for k in dp.key_to_index:
+                src[dp.key_to_index[k]] = foreign[k] * k_foreign
 
 
     elif level == Level.municipality:
-        IR0[data.key_to_index['MUN-5192']] = 0  # Lugano.
-        IU0[data.key_to_index['MUN-5192']] = 0
+        IR0[dp.key_to_index['MUN-5192']] = 0  # Lugano.
+        IU0[dp.key_to_index['MUN-5192']] = 0
 
         # sources from airports
-        if data.airports:
+        if dp.airports:
             k_air = 1.
-            for a in data.airports:
-                src[data.key_to_index[a[1]]] = a[2] * k_air
+            for a in dp.airports:
+                src[dp.key_to_index[a[1]]] = a[2] * k_air
 
         # sources from foreign commuters
     else:
         assert False
-    data.ext_com_Iu = [src]
+    dp.ext_com_Iu = [src]
 
     S0 = [N - E - IR - IU for N, E, IR, IU in zip(N0, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0 + N0
 
     # Run the ODE solver.
-    solver = libepidemics.cantons.seiin.Solver(data.to_cpp())
+    solver = libepidemics.cantons.seiin.Solver(dp.to_cpp())
     y0 = libepidemics.cantons.seiin.State(y0)
     return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 
-def example_run_seii_c(data, num_days):
+def example_run_seii_c(dp: PyDesignParameters, num_days):
     """Runs the SEII_C model for some set of parameters and some initial conditions."""
     # Parameters. Note that nu is relative to beta.
     params = libepidemics.cantons.seii_c.Parameters(
             beta=3.0, nu=1.0, alpha=0.6, Z=3.69, D=3.47)
 
     # Initial state.
-    E0 = [0] * data.num_regions
-    IR0 = [0] * data.num_regions
-    IU0 = [0] * data.num_regions
+    E0 = [0] * dp.num_regions
+    IR0 = [0] * dp.num_regions
+    IU0 = [0] * dp.num_regions
 
-    # if 'TI' in data.key_to_index:
-    #     IU0[data.key_to_index['TI']] = 10  # Ticino.
+    # if 'TI' in dp.key_to_index:
+    #     IU0[dp.key_to_index['TI']] = 10  # Ticino.
     # else:
-    #     IU0[data.key_to_index['MUN-5192']] = 10  # Lugano.
+    #     IU0[dp.key_to_index['MUN-5192']] = 10  # Lugano.
 
-    S0 = [N - E - IR - IU for N, E, IR, IU in zip(data.region_population, E0, IR0, IU0)]
+    S0 = [N - E - IR - IU for N, E, IR, IU in zip(dp.region_population, E0, IR0, IU0)]
     y0 = S0 + E0 + IR0 + IU0
 
     # Run the ODE solver.
-    solver = libepidemics.cantons.seii_c.Solver(data.to_cpp())
+    solver = libepidemics.cantons.seii_c.Solver(dp.to_cpp())
     y0 = libepidemics.cantons.seii_c.State(y0)
     return solver.solve(params, y0, t_eval=range(1, num_days + 1))
 
 
-def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True):
+def plot_ode_results_canton(dp: PyDesignParameters, results, air=True, crossborder=True):
     """Plot results from the ODE.
 
     Arguments:
@@ -170,11 +169,11 @@ def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True
         state = results[t]
         values = {}
         texts = {}
-        for i, key in enumerate(data.region_keys):
-            N = state.N(data.key_to_index[key])
-            S = state.S(data.key_to_index[key])
-            Ir = state.Ir(data.key_to_index[key])
-            Iu = state.Iu(data.key_to_index[key])
+        for i, key in enumerate(dp.region_keys):
+            N = state.N(dp.key_to_index[key])
+            S = state.S(dp.key_to_index[key])
+            Ir = state.Ir(dp.key_to_index[key])
+            Iu = state.Iu(dp.key_to_index[key])
             print("{:02d} {} Ir={:4.1f} Iu={:4.1f}".format(i, key, Ir, Iu))
             #values[key] = Ir / Ir_max * 2
             values[key] = (N - S) * 1e-3
@@ -183,15 +182,15 @@ def plot_ode_results_canton(data: ModelData, results, air=True, crossborder=True
         rend.set_texts(texts)
 
     airports = None
-    if data.airports:
-        airports = [v[0] for v in data.airports]
+    if dp.airports:
+        airports = [v[0] for v in dp.airports]
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=True, draw_Cij=False,
+    rend = Renderer(frame_callback, dp=dp, draw_Mij=True, draw_Cij=False,
             airports=airports)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
-def plot_ode_results_munic(data: ModelData, results, air=True, crossborder=True):
+def plot_ode_results_munic(dp: PyDesignParameters, results, air=True, crossborder=True):
     """Plot results from the ODE.
 
     Arguments:
@@ -215,19 +214,19 @@ def plot_ode_results_munic(data: ModelData, results, air=True, crossborder=True)
         state = results[t]
         Ir_cantons = collections.defaultdict(float)
         NmS_cantons = collections.defaultdict(float)
-        for i, key in enumerate(data.region_keys):
+        for i, key in enumerate(dp.region_keys):
             if key in key_to_canton:
-                Ir_cantons[key_to_canton[key]] += state.Ir(data.key_to_index[key])
+                Ir_cantons[key_to_canton[key]] += state.Ir(dp.key_to_index[key])
                 NmS_cantons[key_to_canton[key]] += \
-                        state.N(data.key_to_index[key]) - state.S(data.key_to_index[key])
+                        state.N(dp.key_to_index[key]) - state.S(dp.key_to_index[key])
 
         n_matches = 0
         # Municipalities
         if rend.draw_zones:
             name_to_value = {}
-            for i, key in enumerate(data.region_keys):
+            for i, key in enumerate(dp.region_keys):
                 if key in key_to_canton:
-                    j = data.key_to_index[key]
+                    j = dp.key_to_index[key]
                     if plot_NmS:
                         name_to_value[key_to_name[key]] = state.N(j) - state.S(j)
                     else:
@@ -261,16 +260,16 @@ def plot_ode_results_munic(data: ModelData, results, air=True, crossborder=True)
         rend.set_texts(texts)
 
     airports = None
-    if data.airports:
-        airports = [v[1] for v in data.airports]
+    if dp.airports:
+        airports = [v[1] for v in dp.airports]
 
-    rend = Renderer(frame_callback, data=data, draw_Mij=False, draw_Cij=False, draw_zones=True, airports=airports)
+    rend = Renderer(frame_callback, dp=dp, draw_Mij=False, draw_Cij=False, draw_zones=True, airports=airports)
     rend.save_image()
     rend.save_movie(frames=len(results))
 
 
-def plot_timeseries(data: ModelData, results, keys, var='S', ref_data=None):
-    key_to_population = dict(zip(data.region_keys, data.region_population))
+def plot_timeseries(dp: PyDesignParameters, results, keys, var='S', ref_data=None):
+    key_to_population = dict(zip(dp.region_keys, dp.region_population))
 
     VAR_NmS = "N-S"
     VAR_S0mS = "S0-S"
@@ -290,13 +289,13 @@ def plot_timeseries(data: ModelData, results, keys, var='S', ref_data=None):
     ax.set_ylabel(vardesc[var])
     for key in keys:
         if var == VAR_NmS:
-            u = np.array([state.S(data.key_to_index[key]) for state in results])
+            u = np.array([state.S(dp.key_to_index[key]) for state in results])
             u = key_to_population[key] - u
         elif var == VAR_S0mS:
-            u = np.array([state.S(data.key_to_index[key]) for state in results])
+            u = np.array([state.S(dp.key_to_index[key]) for state in results])
             u = u[0] - u
         else:
-            u = [getattr(state, var)(data.key_to_index[key]) for state in results]
+            u = [getattr(state, var)(dp.key_to_index[key]) for state in results]
         line, = ax.plot(u,label=key)
         if ref_data:
             u = ref_data.cases_per_country[key]
@@ -325,16 +324,16 @@ def main(argv):
     args = parser.parse_args(argv)
 
     if args.level == Level.canton:
-        model_data = get_canton_model_data(include_foreign=not args.no_foreign)
+        dp = get_canton_design_parameters(include_foreign=not args.no_foreign)
         ref_data = get_canton_reference_data()
     elif args.level == Level.municipality:
-        model_data = get_municipality_model_data()
+        dp = get_municipality_design_parameters()
         ref_data = None
     else:
         assert False
 
     # airport passengers (millions per year)
-    model_data.airports = [
+    dp.airports = [
             ["ZH",  "MUN-0062", 31.,  ],
             ["GE",  "MUN-6623", 17.5, ],
             ["BS",  "MUN-2701", 8.5,  ],
@@ -342,27 +341,27 @@ def main(argv):
             ["TI",  "MUN-5192", 0.09, ],
             ["SG",  "MUN-3237", 0.11, ],
             ]
-    model_data.foreign = True
+    dp.foreign = True
 
-    #model_data.airports = None
-    #model_data.foreign = None
+    #dp.airports = None
+    #dp.foreign = None
 
     if args.model == 'seiin':
-        results = example_run_seiin(model_data, args.days, args.level)
+        results = example_run_seiin(dp, args.days, args.level)
     else:
-        model_data.Mij *= 0.0
-        results = example_run_seii_c(model_data, args.days)
+        dp.Mij *= 0.0
+        results = example_run_seii_c(dp, args.days)
 
     if args.type == 'video':
         if args.level == Level.canton:
-            plot_ode_results_canton(model_data, results)
+            plot_ode_results_canton(dp, results)
         elif args.level == Level.municipality:
-            plot_ode_results_munic(model_data, results)
+            plot_ode_results_munic(dp, results)
     elif args.type == 'timeseries':
         keys = ['TI', 'ZH', 'AG']
-        #plot_timeseries(model_data, results, keys, var='Ir', ref_data=ref_data)
-        plot_timeseries(model_data, results, keys, var="N-S", ref_data=ref_data)
-        #plot_timeseries(model_data, results, keys, var="S0-S", ref_data=ref_data)
+        #plot_timeseries(dp, results, keys, var='Ir', ref_data=ref_data)
+        plot_timeseries(dp, results, keys, var="N-S", ref_data=ref_data)
+        #plot_timeseries(dp, results, keys, var="S0-S", ref_data=ref_data)
 
 
 if __name__ == '__main__':

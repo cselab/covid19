@@ -1,4 +1,4 @@
-from common import TestCaseEx, gen_canton_model_data
+from common import TestCaseEx, gen_canton_design_parameters
 
 import libepidemics.cantons.sei_c as sei_c
 
@@ -8,8 +8,8 @@ class TestCantonsSEI_C(TestCaseEx):
     def test_sei_c(self):
         """Test the C++ implementation of the SEI_C model."""
         K = 3  # Number of cantons.
-        data = gen_canton_model_data(K=K, days=10)
-        solver = sei_c.Solver(data)
+        dp = gen_canton_design_parameters(K=K, days=10)
+        solver = sei_c.Solver(dp)
         params = sei_c.Parameters(beta=0.3, nu=0.7, Z=0.03, D=4.0, tact=5.0, kbeta=0.789)  # Random.
 
         y0 = (10, 11, 12, 1, 2, 3, 5, 6, 7)  # (S..., E..., I...)

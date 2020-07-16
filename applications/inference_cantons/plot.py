@@ -401,9 +401,9 @@ def plot_map(model,
         rend.set_texts(texts)
         rend.set_colors(colors)
 
-    from epidemics.cantons.py.model import get_canton_model_data
+    from epidemics.cantons.py.model import get_canton_design_parameters
     rend = Renderer(frame_callback,
-                    data=get_canton_model_data(),
+                    dp=get_canton_design_parameters(),
                     resolution=(1920, 1080),
                     draw_Mij=False,
                     draw_Cij=True)
@@ -447,9 +447,9 @@ def plot_map_R0(model):
         rend.set_texts(texts)
         rend.set_colors(colors)
 
-    from epidemics.cantons.py.model import get_canton_model_data
+    from epidemics.cantons.py.model import get_canton_design_parameters
     rend = Renderer(frame_callback,
-                    data=get_canton_model_data(),
+                    dp=get_canton_design_parameters(),
                     resolution=(1920, 1080),
                     draw_Mij=False,
                     draw_Cij=False)

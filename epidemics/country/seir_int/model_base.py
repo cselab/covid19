@@ -18,8 +18,8 @@ class ModelBase( EpidemicsCountry ):
   def solve_ode( self, y0, T, t_eval, N, p ):
     
     seir_int  = libepidemics.country.seir_int
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seir_int.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seir_int.Solver(dp)
 
     params = seir_int.Parameters(beta=p[0], gamma=p[1], a=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
