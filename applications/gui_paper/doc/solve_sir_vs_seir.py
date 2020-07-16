@@ -8,6 +8,7 @@ sys.path.append(
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import argparse
 
 from epidemics.epidemics import EpidemicsBase
 from epidemics.tools.tools import save_file
@@ -73,35 +74,73 @@ def solve_seir(p):
     daily = -np.diff(S)
     return daily, copy.deepcopy(p)
 
+def plot():
+    p = Par()
+    sir = solve_sir(p)
 
-p = Par()
-sir = solve_sir(p)
+    def SirToSeir(R0, gamma, alpha):
+        return R0 * (1 + (R0 - 1) * gamma / alpha)
+
+    p_seir = copy.deepcopy(p)
+    p_seir.R0 = SirToSeir(p.R0, p.gamma, p.alpha)
+    p_seir.kint = SirToSeir(p.R0 * p.kint, p.gamma, p.alpha) / SirToSeir(
+        p.R0, p.gamma, p.alpha)
+    seir = solve_seir(p_seir)
+
+    fig,ax = plt.subplots(figsize=(5,4))
+    plt.plot(sir[0], marker='s', markevery=5,
+             label=r"SIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
+                 sir[1].R0, sir[1].kint))
+    plt.plot(seir[0], marker='o', markevery=5,
+             label=r"SEIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
+                 seir[1].R0, seir[1].kint))
+    plt.axvline(x=p.tint-p.dint*0.5, c='k', ls='--')
+    plt.axvline(x=p.tint+p.dint*0.5, c='k', ls='--')
+    plt.xlabel("time (days)")
+    plt.ylabel("daily infected")
+    plt.xlim(0, 70)
+    plt.ylim(0.1, 1000)
+    plt.yscale('log')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("sir_vs_seir.pdf")
+
+def test(update=False):
+    p = Par()
+    sir = solve_sir(p)
+
+    def SirToSeir(R0, gamma, alpha):
+        return R0 * (1 + (R0 - 1) * gamma / alpha)
+
+    p_seir = copy.deepcopy(p)
+    p_seir.R0 = SirToSeir(p.R0, p.gamma, p.alpha)
+    p_seir.kint = SirToSeir(p.R0 * p.kint, p.gamma, p.alpha) / SirToSeir(
+        p.R0, p.gamma, p.alpha)
+    seir = solve_seir(p_seir)
+
+    pack = np.vstack((sir[0], seir[0])).T
+    testref = "testref"
+    if update:
+        np.savetxt(testref, pack)
+    else:
+        packref = np.loadtxt(testref)
+        diff = np.max(abs(pack - packref))
+        assert diff < 1e-10, "Error exceeded: {:}".format(diff)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test',
+                        action='store_true',
+                        help="Run test, exit with 0 if success")
+    parser.add_argument('--update',
+                        action='store_true',
+                        help="Update reference data for test")
+    args = parser.parse_args()
+    if args.test or args.update:
+        test(args.update)
+    else:
+        plot()
 
 
-def SirToSeir(R0, gamma, alpha):
-    return R0 * (1 + (R0 - 1) * gamma / alpha)
-
-
-p_seir = copy.deepcopy(p)
-p_seir.R0 = SirToSeir(p.R0, p.gamma, p.alpha)
-p_seir.kint = SirToSeir(p.R0 * p.kint, p.gamma, p.alpha) / SirToSeir(
-    p.R0, p.gamma, p.alpha)
-seir = solve_seir(p_seir)
-
-fig,ax = plt.subplots(figsize=(5,4))
-plt.plot(sir[0], marker='s', markevery=5,
-         label=r"SIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
-             sir[1].R0, sir[1].kint))
-plt.plot(seir[0], marker='o', markevery=5,
-         label=r"SEIR, $R_0$={:.3g}, $k_\mathrm{{int}}$={:.3g}".format(
-             seir[1].R0, seir[1].kint))
-plt.axvline(x=p.tint-p.dint*0.5, c='k', ls='--')
-plt.axvline(x=p.tint+p.dint*0.5, c='k', ls='--')
-plt.xlabel("time (days)")
-plt.ylabel("daily infected")
-plt.xlim(0, 70)
-plt.ylim(0.1, 1000)
-plt.yscale('log')
-plt.legend()
-plt.tight_layout()
-plt.savefig("sir_vs_seir.pdf")
+if __name__ == "__main__":
+    main()
