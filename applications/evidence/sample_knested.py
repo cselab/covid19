@@ -31,6 +31,7 @@ parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
 parser.add_argument('--useInfections', '-ui', action='store_true', help='Use infections to fit data.')
 parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths to fit data.')
+parser.add_argument('--test', action='store_true', help="Test run. Not everything is tested.")
 
 args = parser.parse_args()
 obs = []
@@ -47,14 +48,17 @@ del x.nPropagation
 del x.nGenerations
 del x.useInfections
 del x.useDeaths
+del x.test
 
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample_knested(nLiveSamples=args.nSamples,freq=args.nSamples)
+a.sample_knested(nLiveSamples=args.nSamples, freq=args.nSamples,
+                 maxiter=(5 if args.test else 1e9))
 
-a.propagate( args.nPropagation )
+if not args.test:
+    a.propagate( args.nPropagation )
 
-a.plot_intervals()
+    a.plot_intervals()

@@ -310,7 +310,8 @@ class EpidemicsBase:
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
 
-    if(self.silent): e['Console Output']['Verbosity'] = 'Silent'
+    if self.silent:
+        self.e['Console Output']['Verbosity'] = 'Silent'
 
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
