@@ -63,7 +63,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             double extComIu = modelData_.getExternalCommutersIu(day, i);
 
             // Interventions: beta is modelled as a function of time.
-            // NOTE: AD will NOT work for b0, b1!!
+            // NOTE: AD will NOT work for d1, d2 and d3!
             T BETA;
             T THETA;
             if ( day < p.d1) {
