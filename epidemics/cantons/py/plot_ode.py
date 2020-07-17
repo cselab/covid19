@@ -12,7 +12,7 @@ import collections
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
+from epidemics.cantons.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
 from epidemics.cantons.py.model import \
         get_canton_design_parameters, get_canton_reference_data, \
         get_municipality_design_parameters, PyDesignParameters
@@ -197,7 +197,7 @@ def plot_ode_results_munic(dp: PyDesignParameters, results, air=True, crossborde
         results: A list of State objects.
     """
 
-    from epidemics.data.swiss_municipalities import get_cantons, get_name_and_population
+    from epidemics.cantons.data.swiss_municipalities import get_cantons, get_name_and_population
     from pandas import Series
 
     df = get_cantons()

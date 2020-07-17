@@ -1,5 +1,5 @@
 from epidemics.data import DATA_DOWNLOADS_DIR
-from epidemics.data.files.canton_population import CANTON_POPULATION
+from epidemics.cantons.data.canton_population import CANTON_POPULATION
 
 from epidemics.data.regions import region_to_key
 from epidemics.utils.cache import cache

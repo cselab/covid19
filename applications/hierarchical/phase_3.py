@@ -11,7 +11,7 @@ sys.path.append('../../')
 sys.path.append('../../build')
 
 from epidemics.utils.misc import import_from
-from epidemics.data.files.canton_population import CANTON_LIST, CANTON_LIST_SHORT
+from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SHORT
 
 def sampling(phase_1_path,phase_2_path,phase_3_path):
 

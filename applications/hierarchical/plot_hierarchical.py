@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../../')
-from epidemics.data.files.canton_population import CANTON_LIST, CANTON_LIST_SHORT
+from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SHORT
 import os
 from subprocess import call
 import argparse

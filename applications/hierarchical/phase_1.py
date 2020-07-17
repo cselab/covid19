@@ -7,7 +7,7 @@ import sys
 sys.path.append('../../')
 sys.path.append('../../build')
 from epidemics.utils.misc import import_from
-from epidemics.data.files.canton_population import CANTON_LIST
+from epidemics.cantons.data.canton_population import CANTON_LIST
 import argparse
 def run_phase_1(model,region,n_samples,params):
 

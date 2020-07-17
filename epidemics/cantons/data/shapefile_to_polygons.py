@@ -7,7 +7,7 @@ import os
 import shapefile
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-from epidemics.data.swiss_cantons import get_shape_file
+from epidemics.cantons.data.swiss_cantons import get_shape_file
 
 sh = shapefile.Reader(get_shape_file())
 d = {}

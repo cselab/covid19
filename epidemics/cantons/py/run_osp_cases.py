@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
+from epidemics.cantons.data.swiss_cantons import CANTON_KEYS_ALPHABETICAL, CANTON_POPULATION
 from epidemics.cantons.py.model import get_canton_design_parameters
 
 import libepidemics

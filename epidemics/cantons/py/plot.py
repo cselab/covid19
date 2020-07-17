@@ -20,11 +20,11 @@ import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.data import DATA_CACHE_DIR, DATA_FILES_DIR
+from epidemics.data import DATA_CACHE_DIR, CANTONS_DATA_DIR
 from epidemics.cantons.py.model import DesignParameters
-from epidemics.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
+from epidemics.cantons.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
 from epidemics.utils.cache import cache, cache_to_file
-import epidemics.data.swiss_municipalities as munic
+import epidemics.cantons.data.swiss_municipalities as munic
 
 def Log(msg):
     sys.stderr.write(str(msg) + "\n")
@@ -113,7 +113,7 @@ class Renderer:
         self.draw_Cij = draw_Cij
         self.airports = airports
 
-        fname = DATA_FILES_DIR / 'canton_shapes.npy'
+        fname = CANTONS_DATA_DIR / 'canton_shapes.npy'
         self.canton_shapes = np.load(fname, allow_pickle=True).item()
 
         # Compute shape centers.

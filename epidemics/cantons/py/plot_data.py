@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 from epidemics.cantons.py.model import get_canton_design_parameters, get_canton_reference_data
 from epidemics.cantons.py.plot import Renderer
-from epidemics.data.swiss_cantons import json_to_numpy_matrix
+from epidemics.cantons.data.swiss_cantons import json_to_numpy_matrix
 from epidemics.utils.misc import flatten
 
 IR = get_canton_reference_data().cases_per_country
