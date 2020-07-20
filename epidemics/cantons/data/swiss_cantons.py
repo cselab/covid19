@@ -6,9 +6,10 @@ This file provides access to all relevant data aobut Swiss cantons and COVID-19:
     - number of foreign infected commuters that resided in switzerland, per day and canton
 """
 
-from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR, DATA_FILES_DIR
-from epidemics.data.cases import get_country_cases
+from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR
+from epidemics.data.cases import RegionalDataBase, get_country_cases
 from epidemics.data.population import get_country_population
+from epidemics.cantons.data import CANTONS_DATA_DIR
 from epidemics.utils.cache import cache, cache_to_file
 from epidemics.utils.date import date_fromisoformat
 from epidemics.utils.io import download_and_save, extract_zip
@@ -109,7 +110,7 @@ def fetch_openzh_covid_data(*, cache_duration=3600):
 
 
 
-COMMUTE_ADMIN_CH_CSV = DATA_FILES_DIR / 'switzerland_commute_admin_ch.csv'
+COMMUTE_ADMIN_CH_CSV = CANTONS_DATA_DIR / 'switzerland_commute_admin_ch.csv'
 
 @cache
 @cache_to_file(DATA_CACHE_DIR / 'home_work_people.json',
@@ -280,3 +281,66 @@ def get_shape_file():
 
     paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
     return os.path.splitext(paths[0])[0]
+
+
+@cache
+def get_data_of_all_cantons():
+    """
+    Gets confirmed(infected), recovered and deaths from the openzh database
+    """
+    fields = ['cases','fatalities','released','hospitalized','icu','vent']
+
+    # Get data for all fields
+    data = {}
+    for field in fields:
+        data[field] = get_field_data_all_cantons(field)
+
+    cantons = list(data['cases'].keys())
+    cantons.remove('date')
+    # Rearrange data per canton
+    out = {}
+    for canton in cantons:
+        recovered = list(map(add, data['fatalities'][canton], data['released'][canton]))
+        out[canton] = RegionCasesData(  start_date=data['cases']['date'],
+                                        confirmed=data['cases'][canton],
+                                        recovered=recovered,
+                                        deaths=data['fatalities'][canton],
+                                        hospitalized = data['hospitalized'][canton],
+                                        icu = data['icu'][canton],
+                                        ventilated=data['vent'][canton],
+                                        released = data['released'][canton])
+    return out
+
+
+@cache
+def get_field_data_all_cantons(field, cache_duration=1e9):
+    url = 'https://raw.githubusercontent.com/daenuprobst/covid19-cases-switzerland/master/covid19_'+field+'_switzerland_openzh.csv'
+    file_path = 'covid19_'+field+'_switzerland_openzh.csv'
+    path = DATA_DOWNLOADS_DIR / file_path
+
+    raw = download_and_save(url, path, cache_duration=cache_duration)
+    rows = raw.decode('utf8').split()
+    cantons = rows[0].split(',')[1:-1]  # Skip the "Date" and "CH" cell.
+
+    data = {canton: [] for canton in cantons}
+    date = []
+    for day in rows[1:]:  # Skip the header.
+        cells = day.split(',')[1:-1]  # Skip "Date" and "CH".
+        date.append(date_fromisoformat(day.split(',')[0]))
+        assert len(cells) == len(cantons), (len(cells), len(cantons))
+        for canton, cell in zip(cantons, cells):
+            data[canton].append(float(cell or 'nan'))
+    data['date'] = date
+    return data
+
+
+def get_canton_data(canton):
+    data = get_data_of_all_cantons()  # Cached.
+    return data[canton]
+
+
+class CantonData(RegionalDataBase):
+    def __init__(self, canton, **kwargs):
+        population = get_canton_population(canton)
+        cases = get_canton_cases(canton)
+        super().__init__(region=country, populationSize=population, cases=cases, **kwargs)

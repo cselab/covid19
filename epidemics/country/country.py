@@ -10,9 +10,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
  
-from epidemics.epidemics import EpidemicsBase
-from epidemics.data.combined import RegionalData
+from epidemics.country.data.cases import CountryData
 from epidemics.data.synthetic import SyntheticData
+from epidemics.epidemics import EpidemicsBase
 from epidemics.utils.misc import save_file, prepare_folder
 
 class EpidemicsCountry( EpidemicsBase ):
@@ -71,7 +71,8 @@ class EpidemicsCountry( EpidemicsBase ):
     if(self.synthetic):
         self.regionalData = SyntheticData( self.datafile )
     else:
-        self.regionalData = RegionalData( self.country, self.lastDay, self.preprocess, self.up_to_int)
+        self.regionalData = CountryData(self.country, lastDay=self.lastDay,
+                                        preprocess=self.preprocess, up_to_int=self.up_to_int)
 
     self.process_data()
  

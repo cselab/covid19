@@ -94,15 +94,15 @@ def fill_nans_interp(t, x):
 
 def get_data_switzerland() -> Data:
     data = Data()
-    from epidemics.data.combined import RegionalData
-    regionalData = RegionalData('switzerland')
-    data.total_infected = regionalData.infected
+    from epidemics.country.data.cases import CountryData
+    countryData = CountryData('switzerland')
+    data.total_infected = countryData.infected
 
     data.total_infected = moving_average(data.total_infected, 0)
-    data.time = regionalData.time
+    data.time = countryData.time
     data.total_infected = data.total_infected
     data.time = data.time
-    data.population = regionalData.populationSize
+    data.population = countryData.populationSize
     return data
 
 
