@@ -342,5 +342,5 @@ def get_canton_data(canton):
 class CantonData(RegionalDataBase):
     def __init__(self, canton, **kwargs):
         population = get_canton_population(canton)
-        cases = get_canton_cases(canton)
+        cases = get_canton_data(canton)
         super().__init__(region=country, populationSize=population, cases=cases, **kwargs)
