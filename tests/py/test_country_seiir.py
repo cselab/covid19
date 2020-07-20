@@ -12,7 +12,7 @@ def solve_seiir(p, y0, t_eval, *, N):
         p: model parameters
         y0: (S0, I0, R0) initial condition at t=0
         t_eval: A list of times `t` to return the values of the ODE at.
-        N: population, model data
+        N: population, design parameter
 
     Returns:
         A list of 5-tuples (S, E, Ir, Iu, R), one tuple for each element of t_eval.
@@ -46,14 +46,14 @@ class TestCountrySEIIR(TestCaseEx):
     def test_seiir(self):
         """Test the C++ autodiff implementation of the SEIIR model."""
         seiir = libepidemics.country.seiir
-        data   = libepidemics.country.ModelData(N=100050)
-        solver = seiir.Solver(data)
+        dp     = libepidemics.country.DesignParameters(N=100050)
+        solver = seiir.Solver(dp)
         params = seiir.Parameters(beta=0.2, mu=0.1, alpha=0.15, Z=5.3, D=3.2)
 
         y0 = (1e5, 1., 2., 3., 5.)  # S, E, Ir, Iu, R.
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial = seiir.State(y0)
-        py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_seiir(params, y0=y0, t_eval=t_eval, N=dp.N)
         cpp_result_noad = solver.solve          (params, initial, t_eval=t_eval, dt=0.1)
         cpp_result_ad   = solver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.1)
 

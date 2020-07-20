@@ -9,7 +9,7 @@ sys.path.append('../../build')
 
 import argparse
 import copy
-from epidemics.tools.tools import import_from
+from epidemics.utils.misc import import_from
 sys.path.append('../../build')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

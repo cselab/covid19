@@ -59,11 +59,11 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     {
         const T ZERO = 0 * p.beta;
         int day = static_cast<int>(t);
-        for (size_t i = 0; i < modelData_.numRegions; ++i) {
-            double extComIu = modelData_.getExternalCommutersIu(day, i);
+        for (size_t i = 0; i < dp_.numRegions; ++i) {
+            double extComIu = dp_.getExternalCommutersIu(day, i);
 
             // Interventions: beta is modelled as a function of time.
-            // NOTE: AD will NOT work for b0, b1!!
+            // NOTE: AD will NOT work for d1, d2 and d3!
             T BETA;
             T THETA;
             if ( day < p.d1) {
@@ -93,7 +93,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
             T dN = ZERO;
 
             T inv = 1 / (x.N(i) - x.Ir(i));
-            //for (size_t j = 0; j < modelData_.numRegions; ++j) { // XXX
+            //for (size_t j = 0; j < dp_.numRegions; ++j) { // XXX
             for (size_t j : this->nonzero_Mij(i)) {
                 T Tij = this->M(i, j) / (x.N(j) - x.Ir(j));
                 T Tji = this->M(j, i) * inv;

@@ -12,7 +12,7 @@ def solve_sir(params, y0, t_eval, *, N):
         params: a tuple (beta, gamma)
         y0: (S0, I0, R0) initial condition at t=0
         t_eval: A list of times `t` to return the values of the ODE at.
-        N: population, model data
+        N: population, design parameters
 
     Returns:
         A list of 9-tuples (S, I, R, dS/dbeta, dI/dbeta, dR/dbeta, dS/dgamma, dI/dgamma, dR/dgamma),
@@ -54,14 +54,14 @@ class TestCountrySIR(TestCaseEx):
     def test_sir(self):
         """Test the C++ autodiff implementation of the SIR model."""
         sir = libepidemics.country.sir
-        data   = libepidemics.country.ModelData(N=100500)
-        solver = sir.Solver(data)
+        dp     = libepidemics.country.DesignParameters(N=100500)
+        solver = sir.Solver(dp)
         params = sir.Parameters(beta=0.2, gamma=0.1)
 
         y0 = (1e5, 1., 200.)  # S, I, R.
         t_eval = [0, 0.3, 0.6, 1.0, 5.0, 10.0, 20.0]
         initial = sir.State(y0)
-        py_result = solve_sir(params, y0=y0, t_eval=t_eval, N=data.N)
+        py_result = solve_sir(params, y0=y0, t_eval=t_eval, N=dp.N)
         cpp_result_noad = solver.solve          (params, initial, t_eval=t_eval, dt=0.1)
         cpp_result_ad   = solver.solve_params_ad(params, initial, t_eval=t_eval, dt=0.1)
 

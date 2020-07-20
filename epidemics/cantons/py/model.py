@@ -19,16 +19,16 @@ except ModuleNotFoundError:
 
 from epidemics.data import DATA_CACHE_DIR
 from epidemics.data.cases import get_region_cases
-from epidemics.tools.tools import flatten
-import epidemics.data.swiss_cantons as swiss_cantons
-import epidemics.data.swiss_municipalities as swiss_municipalities
+from epidemics.utils.misc import flatten
+import epidemics.cantons.data.swiss_cantons as swiss_cantons
+import epidemics.cantons.data.swiss_municipalities as swiss_municipalities
 
 
-class ModelData:
-    """Model data such as region population and Mij matrix.
+class PyDesignParameters:
+    """Design parameters such as region population and Mij matrix.
 
-    For conveniece, we store parameters beta, mu, alpha and other scalars
-    separately (as libepidemics.cantons.<model>.Parameters).
+    To be used from Python and finally converted to the C++ DesignParameters
+    when creating a C++ Solver.
 
     Arguments:
         region_keys: List of region names.
@@ -60,16 +60,16 @@ class ModelData:
         self.key_to_index = {key: k for k, key in enumerate(region_keys)}
 
     def to_cpp(self):
-        """Return the libepidemics.ModelData instance.
+        """Return the libepidemics.DesignParameters instance.
 
         Needed when running the model from Python using the C++ implementation."""
-        return libepidemics.cantons.ModelData(
+        return libepidemics.cantons.DesignParameters(
                 self.region_keys, self.region_population,
                 flatten(self.Mij), flatten(self.Cij),
                 flatten(self.ext_com_Iu), self.Ui)
 
-    def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_model_data.dat'):
-        """Generate cpp_model_data.dat, the data for the C++ ModelData class.
+    def save_cpp_dat(self, path=DATA_CACHE_DIR / 'cpp_design_parameters.dat'):
+        """Generate cpp_design_parameters.dat, the data for the C++ DesignParameters class.
 
         Needed when running Korali from C++, when `to_cpp` is not available.
 
@@ -100,7 +100,7 @@ class ModelData:
             for day in self.ext_com_Iu:
                 f.write(' '.join(str(x) for x in day) + '\n')
             f.write(' '.join(str(u) for u in self.Ui) + '\n')
-        print(f"Stored model data to {path}.")
+        print(f"Stored design parameters to {path}.")
 
 
 class ReferenceData:
@@ -129,7 +129,7 @@ class ReferenceData:
             dayM region_indexM number_of_casesM
 
         The known data points are all known values of numbers of cases. The
-        region index refers to the order in cpp_model_data.dat
+        region index refers to the order in cpp_design_parameters.dat
         Note that covid19_cases_switzerland_openzh.csv (see `fetch`) has many missing values.
         """
         with open(path, 'w') as f:
@@ -139,8 +139,8 @@ class ReferenceData:
         print(f"Stored reference data to {path}.")
 
 
-def get_canton_model_data(include_foreign=True):
-    """Creates the ModelData instance with default data."""
+def get_cantom_design_parameters(include_foreign=True):
+    """Creates the PyDesignParameters instance with default data."""
     keys = swiss_cantons.CANTON_KEYS_ALPHABETICAL
     population = [swiss_cantons.CANTON_POPULATION[c] for c in keys]
 
@@ -157,7 +157,12 @@ def get_canton_model_data(include_foreign=True):
     else:
         ext_com_Iu = []  # Data for 0 days.
 
-    return ModelData(keys, population, Mij, Cij, ext_com_Iu=ext_com_Iu)
+    return PyDesignParameters(keys, population, Mij, Cij, ext_com_Iu=ext_com_Iu)
+
+
+def get_canton_model_data(*args, **kwargs):
+    print("WARNING: get_canton_model_data was renamed to get_canton_design_parameters!")
+    return get_canton_design_parameters(*args, **kwargs)
 
 
 def get_canton_reference_data():
@@ -166,7 +171,7 @@ def get_canton_reference_data():
     return ReferenceData(keys, cases_per_country)
 
 
-def get_municipality_model_data():
+def get_municipality_design_parameters():
     namepop = swiss_municipalities.get_name_and_population()
     commute = swiss_municipalities.get_commute()
 
@@ -190,10 +195,15 @@ def get_municipality_model_data():
     # NOTE: This Mij is wrong.
     Mij = Cij + Cij.transpose()
 
-    return ModelData(namepop['key'], namepop['population'], Mij, Cij)
+    return PyDesignParameters(namepop['key'], namepop['population'], Mij, Cij)
+
+
+def get_municipality_model_data():
+    print("WARNING: get_municipality_model_data was renamed to get_municipality_design_parameters!")
+    return get_municipality_design_parameters()
 
 
 if __name__ == '__main__':
-    get_canton_model_data().save_cpp_dat()
+    get_canton_design_parameters().save_cpp_dat()
     get_canton_reference_data().save_cpp_dat()
-    # get_municipality_model_data().save_cpp_dat()
+    # get_municipality_design_parameters().save_cpp_dat()

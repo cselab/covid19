@@ -13,7 +13,7 @@ plt.ioff()
 from epidemics.epidemics import EpidemicsBase
 from epidemics.data.combined import RegionalData
 from epidemics.data.synthetic import SyntheticData
-from epidemics.tools.tools import save_file, prepare_folder
+from epidemics.utils.misc import save_file, prepare_folder
 
 class EpidemicsCountry( EpidemicsBase ):
 

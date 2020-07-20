@@ -50,7 +50,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 
         auto invZ   = 1 / p.Z;
         auto invD   = 1 / p.D;
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         // auto factor   = 1. / (p.alpha + (1 - p.alpha * p.mu));
         auto factor   = 1.;
 

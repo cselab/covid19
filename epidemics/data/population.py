@@ -1,7 +1,7 @@
 from epidemics.data import DATA_FILES_DIR
 from epidemics.data.regions import region_to_key
-from epidemics.tools.cache import cache
-from epidemics.data.files.canton_population import CANTON_POPULATION
+from epidemics.utils.cache import cache
+from epidemics.cantons.data.canton_population import CANTON_POPULATION
 
 from itertools import zip_longest
 
@@ -36,16 +36,12 @@ def get_population_of_all_countries():
     countries[region_to_key('US')]     = countries['united states']
     return countries
 
-@cache
-def get_population_of_all_cantons():
-    return CANTON_POPULATION
 
 def get_region_population(region):
     """Return the population of the given region."""
     # Currently we only have country population.
     if region in CANTON_POPULATION.keys():
-        data = get_population_of_all_cantons()
-        return data[region]
+        return CANTON_POPULATION[region]
     else:
         data = get_population_of_all_countries()
         return data[region_to_key(region)]

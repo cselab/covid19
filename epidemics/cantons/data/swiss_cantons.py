@@ -7,12 +7,12 @@ This file provides access to all relevant data aobut Swiss cantons and COVID-19:
 """
 
 from epidemics.data import DATA_CACHE_DIR, DATA_DOWNLOADS_DIR, DATA_FILES_DIR
-from epidemics.data.cases import get_region_cases
-from epidemics.data.population import get_region_population
-from epidemics.tools.cache import cache, cache_to_file
-from epidemics.tools.date import date_fromisoformat
-from epidemics.tools.io import download_and_save, extract_zip
-import epidemics.data.swiss_municipalities as swiss_mun
+from epidemics.data.cases import get_country_cases
+from epidemics.data.population import get_country_population
+from epidemics.utils.cache import cache, cache_to_file
+from epidemics.utils.date import date_fromisoformat
+from epidemics.utils.io import download_and_save, extract_zip
+import epidemics.cantons.data.swiss_municipalities as swiss_mun
 import numpy as np
 
 import datetime
@@ -236,9 +236,9 @@ def get_external_Iu(start_date, num_days):
     # Also, we use data on whole countries as an approximation to the data of
     # regions at the Swiss border. To fix this, instead of using FR/GE/AU/IT
     # above, add their regions (counties or whatever) and extend
-    # `get_region_cases` to include this regions.
-    COUNTRY_IR = {country: get_region_cases(country) for country in BORDERS_CLOSING_DATE.keys()}
-    COUNTRY_POPULATION = {country: get_region_population(country) for country in BORDERS_CLOSING_DATE.keys()}
+    # `get_country_cases` to include this regions.
+    COUNTRY_IR = {country: get_country_cases(country) for country in BORDERS_CLOSING_DATE.keys()}
+    COUNTRY_POPULATION = {country: get_country_population(country) for country in BORDERS_CLOSING_DATE.keys()}
 
     result = {c: [0] * num_days for c in CANTON_KEYS_ALPHABETICAL}
     for canton, country, num_commuters in DATA:
@@ -266,6 +266,7 @@ def get_external_Iu(start_date, num_days):
 
     return result
 
+
 def get_shape_file():
     """
     Downloads and returns path to shape file with cantons.
@@ -279,4 +280,3 @@ def get_shape_file():
 
     paths = extract_zip(zippath, shapefile, DATA_MAP_DIR)
     return os.path.splitext(paths[0])[0]
-

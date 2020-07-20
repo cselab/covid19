@@ -12,8 +12,8 @@ import libepidemics #cpp backend
 def sir_int_r0(y0, t_eval, N, p ):
     
     sir_int_r0 = libepidemics.country.sir_int_r0
-    data       = libepidemics.country.ModelData(N=int(N))
-    cppsolver  = sir_int_r0.Solver(data)
+    dp         = libepidemics.country.DesignParameters(N=int(N))
+    cppsolver  = sir_int_r0.Solver(dp)
 
     params = sir_int_r0.Parameters(r0=p[0], gamma=p[1], tact=p[2], dtact=p[3], kbeta=p[4])
     
@@ -34,8 +34,8 @@ def sir_int_r0(y0, t_eval, N, p ):
 def seiir_int(y0, t_eval, N, p ):
     
     seiir_int = libepidemics.country.seiir_int
-    data      = libepidemics.country.ModelData(N=int(N))
-    cppsolver = seiir_int.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=int(N))
+    cppsolver = seiir_int.Solver(dp)
 
     params = seiir_int.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4], tact=p[5], dtact=p[6], kbeta=p[7])
     

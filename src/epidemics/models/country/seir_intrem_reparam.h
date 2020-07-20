@@ -53,7 +53,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         }
 
 
-        double invN = 1. / data_.N;
+        double invN = 1. / dp_.N;
         auto invD = 1. / p.D;
         auto invZ = 1. / p.Z;
 

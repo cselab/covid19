@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from epidemics.tools.tools import load_model
+from epidemics.utils.misc import load_model
 
 from pathlib import Path
 import argparse

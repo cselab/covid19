@@ -11,7 +11,7 @@ import copy
 import argparse
 
 from epidemics.epidemics import EpidemicsBase
-from epidemics.tools.tools import save_file
+from epidemics.utils.misc import save_file
 import libepidemics
 
 
@@ -29,8 +29,8 @@ class Par:
 
 def solve_sir(p):
     model = libepidemics.country.sir_int
-    data = libepidemics.country.ModelData(N=p.N)
-    cppsolver = model.Solver(data)
+    dp    = libepidemics.country.DesignParameters(N=p.N)
+    cppsolver = model.Solver(dp)
 
     y0 = [p.N - p.I0, p.I0]
 
@@ -53,8 +53,8 @@ def solve_sir(p):
 
 def solve_seir(p):
     model = libepidemics.country.seir_int
-    data = libepidemics.country.ModelData(N=p.N)
-    cppsolver = model.Solver(data)
+    dp    = libepidemics.country.DesignParameters(N=p.N)
+    cppsolver = model.Solver(dp)
 
     params = model.Parameters(beta=p.R0 * p.gamma,
                               a=p.alpha,

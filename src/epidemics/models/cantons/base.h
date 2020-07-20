@@ -55,27 +55,27 @@ template <typename Derived,
           template <typename> class Parameters>
 class SolverBase {
 public:
-    SolverBase(ModelData modelData) :
-        modelData_{std::move(modelData)}
+    SolverBase(DesignParameters dp) :
+        dp_{std::move(dp)}
     { }
 
-    const ModelData &modelData() const noexcept { return modelData_; }
+    const DesignParameters &designParameters() const noexcept { return dp_; }
 
     size_t stateSize() const noexcept {
-        return State<double>::kVarsPerRegion * modelData_.numRegions;
+        return State<double>::kVarsPerRegion * dp_.numRegions;
     }
 
     double M(int from, int to) const {
-        return modelData_.Mij[from * modelData_.numRegions + to];
+        return dp_.Mij[from * dp_.numRegions + to];
     }
     const std::vector<size_t>& nonzero_Mij(size_t from_or_in) const {
-        return modelData_.nonzero_Mij[from_or_in];
+        return dp_.nonzero_Mij[from_or_in];
     }
     double C(int from, int to) const {
-        return modelData_.Cij[from * modelData_.numRegions + to];
+        return dp_.Cij[from * dp_.numRegions + to];
     }
     double C_plus_Ct(int from, int to) const {
-        return modelData_.C_plus_Ct[from * modelData_.numRegions + to];
+        return dp_.C_plus_Ct[from * dp_.numRegions + to];
     }
 
     template <typename T>
@@ -85,13 +85,13 @@ public:
             const std::vector<double> &tEval,
             IntegratorSettings settings) const
     {
-        if (y0.raw().size() != modelData_.numRegions * State<T>::kVarsPerRegion)
+        if (y0.raw().size() != dp_.numRegions * State<T>::kVarsPerRegion)
             throw std::invalid_argument("Invalid state vector length.");
 
         return integrate(
                 [this, parameters](double t, const State<T> &x, State<T> &dxdt) {
                     assert(x.raw().size() == dxdt.raw().size());
-                    assert(x.raw().size() == modelData_.numRegions * State<T>::kVarsPerRegion);
+                    assert(x.raw().size() == dp_.numRegions * State<T>::kVarsPerRegion);
                     return derived()->rhs(t, parameters, x, dxdt);
                 },
                 std::move(y0), tEval, std::move(settings));
@@ -105,7 +105,7 @@ protected:
         return static_cast<const Derived *>(this);
     }
 
-    ModelData modelData_;
+    DesignParameters dp_;
 };
 
 }  // namespace cantons

@@ -49,14 +49,14 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         if (day + 1 > p.tact) {
           beta *= p.kbeta;
         }
-        const double * __restrict__ invNi = modelData_.invNi.data();
-        for (size_t i = 0; i < modelData_.numRegions; ++i) {
+        const double * __restrict__ invNi = dp_.invNi.data();
+        for (size_t i = 0; i < dp_.numRegions; ++i) {
             T sumIC_N = ZERO;
-            for (size_t j = 0; j < modelData_.numRegions; ++j) {
+            for (size_t j = 0; j < dp_.numRegions; ++j) {
                 sumIC_N += x.I(j) * this->C_plus_Ct(i, j) * invNi[j];
             }
-            const double ext = modelData_.getExternalCommutersIu(day, i);
-            const T beta_i = beta * (1 + modelData_.Ui[i]);
+            const double ext = dp_.getExternalCommutersIu(day, i);
+            const T beta_i = beta * (1 + dp_.Ui[i]);
             const T A = beta_i * x.S(i) * invNi[i] * (
                     x.I(i) + p.nu * sumIC_N + ext);
             const T E_Z = x.E(i) / p.Z;

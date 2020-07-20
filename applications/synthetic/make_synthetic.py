@@ -14,8 +14,8 @@ dt = 1e-3
 def sir_beta(y0, t_eval, N, p ):
     
     sir       = libepidemics.country.sir
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = sir.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = sir.Solver(dp)
 
     params = sir.Parameters(beta=p[0], gamma=p[1])
     
@@ -33,8 +33,8 @@ def sir_beta(y0, t_eval, N, p ):
 def sir_int_r0(y0, t_eval, N, p ):
     
     sir_int_r0 = libepidemics.country.sir_int_r0
-    data       = libepidemics.country.ModelData(N=N)
-    cppsolver  = sir_int_r0.Solver(data)
+    dp         = libepidemics.country.DesignParameters(N=N)
+    cppsolver  = sir_int_r0.Solver(dp)
 
     params = sir_int_r0.Parameters(r0=p[0], gamma=p[1], tact=p[2], dtact=p[3], kbeta=p[4])
     
@@ -51,8 +51,8 @@ def sir_int_r0(y0, t_eval, N, p ):
 
 def seir(y0, t_eval, N, p ):
     seir      = libepidemics.country.seir
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seir.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seir.Solver(dp)
 
     params = seir.Parameters(beta=p[0], gamma=p[1], a=p[2])
     
@@ -69,8 +69,8 @@ def seir(y0, t_eval, N, p ):
 
 def seir_int(y0, t_eval, N, p ):
     seir_int  = libepidemics.country.seir_int
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seir_int.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seir_int.Solver(dp)
 
     params = seir_int.Parameters(beta=p[0], gamma=p[1], a=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
@@ -87,8 +87,8 @@ def seir_int(y0, t_eval, N, p ):
 
 def seiir(y0, t_eval, N, p ):
     seiir     = libepidemics.country.seiir
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seiir.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seiir.Solver(dp)
 
     params = seiir.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4])
     
@@ -111,8 +111,8 @@ def seiir(y0, t_eval, N, p ):
 
 def seiir_int(y0, t_eval, N, p ):
     seiir_int = libepidemics.country.seiir_int
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = seiir_int.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seiir_int.Solver(dp)
 
     params = seiir_int.Parameters(beta=p[0], mu=p[1], alpha=p[2], Z=p[3], D=p[4], tact=p[5], dtact=p[6], kbeta=p[7])
     

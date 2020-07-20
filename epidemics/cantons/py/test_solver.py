@@ -7,15 +7,15 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.cantons.py.model import get_canton_model_data, get_canton_reference_data
+from epidemics.cantons.py.model import get_canton_design_parameters, get_canton_reference_data
 from epidemics.cantons.py.solver import Solver
 from epidemics.cantons.py.plot_ode import plot_ode_results_canton
 import libepidemics  # Must be AFTER .plot_ode (because of sys.path...).
 
 
-MODEL_DATA = get_canton_model_data()
-CANTON_TO_INDEX = {key: k for k, key in enumerate(MODEL_DATA.region_keys)}
-CANTON_POPULATION = dict(zip(MODEL_DATA.region_keys, MODEL_DATA.region_population))
+DESIGN_PARAMETERS = get_canton_design_parameters()
+CANTON_TO_INDEX = {key: k for k, key in enumerate(DESIGN_PARAMETERS.region_keys)}
+CANTON_POPULATION = dict(zip(DESIGN_PARAMETERS.region_keys, DESIGN_PARAMETERS.region_population))
 REFDATA = get_canton_reference_data()
 
 def get_params():
@@ -61,7 +61,7 @@ def solve_and_visualize(y0, params, Mij, num_days):
 
     # Convert to C++ State object, expected by `plot_ode_results`.
     states = [libepidemics.cantons.seiin.State(state.tolist()) for state in states]
-    plot_ode_results_canton(MODEL_DATA, states)
+    plot_ode_results_canton(DESIGN_PARAMETERS, states)
 
 
 def main():

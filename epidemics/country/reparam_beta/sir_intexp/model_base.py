@@ -17,8 +17,8 @@ class ModelBase( EpidemicsCountry ):
   def solve_ode( self, y0, T, t_eval, N, p ):
     
     sir_int   = libepidemics.country.sir_intexp_reparam
-    data      = libepidemics.country.ModelData(N=N)
-    cppsolver = sir_int.Solver(data)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = sir_int.Solver(dp)
 
     params = sir_int.Parameters(R0=p[0]*p[1], D=p[1], tact=p[2], k=p[3])
     

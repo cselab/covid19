@@ -42,10 +42,10 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     {
         const T ZERO = 0 * p.beta;
         int day = static_cast<int>(t);
-        const double * __restrict__ invNi = modelData_.invNi.data();
-        for (size_t i = 0; i < modelData_.numRegions; ++i) {
-            T sumIC_N = ZERO + modelData_.getExternalCommutersIu(day, i);
-            for (size_t j = 0; j < modelData_.numRegions; ++j)
+        const double * __restrict__ invNi = dp_.invNi.data();
+        for (size_t i = 0; i < dp_.numRegions; ++i) {
+            T sumIC_N = ZERO + dp_.getExternalCommutersIu(day, i);
+            for (size_t j = 0; j < dp_.numRegions; ++j)
                 sumIC_N += x.Iu(j) * this->C_plus_Ct(i, j) * invNi[j];
             // printf("i=%zu invNi=%lg sumIC_N=%lg sum_SC_N=%lg\n", i, invNi[i], sumIC_N, sum_SC_N);
             T A = p.beta * x.S(i) * invNi[i] * (x.Iu(i) + p.nu * sumIC_N);

@@ -1,4 +1,4 @@
-import epidemics.data.swiss_cantons as swiss_cantons
+import epidemics.cantons.data.swiss_cantons as swiss_cantons
 import numpy as np
 
 class Data:
