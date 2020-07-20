@@ -21,7 +21,6 @@ def sum_china_province_data(data):
             'shandong', 'shanghai', 'shanxi', 'sichuan', 'taiwan', 
             'tianjin', 'xinjiang', 'yunnan', 'zhejiang']
 
-    print(data.keys(),flush=True)
     china = data[provinces[0]]
     for province in provinces[1:]:
         china = china + data[province]
