@@ -20,9 +20,10 @@ import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
-from epidemics.data import DATA_CACHE_DIR, CANTONS_DATA_DIR
-from epidemics.cantons.py.model import DesignParameters
+from epidemics.cantons.data import CANTONS_DATA_DIR
 from epidemics.cantons.data.swiss_cantons import NAME_TO_CODE, CODE_TO_NAME
+from epidemics.cantons.py.model import DesignParameters
+from epidemics.data import DATA_CACHE_DIR
 from epidemics.utils.cache import cache, cache_to_file
 import epidemics.cantons.data.swiss_municipalities as munic
 

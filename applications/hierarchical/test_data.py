@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 sys.path.append('../../')
 
-from epidemics.data.combined import RegionalData
-vd_data = RegionalData('VD',True)
+from epidemics.cantons.data.swiss_cantons import CantonData
+vd_data = CantonData('VD',True)
 
 fig = plt.figure()
 plt.plot(vd_data.infected,label='infected')
