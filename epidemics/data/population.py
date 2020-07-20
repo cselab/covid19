@@ -3,6 +3,8 @@ from epidemics.data.regions import region_to_key
 from epidemics.tools.cache import cache
 from epidemics.data.files.canton_population import CANTON_POPULATION
 
+from itertools import zip_longest
+
 import json
 
 def load_samayo_population_data():
@@ -30,6 +32,8 @@ def get_population_of_all_countries():
     countries[region_to_key('Kosovo')] = 1810463
     countries[region_to_key('Montenegro')] = 631219
     countries[region_to_key('Serbia')] = 6963764
+    countries[region_to_key('Serbia')] = 6963764
+    countries[region_to_key('US')]     = countries['united states']
     return countries
 
 @cache

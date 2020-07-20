@@ -1,15 +1,22 @@
  #!/bin/bash
 
 declare -a countries=(
-"switzerland"
+"china"
+#"switzerland"
 #"france"
 #"germany"
+#"italy"
+#"russia"
+#"us"
+#"sweden"
+#"brazil"
+#"india"
 )
 
-base="./data/knested/"
+base="./data/new/"
 
 #model="country.cz_int.nbin"
-model="country.reparam.sird_dint_nogamma.nbin"
+model="country.reparam.sird_dint.nbin"
 
 mkdir ${base} -p
 

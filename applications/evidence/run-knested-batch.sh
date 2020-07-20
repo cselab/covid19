@@ -1,8 +1,9 @@
  #!/bin/bash
 
 declare -a countries=(
-"switzerland"
+#"switzerland"
 #"france"
+"germany"
 )
 
 # OTHER (TOP 10 by Population)

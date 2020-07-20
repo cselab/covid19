@@ -6,6 +6,7 @@ from epidemics.tools.cache import cache
 from epidemics.tools.date import date_fromisoformat
 from epidemics.tools.io import download_and_save
 
+from itertools import zip_longest
 from collections import namedtuple
 import datetime
 from operator import add
@@ -30,6 +31,14 @@ class RegionCasesData:
         return "{}(start_date={}, confirmed={}, recovered={}, deaths={})".format(
                 self.__class__.__name__, self.start_date, self.confirmed,
                 self.recovered, self.deaths)
+
+    def __add__(self, o):
+        start = min(self.start_date, o.start_date)
+        confirmed = [x+y for x,y in zip_longest(self.confirmed, o.confirmed, fillvalue=0)]
+        recovered = [x+y for x,y in zip_longest(self.recovered, o.recovered, fillvalue=0)]
+        deaths    = [x+y for x,y in zip_longest(self.deaths, o.deaths, fillvalue=0)]
+        
+        return RegionCasesData(start, confirmed, recovered, deaths)
 
     def get_confirmed_at_date(self, date):
         idx = (date - self.start_date).days
@@ -135,11 +144,33 @@ def get_field_data_all_cantons(field,cache_duration=1e9):
     data['date'] = date
     return data
 
+
+def collect_province_data(data):
+    # list compared with wikipedia, incl. hk, without tibet
+    # inner mongolian aut. region == neimenggu
+    provinces = ['anhui', 'beijing', 'chongqing', 'fujian', 'gansu', 
+            'guangdong', 'guangxi', 'guizhou', 'guizhou', 'hainan', 
+            'hebei', 'heilongjiang', 'henan', 'hong kong', 'hubei',
+            'hunan', 'neimenggu', 'jiangsu', 'jiangxi', 'jilin', 
+            'liaoning', 'macau', 'ningxia', 'qinghai', 'shaanxi', 
+            'shandong', 'shanghai', 'shanxi', 'sichuan', 'taiwan', 
+            'tianjin', 'xinjiang', 'yunnan', 'zhejiang']
+
+    print(data.keys(),flush=True)
+    china = data[provinces[0]]
+    for province in provinces[1:]:
+        china = china + data[province]
+
+    data['china'] = china
+    return data
+
 def get_region_cases(region):
     if region in CANTON_POPULATION.keys():
         data = get_data_of_all_cantons()
         return data[region]
     else:
         data = load_and_process_hgis_data()  # This is cached.
+        if region == "china":
+            data = collect_province_data(data)
         return data[region_to_key(region)]
 
