@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-# Author: George Arampatzis
-# Date:   16/3/2020
-# Email:  garampat@ethz.ch
 
 import glob
+import random
 import importlib
 import json
 import os
@@ -47,8 +45,6 @@ def prepare_folder( dir, clean=False ):
     os.makedirs(dir)
 
 
-
-
 def get_last_generation( folder, pattern ):
   files = glob.glob(folder + pattern)
   return len(files), sorted(files)[-1]
@@ -89,8 +85,6 @@ def save_file( data, file, str, fileType='pickle' ):
       pickle.dump( data, f )
 
 
-
-
 def load_file( file, str, fileType='pickle' ):
 
   if str:
@@ -114,18 +108,23 @@ def load_model(path):
     return model
 
 
-
 def make_path( path, *paths):
   p = os.path.join(path,*paths);
   p = os.path.normpath(p);
   return p
 
 
-
 def import_from( module, name ):
   module = importlib.import_module( module )
   return getattr( module, name )
 
+
+def positive_standard_t(dof):
+    x = np.random.standard_t(dof)
+    if x < 0:
+        return -x
+    else:
+        return x
 
 
 def get_truncated_normal(mean, sd, low, upp):

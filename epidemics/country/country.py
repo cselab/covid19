@@ -43,6 +43,8 @@ class EpidemicsCountry( EpidemicsBase ):
             'dtact' : (0.0, 30.0),
             'kbeta' : (0.0, 1.0),
             'Sigma' : (0.0, 100.0),
+            'dof'   : (0.0, 100.0),
+            'cdof'  : (0.0, 100.0),
             'r'     : (0.0, 100.0)
         }
 
@@ -149,10 +151,6 @@ class EpidemicsCountry( EpidemicsBase ):
     else:
         deaths = []
 
-#    print(len(infected))
-#    print(self.data['Model']['x-infected'])
-#    print(len(self.data['Model']['x-infected']), flush=True)
- 
     # Transform gradients
     if(self.sampler == 'mTMCMC'):
         print("[Epidemics] mTMCMC not anymore available, fix needed")
@@ -171,6 +169,10 @@ class EpidemicsCountry( EpidemicsBase ):
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
     elif self.likelihoodModel == 'Positive Normal':
         s['Standard Deviation'] = ( p[-1] * y ).tolist()
+    elif self.likelihoodModel == 'Positive StudentT' and self.modelName.endswith('_alt'):
+        s['Degrees Of Freedom'] = ( 2*(1+p[-1]*y) / (p[-1]*y) ).tolist()
+    elif self.likelihoodModel == 'Positive StudentT':
+        s['Degrees Of Freedom'] = [p[-1]] * len(y)
     elif self.likelihoodModel == 'Negative Binomial':
         s['Dispersion'] = [p[-1]] * len(y)
 
@@ -260,6 +262,12 @@ class EpidemicsCountry( EpidemicsBase ):
     elif self.likelihoodModel == 'Positive Normal':
         js['Standard Deviation Daily Incidence'] = ( p[-1] * incidences ).tolist()
         js['Standard Deviation Daily Deaths']    = ( p[-1] * deaths ).tolist()
+    elif self.likelihoodModel == 'StudentT':
+        js['Degrees Of Freedom Daily Incidence'] = ( p[-1] * incidences ).tolist()
+        js['Degrees Of Freedom Daily Deaths']    = ( p[-1] * deaths ).tolist()
+    elif self.likelihoodModel == 'Positive StudentT':
+        js['Degrees Of Freedom Daily Incidence'] = ( p[-1] * incidences ).tolist()
+        js['Degrees Of Freedom Daily Deaths']    = ( p[-1] * deaths ).tolist()
     elif self.likelihoodModel == 'Negative Binomial':
         js['Dispersion Daily Incidence'] = (len(incidences)) * [p[-1]]
         js['Dispersion Daily Deaths']    = (len(deaths)) * [p[-1]]

@@ -14,8 +14,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 
-
-from epidemics.utils.misc import prepare_folder, make_path, save_file, get_truncated_normal, abort, printlog
+from epidemics.utils.misc import prepare_folder, make_path, save_file, positive_standard_t, get_truncated_normal, abort, printlog
 from epidemics.utils.compute_credible_intervals import compute_credible_intervals
 from epidemics.utils.nested import priorTransformFromJs, getPosteriorFromResult, WorkerPool
 
@@ -451,12 +450,25 @@ class EpidemicsBase:
             varNames.append('Standard Deviation Daily Incidence')
         if self.useDeaths:
             varNames.append('Standard Deviation Daily Deaths')
+    
+    elif( self.likelihoodModel=='StudentT' or self.likelihoodModel=='Positive StudentT'):
+        if self.useInfections:
+            varNames.append('Degrees Of Freedom Daily Incidence')
+        if self.useDeaths:
+            varNames.append('Degrees Of Freedom  Daily Deaths')
+ 
+    elif( self.likelihoodModel=='Poisson' ):
+        pass
+ 
+    elif( self.likelihoodModel=='Geometric' ):
+        pass
 
     elif( self.likelihoodModel=='Negative Binomial' ):
         if self.useInfections:
             varNames.append('Dispersion Daily Incidence')
         if self.useDeaths:
             varNames.append('Dispersion Daily Deaths')
+
     else:
       abort('Likelihood not found in propagate.')
 
@@ -507,6 +519,39 @@ class EpidemicsBase:
         t = get_truncated_normal(m,s,0,np.Inf)
         x = [ t.rvs() for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
+ 
+    elif self.likelihoodModel=='StudentT':
+        m   = self.propagatedVariables[varName][:,k]
+        dof = self.propagatedVariables['Degrees Of Freedom {0}'.format(varName)][:,k]
+        x   = [ m+np.random.standard_t(dof) for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
+ 
+ 
+    elif self.likelihoodModel=='Positive StudentT':
+        m   = self.propagatedVariables[varName][:,k]
+        dof = self.propagatedVariables['Degrees Of Freedom {0}'.format(varName)][:,k]
+        x   = [ m+positive_standard_t(dof) for _ in range(ns) ]
+        samples[:,k] = np.asarray(x).flatten()
+ 
+    elif self.likelihoodModel=='Poisson':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        try:
+          x = [ np.random.poisson(m) for _ in range(ns) ]
+        except:
+          printlog("Error p: {}".format(p))
+        samples[:,k] = np.asarray(x).flatten()
+ 
+    elif self.likelihoodModel=='Geometric':
+      for k in range(Nt):
+        m = self.propagatedVariables[varName][:,k]
+        p = 1.0/(1.0+m)
+        try:
+          x = [ np.random.geometric(p)-1 for _ in range(ns) ]
+        except:
+          printlog("Error p: {}".format(p))
+        samples[:,k] = np.asarray(x).flatten()
+
 
     elif self.likelihoodModel=='Negative Binomial':
       for k in range(Nt):
