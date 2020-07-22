@@ -275,8 +275,8 @@ class EpidemicsCountry( EpidemicsBase ):
         js['Degrees Of Freedom Daily Incidence'] = (len(incidences)) * [p[-1]]
         js['Degrees Of Freedom Daily Deaths']    = (len(deaths)) * [p[-1]]
     elif self.likelihoodModel == 'Positive StudentT':
-        js['Degrees Of Freedom Daily Incidence'] = ( p[-1] * incidences ).tolist()
-        js['Degrees Of Freedom Daily Deaths']    = ( p[-1] * deaths ).tolist()
+        js['Degrees Of Freedom Daily Incidence'] = (len(incidences)) * [p[-1]]
+        js['Degrees Of Freedom Daily Deaths']    = (len(deaths)) * [p[-1]]
     elif self.likelihoodModel == 'Negative Binomial':
         js['Dispersion Daily Incidence'] = (len(incidences)) * [p[-1]]
         js['Dispersion Daily Deaths']    = (len(deaths)) * [p[-1]]
