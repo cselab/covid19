@@ -455,7 +455,7 @@ class EpidemicsBase:
         if self.useInfections:
             varNames.append('Degrees Of Freedom Daily Incidence')
         if self.useDeaths:
-            varNames.append('Degrees Of Freedom  Daily Deaths')
+            varNames.append('Degrees Of Freedom Daily Deaths')
  
     elif( self.likelihoodModel=='Poisson' ):
         pass
@@ -521,6 +521,7 @@ class EpidemicsBase:
         samples[:,k] = np.asarray(x).flatten()
  
     elif self.likelihoodModel=='StudentT':
+      for k in range(Nt):
         m   = self.propagatedVariables[varName][:,k]
         dof = self.propagatedVariables['Degrees Of Freedom {0}'.format(varName)][:,k]
         x   = [ m+np.random.standard_t(dof) for _ in range(ns) ]
@@ -528,6 +529,7 @@ class EpidemicsBase:
  
  
     elif self.likelihoodModel=='Positive StudentT':
+      for k in range(Nt):
         m   = self.propagatedVariables[varName][:,k]
         dof = self.propagatedVariables['Degrees Of Freedom {0}'.format(varName)][:,k]
         x   = [ m+positive_standard_t(dof) for _ in range(ns) ]

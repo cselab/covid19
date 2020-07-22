@@ -109,22 +109,20 @@ def load_model(path):
 
 
 def make_path( path, *paths):
-  p = os.path.join(path,*paths);
-  p = os.path.normpath(p);
-  return p
+    p = os.path.join(path,*paths);
+    p = os.path.normpath(p);
+    return p
 
 
 def import_from( module, name ):
-  module = importlib.import_module( module )
-  return getattr( module, name )
+    module = importlib.import_module( module )
+    return getattr( module, name )
 
 
 def positive_standard_t(dof):
-    x = np.random.standard_t(dof)
-    if x < 0:
-        return -x
-    else:
-        return x
+    x = np.random.standard_t(dof, size=None)
+    x[x < 0.0] = -x[x < 0.0]
+    return x
 
 
 def get_truncated_normal(mean, sd, low, upp):
