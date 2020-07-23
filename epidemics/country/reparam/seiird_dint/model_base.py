@@ -22,7 +22,7 @@ class ModelBase( EpidemicsCountry ):
     params = seiird_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=p[6], dtact=self.constants['dtact'], kbeta=p[7])
 
     s0, ir0 = y0
-    y0cpp   = (s0, 0.0, ir0, 0.0, 0.0, 0.0) # S E Ir Iu  R D
+    y0cpp   = (s0, p[0]*ir0, ir0, (1-p[4])/p[4]*ir0, 0.0, 0.0) # S E Ir Iu  R D
     
     initial = seiird_int.State(y0cpp)
  

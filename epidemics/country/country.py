@@ -44,7 +44,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'kbeta' : (0.0, 1.0),
             'Sigma' : (0.0, 100.0),
             'dof'   : (2.0, 100.0),
-            'cdof'  : (0.0, 100.0),
+            'cdof'  : (0.0, 5.0),
             'r'     : (0.0, 100.0)
         }
 

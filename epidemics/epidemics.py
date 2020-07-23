@@ -532,7 +532,7 @@ class EpidemicsBase:
       for k in range(Nt):
         m   = self.propagatedVariables[varName][:,k]
         dof = self.propagatedVariables['Degrees Of Freedom {0}'.format(varName)][:,k]
-        x   = [ m+positive_standard_t(dof) for _ in range(ns) ]
+        x   = [ positive_standard_t(m, dof) for _ in range(ns) ]
         samples[:,k] = np.asarray(x).flatten()
  
     elif self.likelihoodModel=='Poisson':

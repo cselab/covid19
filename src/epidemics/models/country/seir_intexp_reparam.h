@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base.h"
+#include "intervention.h"
 
 namespace epidemics {
 namespace country {
@@ -43,14 +44,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
              State<T> & __restrict__ dxdt) const
     {
 
-        T r0;
-        if (t <= p.tact) {
-           r0 = p.R0;
-        } else {
-           using std::exp;
-           double dt = p.tact-t; // careful: diff will not work
-           r0 = p.R0*exp(p.k*dt);
-        }
+        T r0 = intervention_exp(p.R0, t, p.k, p.tact);
 
         double invN = 1. / dp_.N;
         auto invD = 1. / p.D;

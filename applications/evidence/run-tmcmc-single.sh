@@ -1,7 +1,7 @@
  #!/bin/bash
 
 declare -a countries=(
-#"china"
+"china"
 "switzerland"
 #"france"
 #"germany"
@@ -13,12 +13,13 @@ declare -a countries=(
 #"india"
 )
 
-base="./data/newt/"
+base="./data/newt04/"
 
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
+model="country.reparam.sird_dint.tstudent_alt"
 #model="country.reparam.sird_dint.poi"
-model="country.reparam.sird_dint.geo"
+#model="country.reparam.sird_dint.geo"
 #model="country.reparam.sird_dint.tnrm"
 #model="country.reparam.sird_dint.nbin"
 
@@ -31,7 +32,7 @@ do
 
     outfile="${folder}/knested.out"
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample.py \
-        --silentPlot -ns 20000 -cm ${model} -c "$c" -ui -ud -df $base 2>&1 | tee ${outfile}
+        --silentPlot -ns 10000 -tc 0.4 -nt 12 -cm ${model} -c "$c" -ui -ud -df $base 2>&1 | tee ${outfile}
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
 done

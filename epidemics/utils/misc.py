@@ -119,9 +119,11 @@ def import_from( module, name ):
     return getattr( module, name )
 
 
-def positive_standard_t(dof):
-    x = np.random.standard_t(dof, size=None)
-    x[x < 0.0] = -x[x < 0.0]
+def positive_standard_t(m, dof):
+    x = m + np.random.standard_t(dof)
+    while (x < 0.0).any():
+        idx = x < 0.0
+        x[idx] = m[idx] + np.random.standard_t(dof[idx])
     return x
 
 
