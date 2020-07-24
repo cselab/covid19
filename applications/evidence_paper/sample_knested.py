@@ -41,7 +41,7 @@ if args.useInfections:
 if args.useDeaths:
     obs.append('deaths')
 
-put_comment(args.msg, args.df)
+put_comment(args.msg, args.dataFolder)
 
 x = copy.deepcopy(args)
 x.observations=obs

@@ -26,7 +26,7 @@ class ModelBase( EpidemicsCountry ):
     y0cpp   = (s0, i0, 0.0, 0.0) # S I R D
     initial = sird_intsmooth.State(y0cpp)
     
-    cpp_res = cppsolver.solve_params(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.1)
     
     infected   = np.zeros(len(cpp_res))
     recovered  = np.zeros(len(cpp_res))

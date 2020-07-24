@@ -23,7 +23,7 @@ declare -a models=(
 
 mkdir ${base} -p
 
-for model in "${models6[@]}"
+for model in "${models[@]}"
 do
     for c in "${countries[@]}"
     do
@@ -32,8 +32,8 @@ do
 
         outfile="${folder}/knested.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 250 -cm ${model} -c "$c" -ui -ud -df -m "${msg}" \
-            $base 2>&1 | tee ${outfile}
+            --silentPlot -ns 250 -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
+            2>&1 | tee ${outfile}
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         done
