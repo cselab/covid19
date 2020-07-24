@@ -230,7 +230,7 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
-  def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1 ):
+  def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1, batch=1 ):
 
     self.e = korali.Experiment()
 
@@ -244,11 +244,11 @@ class EpidemicsBase:
     self.e["Solver"]["Number Live Points"] = nLiveSamples
     self.e["Solver"]["Proposal Update Frequency"] = freq
     self.e["Solver"]["Ellipsoidal Scaling"] = 1.10
-    self.e["Solver"]["Batch Size"] = 1
+    self.e["Solver"]["Batch Size"] = batch
  
     self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
-    self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 10000
     self.e["Solver"]["Termination Criteria"]["Min Log Evidence Delta"] = dlogz
+    self.e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 25000
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)

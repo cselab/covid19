@@ -6,18 +6,17 @@ pushd ..
 declare -a countries=(
 "switzerland"
 "france"
-#"germany"
 )
 
-base="./intervention/data/intlinear/"
+base="./intervention/data/intsmooth/"
 
 declare -a models=(
-#"country.reparam.sird_int.poi"
-"country.reparam.sird_int.geo"
-"country.reparam.sird_int.nbin"
-"country.reparam.sird_int.tnrm"
-"country.reparam.sird_int.tstudent"
-"country.reparam.sird_int.tstudent_alt"
+#"country.reparam.sird_intsmooth.poi"
+"country.reparam.sird_intsmooth.geo"
+"country.reparam.sird_intsmooth.nbin"
+"country.reparam.sird_intsmooth.tnrm"
+"country.reparam.sird_intsmooth.tstudent"
+"country.reparam.sird_intsmooth.tstudent_alt"
 )
 
 

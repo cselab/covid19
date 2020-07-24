@@ -1,6 +1,7 @@
  #!/bin/bash
 
-msg="first trial, run intlinear w 500s"
+msg="first trial, run intexp w 500s"
+
 pushd ..
 
 declare -a countries=(
@@ -9,15 +10,15 @@ declare -a countries=(
 #"germany"
 )
 
-base="./intervention/data/intlinear/"
+base="./intervention/data/intexp/"
 
 declare -a models=(
-#"country.reparam.sird_int.poi"
-"country.reparam.sird_int.geo"
-"country.reparam.sird_int.nbin"
-"country.reparam.sird_int.tnrm"
-"country.reparam.sird_int.tstudent"
-"country.reparam.sird_int.tstudent_alt"
+#"country.reparam.sird_intexp.poi"
+"country.reparam.sird_intexp.geo"
+"country.reparam.sird_intexp.nbin"
+"country.reparam.sird_intexp.tnrm"
+"country.reparam.sird_intexp.tstudent"
+"country.reparam.sird_intexp.tstudent_alt"
 )
 
 
