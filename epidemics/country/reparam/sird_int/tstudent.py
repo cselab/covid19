@@ -8,8 +8,8 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sird_intsmooth.tstudent_alt'
-    self.modelDescription = 'Fit SIRD with smooth interventions on Daily Data with Positive StudentT Likelihood'
+    self.modelName        = 'country.reparam.sird_int.tstudent'
+    self.modelDescription = 'Fit SIRD with interventions on Daily Data with Positive Student Likelihood'
     self.likelihoodModel  = 'Positive StudentT'
 
     super().__init__( **kwargs )
@@ -25,7 +25,7 @@ class Model( ModelBase ):
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('cdof', *self.defaults['cdof'])
+            ('Degrees Of Freedom', *self.defaults['dof'])
             )
     
     return js

@@ -8,16 +8,16 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sird_intsmooth.tstudent_alt'
-    self.modelDescription = 'Fit SIRD with smooth interventions on Daily Data with Positive StudentT Likelihood'
-    self.likelihoodModel  = 'Positive StudentT'
+    self.modelName        = 'country.reparam.sird_int.geo'
+    self.modelDescription = 'Fit SIRD with interventions on Daily Data with Geometric Likelihood'
+    self.likelihoodModel  = 'Geometric'
 
     super().__init__( **kwargs )
 
  
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 7
+    self.nParameters = 6
     js = self.get_uniform_priors(
             ('R0', *self.defaults['R0']), 
             ('D', *self.defaults['D']), 
@@ -25,7 +25,6 @@ class Model( ModelBase ):
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('cdof', *self.defaults['cdof'])
             )
     
     return js

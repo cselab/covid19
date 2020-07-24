@@ -8,8 +8,8 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.sird_intsmooth.tstudent_alt'
-    self.modelDescription = 'Fit SIRD with smooth interventions on Daily Data with Positive StudentT Likelihood'
+    self.modelName        = 'country.reparam.sird_int.tstudent_alt'
+    self.modelDescription = 'Fit SIRD with interventions on Daily Data with Positive StudentT Likelihood'
     self.likelihoodModel  = 'Positive StudentT'
 
     super().__init__( **kwargs )
