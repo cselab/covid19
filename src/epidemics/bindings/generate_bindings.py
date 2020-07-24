@@ -120,20 +120,25 @@ def main():
     # reparam
     generate_country_model('sir_reparam', 'S I R', 'R0 D')
     generate_country_model('sir_int_reparam', 'S I R', 'R0 D tact dtact kbeta')
-    generate_country_model('sird_int_reparam', 'S I R D', 'R0 D eps tact dtact kbeta')
     generate_country_model('sir_intexp_reparam', 'S I R', 'R0 D tact k')
     generate_country_model('sir_intrem_reparam', 'S I R', 'R0 D tact l')
     generate_country_model('seir_reparam', 'S E I R', 'R0 D Z')
     generate_country_model('seir_int_reparam', 'S E I R', 'R0 D Z tact dtact kbeta')
-    generate_country_model('seird_int_reparam', 'S E I R D', 'R0 D Z eps tact dtact kbeta')
     generate_country_model('seir_intexp_reparam', 'S E I R', 'R0 D Z tact k')
     generate_country_model('seir_intrem_reparam', 'S E I R', 'R0 D Z tact l')
     generate_country_model('seiir_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha')
     generate_country_model('seiir_int_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha tact dtact kbeta')
-    generate_country_model('seiird_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
-    generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
     generate_country_model('seiir_intexp_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha tact k')
     generate_country_model('seiir_intrem_reparam', 'S E Ir Iu R', 'R0 D Z mu alpha tact l')
+
+    # deaths
+    generate_country_model('sird_int_reparam', 'S I R D', 'R0 D eps tact dtact kbeta')
+    generate_country_model('sird_ints_reparam', 'S I R D', 'R0 D eps tact kbeta')
+    generate_country_model('sird_intsmooth_reparam', 'S I R D', 'R0 D eps tact dtact kbeta')
+    generate_country_model('sird_intexp_reparam', 'S I R D', 'R0 D eps tact k')
+    generate_country_model('seird_int_reparam', 'S E I R D', 'R0 D Z eps tact dtact kbeta')
+    generate_country_model('seiird_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
+    generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
 
     # CZ
     generate_country_model('cz_int', 'S E I P H1 H2 U R D C', 'R0 gamma sigma eps1 eps2 eps3 eps4 omega1 omega2 omega3 omega4 omega5 tact dtact kbeta')
@@ -141,7 +146,8 @@ def main():
 
     # add model here as argument
     generate_country('sir', 'sir_int', 'sir_int_r0', 'seir', 'seir_int', 'seiir', 'seiir_int',
-                     'sir_reparam', 'sir_int_reparam', 'sird_int_reparam', 'sir_intexp_reparam', 'sir_intrem_reparam',
+                     'sir_reparam', 'sir_int_reparam', 'sir_intexp_reparam', 'sir_intrem_reparam', 
+                     'sird_int_reparam', 'sird_ints_reparam', 'sird_intsmooth_reparam', 'sird_intexp_reparam',
                      'seir_reparam', 'seir_int_reparam', 'seird_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
                      'seiir_reparam', 'seiir_int_reparam', 'seiird_int_reparam', 'seiird2_int_reparam', 'seiir_intexp_reparam', 'seiir_intrem_reparam',
                      'cz_int')

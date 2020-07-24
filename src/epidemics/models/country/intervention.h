@@ -21,12 +21,28 @@ T intervention(T R0 /* r0 before intervention */,
     return r0;
 }
 
+    
+template <class T>
+T intervention_smooth(T R0 /* r0 before intervention */,
+               double t /* time */,
+               T kbeta /* reduction factor */,
+               T tact /* intervention time */,
+               T dtact /* intervention duration */)
+{
+    using std::log;
+    T c = -2.0*log(0.025/0.975)/dtact;
+    
+    using std::exp;
+    return R0-R0*(1-kbeta)/(1+exp(-c*(t-tact)));
+}
+
+
 
 template <class T>
 T intervention_step(T R0 /* r0 before intervention */,
                double t /* time */,
                T kbeta /* reduction factor */,
-               T tact /* intervention time */
+               T tact /* intervention time */)
 {
     T r0;
     if (t < tact) {
@@ -42,7 +58,7 @@ template <class T>
 T intervention_exp(T R0 /* r0 before intervention */,
                double t /* time */,
                T k /* reduction factor */,
-               T tact /* intervention time */
+               T tact /* intervention time */)
 {
     T r0;
     if (t < tact) {

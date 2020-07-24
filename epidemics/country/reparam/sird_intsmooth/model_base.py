@@ -16,15 +16,15 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    sird_int   = libepidemics.country.sird_int_reparam
-    dp         = libepidemics.country.DesignParameters(N=N)
-    cppsolver  = sird_int.Solver(dp)
+    sird_intsmooth = libepidemics.country.sird_intsmooth_reparam
+    dp             = libepidemics.country.DesignParameters(N=N)
+    cppsolver      = sird_intsmooth.Solver(dp)
 
-    params = sird_int.Parameters(R0=p[0], D=p[1], eps=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
+    params = sird_intsmooth.Parameters(R0=p[0], D=p[1], eps=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
     s0, i0 = y0
     y0cpp   = (s0, i0, 0.0, 0.0) # S I R D
-    initial = sird_int.State(y0cpp)
+    initial = sird_intsmooth.State(y0cpp)
     
     cpp_res = cppsolver.solve_params(params, initial, t_eval=t_eval, dt = 0.1)
     

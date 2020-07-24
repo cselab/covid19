@@ -39,6 +39,9 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.sir_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sird_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.sird_ints_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.sird_intsmooth_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.sird_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_intrem_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_reparam.generated.cpp
