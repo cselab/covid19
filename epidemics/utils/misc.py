@@ -129,3 +129,8 @@ def positive_standard_t(m, dof):
 
 def get_truncated_normal(mean, sd, low, upp):
     return truncnorm( (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+
+def put_comment(msg, directory):
+    text_file = open("{}/comment.txt".format(directory), "w")
+    text_file.write(msg)
+    text_file.close()

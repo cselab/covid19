@@ -1,0 +1,10 @@
+*.pdf
+*.swp
+.DS_Store
+/data/
+/epidemics/data/cache
+/epidemics/data/downloads
+__pycache__
+._README.rst
+._*
+knested.out
