@@ -40,7 +40,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'alpha' : (0.0, 1.0),
             'eps'   : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
-            'dtact' : (0.0, 30.0),
+            'dtact' : (0.0, 60.0),
             'kbeta' : (0.0, 1.0),
             'kexp'  : (0.1, 5.0),   # 99% decay in ~ (1,30) days
             'Sigma' : (0.0, 100.0),

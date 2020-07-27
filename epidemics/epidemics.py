@@ -214,8 +214,8 @@ class EpidemicsBase:
     k.run(self.e)
 
     js = {}
-    js['Evidence'] = self.e['Solver']['LogEvidence']
-    printlog(f"Log Evidence = {js['Evidence']}")
+    js['Log Evidence'] = self.e['Solver']['LogEvidence']
+    printlog(f"Log Evidence = {js['Log Evidence']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
     printlog('Copy variables from Korali to Epidemics...')
@@ -267,8 +267,10 @@ class EpidemicsBase:
     k.run(self.e)
 
     js = {}
-    js['Evidence'] = self.e['Solver']['LogEvidence']
-    printlog(f"Log Evidence = {js['Evidence']}")
+    js['Log Evidence'] = self.e['Solver']['LogEvidence']
+    js['Error']    = self.e['Solver']['LogEvidence Var']
+    printlog(f"Log Evidence = {js['Log Evidence']}")
+    printlog(f"Variance     = {js['Error']}")
     save_file( js, self.saveInfo['evidence'], 'Log Evidence', fileType='json' )
 
     printlog('Copy variables from Korali to Epidemics...')

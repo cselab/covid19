@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="first trial, run intexp w 500s"
+msg="first trial, run intexp w 1500s"
 
 pushd ..
 
@@ -33,7 +33,7 @@ do
 
         outfile="${folder}/knested.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 500 -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
             2>&1 | tee ${outfile}
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
