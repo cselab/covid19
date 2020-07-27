@@ -261,8 +261,8 @@ class EpidemicsBase:
 
     k = korali.Engine()
     
-    #k['Conduit']['Type'] = 'Concurrent'
-    #k['Conduit']['Concurrent Jobs'] = self.nThreads
+    k['Conduit']['Type'] = 'Concurrent'
+    k['Conduit']['Concurrent Jobs'] = self.nThreads
 
     k.run(self.e)
 

@@ -18,6 +18,8 @@ parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all 
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--lastDay', '-ld', default='2020-06-13', help='Last day of data sequence in format %Y-%m-%d./')
 parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of Live Samples.')
+parser.add_argument('--dLogz', '-dlz', type=float, default=0.1, help='Remaining Log Evidence threshold.')
+parser.add_argument('--batchSize', '-bs', type=float, default=1, help='Number of samples evaluated at each iteration.')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--nGenerations', '-ng', type=int, default=20, help='Maximum number of generations.')
 parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate that many days in future, after the time of observation of the last data.')
@@ -47,6 +49,8 @@ x = copy.deepcopy(args)
 x.observations=obs
 del x.compModel
 del x.nSamples
+del x.batchSize
+del x.dLogz
 del x.nPropagation
 del x.nGenerations
 del x.useInfections
@@ -59,8 +63,8 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample_knested(nLiveSamples=args.nSamples, freq=args.nSamples,
-                 maxiter=(5 if args.test else 1e9))
+a.sample_knested(nLiveSamples=args.nSamples, freq=args.nSamples, dlogz=args.dLogz, 
+                 batch=args.batchSize, maxiter=(5 if args.test else 1e9))
 
 if not args.test:
     a.propagate( args.nPropagation )

@@ -3,12 +3,17 @@
 pushd ..
 
 ns=1500
-reps=5
 
-msg="first trial, run repeated nested sampling with ${ns} samples, study variance of evidence (${reps} reps)"
+declare -a batch=(
+"1"
+"2"
+"4"
+"8"
+"16"
+"32"
+)
 
 declare -a countries=(
-"switzerland"
 "france"
 "germany"
 "italy"
@@ -25,16 +30,17 @@ for model in "${models[@]}"
 do
     for c in "${countries[@]}"
     do
-        for i in {1..5}
+        for b in "${batch[@]}"
         do
-            base="./convergence/data/run${i}"
+            base="./convergence/data/strong_batch/$b"
             folder="$base/$c/$model"
             mkdir ${folder} -p
  
+            msg="first trial, run nested sampling with ${ns} batch size 1500 samples, 0.1 dlogz"
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns ${ns} -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
+                --silentPlot -ns ${ns} -bs ${b} -cm ${model} -c "$c" -nt 12 -ui -ud -df $base -m "${msg}" \
                 2>&1 | tee ${outfile}
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
