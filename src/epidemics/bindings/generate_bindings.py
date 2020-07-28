@@ -136,7 +136,12 @@ def main():
     generate_country_model('sird_ints_reparam', 'S I R D', 'R0 D eps tact kbeta')
     generate_country_model('sird_intsmooth_reparam', 'S I R D', 'R0 D eps tact dtact kbeta')
     generate_country_model('sird_intexp_reparam', 'S I R D', 'R0 D eps tact k')
+
     generate_country_model('seird_int_reparam', 'S E I R D', 'R0 D Z eps tact dtact kbeta')
+    generate_country_model('seird_ints_reparam', 'S E I R D', 'R0 D Z eps tact kbeta')
+    generate_country_model('seird_intsmooth_reparam', 'S E I R D', 'R0 D Z eps tact dtact kbeta')
+    generate_country_model('seird_intexp_reparam', 'S E I R D', 'R0 D Z eps tact k')
+
     generate_country_model('seiird_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
     generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
 
