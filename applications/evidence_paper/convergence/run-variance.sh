@@ -27,14 +27,14 @@ do
     do
         for i in {1..5}
         do
-            base="./convergence/data/run${i}"
+            base="./convergence/data/variance/run${i}"
             folder="$base/$c/$model"
             mkdir ${folder} -p
  
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns ${ns} -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
+                --silentPlot -ns ${ns} -cm ${model} -dlz 1.0 -bs 8 -nt 8 -c "$c" -ui -ud -df $base -m "${msg}" \
                 2>&1 | tee ${outfile}
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

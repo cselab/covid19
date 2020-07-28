@@ -36,7 +36,7 @@ do
             folder="$base/$c/$model"
             mkdir ${folder} -p
  
-            msg="first trial, run nested sampling with ${ns} batch size 1500 samples, 0.1 dlogz"
+            msg="strong scaling (12 threads), run nested sampling with ${b} batch size (1500 samples, 0.1 dlogz)"
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
