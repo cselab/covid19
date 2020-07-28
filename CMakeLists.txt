@@ -47,6 +47,9 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seir_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seird_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seird_ints_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seird_intsmooth_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seird_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_intrem_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_reparam.generated.cpp

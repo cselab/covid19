@@ -1,15 +1,15 @@
 import numpy as np
-from .model_base import ModelBase
 
+from .model_base import ModelBase
 
 class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seird_intsmooth.tnrm'
-    self.modelDescription = 'Fit SEIRD on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.modelName        = 'country.reparam.seird_intsmooth.tstudent_alt'
+    self.modelDescription = 'Fit SEIRD with Intervention on Daily Infected Data with Negative Binomial likelihood'
+    self.likelihoodModel  = 'Positive StudentT'
 
     super().__init__( **kwargs )
 
@@ -25,9 +25,7 @@ class Model( ModelBase ):
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('Sigma', *self.defaults['Sigma'])
+            ('cdof', *self.defaults['cdof'])
             )
     
     return js
-
-

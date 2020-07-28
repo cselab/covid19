@@ -15,7 +15,6 @@ struct Parameters {
     T D;      /// Recovery time.
     T Z;      /// Incubation period.
     T eps;    /// Death rate, from infected
-
     T tact;   /// Day of intervention.
     T dtact;  /// Duration of intervention.
     T kbeta;  /// Multiplicator beta after intervention.
