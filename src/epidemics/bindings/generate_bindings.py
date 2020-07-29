@@ -153,7 +153,8 @@ def main():
     generate_country('sir', 'sir_int', 'sir_int_r0', 'seir', 'seir_int', 'seiir', 'seiir_int',
                      'sir_reparam', 'sir_int_reparam', 'sir_intexp_reparam', 'sir_intrem_reparam', 
                      'sird_int_reparam', 'sird_ints_reparam', 'sird_intsmooth_reparam', 'sird_intexp_reparam',
-                     'seir_reparam', 'seir_int_reparam', 'seird_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
+                     'seir_reparam', 'seir_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
+                     'seird_int_reparam','seird_ints_reparam','seird_intsmooth_reparam', 'seird_intexp_reparam',
                      'seiir_reparam', 'seiir_int_reparam', 'seiird_int_reparam', 'seiird2_int_reparam', 'seiir_intexp_reparam', 'seiir_intrem_reparam',
                      'cz_int')
 

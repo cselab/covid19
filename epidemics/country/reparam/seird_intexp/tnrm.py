@@ -23,7 +23,7 @@ class Model( ModelBase ):
             ('Z', *self.defaults['Z']), 
             ('eps', *self.defaults['eps']), 
             ('tact', *self.defaults['tact']),
-            ('k', *self.defaults['k']),
+            ('k', *self.defaults['kexp']),
             ('Sigma', *self.defaults['Sigma'])
             )
     
