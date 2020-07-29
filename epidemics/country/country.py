@@ -34,8 +34,8 @@ class EpidemicsCountry( EpidemicsBase ):
     
     self.defaults = { 
             'R0'    : (1.0, 15.0),
-            'D'     : (1.0, 20.0),
-            'Z'     : (1.0, 20.0),
+            'D'     : (1.0, 50.0),
+            'Z'     : (1.0, 50.0),
             'mu'    : (0.0, 5.0),
             'alpha' : (0.0, 1.0),
             'eps'   : (0.0, 1.0),
@@ -97,6 +97,7 @@ class EpidemicsCountry( EpidemicsBase ):
  
     self.data['Model']['Initial Condition'] = y0
     self.data['Model']['Population Size']   = N
+    self.data['Model']['Intervention Day']  = self.regionalData.tact
        
     if self.useInfections:
         incidences = np.diff( infected )

@@ -1,20 +1,21 @@
  #!/bin/bash
 
 declare -a countries=(
-"china"
+#"china"
 "switzerland"
-"france"
-"germany"
-"italy"
-"russia"
-"us"
-"sweden"
-"brazil"
-"india"
+#"france"
+#"germany"
+#"italy"
+#"russia"
+#"us"
+#"sweden"
+#"brazil"
+#"india"
 )
 
-base="./data/test3i0/"
+base="./data/testi/"
 
+model="country.reparam.sird_int.nbin"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -27,7 +28,7 @@ base="./data/test3i0/"
 #model="country.reparam.seiird_dint.nbin"
 #model="country.reparam.seiird_int.nbin"
 #model="country.reparam.seiird2_int.nbin"
-model="country.reparam.seiird2_dint.nbin"
+#model="country.reparam.seiird2_dint.nbin"
 
 mkdir ${base} -p
 

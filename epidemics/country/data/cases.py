@@ -8,7 +8,7 @@ from epidemics.utils.io import download_and_save
 
 import os
 import pandas as pd
-
+import datetime
 
 def sum_china_province_data(data):
     # list compared with wikipedia, incl. hk, without tibet
@@ -127,8 +127,10 @@ def cut_data_intervention(cases, country):
 class CountryData(RegionalDataBase):
     def __init__(self, country, up_to_int, **kwargs):
         population = get_country_population(country)
-        cases = get_country_cases(country)
+        cases  = get_country_cases(country)
+        intDay = get_lockdown_date(country)
         if up_to_int:
             cases = cut_data_intervention(cases, region)
-        super().__init__(region=country, populationSize=population, cases=cases, **kwargs)
+        super().__init__(region=country, populationSize=population, cases=cases, \
+                interventionDay=intDay, **kwargs)
         self.up_to_int = up_to_int

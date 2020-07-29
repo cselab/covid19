@@ -1,7 +1,6 @@
  #!/bin/bash
 
-msg="run intexp w 1500s, to determine priors"
-
+msg="run intstep w 1500s to determine priors, taxt start of intervention"
 pushd ..
 
 declare -a countries=(
@@ -21,17 +20,16 @@ declare -a countries=(
 "turkey"
 )
 
-base="./intervention/data2/exp/"
+base="./intervention/data4/step/"
 
 declare -a models=(
-#"country.reparam.sird_intexp.poi"
-"country.reparam.sird_intexp.geo"
-"country.reparam.sird_intexp.nbin"
-#"country.reparam.sird_intexp.tnrm"
-#"country.reparam.sird_intexp.tstudent"
-#"country.reparam.sird_intexp.tstudent_alt"
+#"country.reparam.seird_ints.poi"
+#"country.reparam.seird_ints.geo"
+"country.reparam.seird_ints.nbin"
+#"country.reparam.seird_ints.tnrm"
+#"country.reparam.seird_ints.tstudent"
+#"country.reparam.seird_ints.tstudent_alt"
 )
-
 
 mkdir ${base} -p
 

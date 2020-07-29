@@ -14,12 +14,14 @@ class ModelBase( EpidemicsCountry ):
     super().__init__( **kwargs )
 
   def solve_ode( self, y0, T, t_eval, N, p ):
+    
+    intday  = self.data["Model"]["Intervention Day"]
 
     seiird2_int = libepidemics.country.seiird2_int_reparam
     dp          = libepidemics.country.DesignParameters(N=N)
     cppsolver   = seiird2_int.Solver(dp)
 
-    params = seiird2_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=p[6], dtact=p[7], kbeta=p[8])
+    params = seiird2_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=intday+p[6], dtact=p[7], kbeta=p[8])
 
     s0, ir0 = y0
     y0cpp   = (s0, p[0]*ir0, ir0, (1-p[4])/p[4]*ir0, 0.0, 0.0) # S E Ir Iu  R D

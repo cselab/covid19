@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="run intstep w 1500s to determine priors"
+msg="run intstep w 1500s to determine priors, increased prior D to 50"
 pushd ..
 
 declare -a countries=(
@@ -17,17 +17,18 @@ declare -a countries=(
 "china"
 "japan"
 "south korea"
+"turkey"
 )
 
-base="./intervention/data/step/"
+base="./intervention/data2/step/"
 
 declare -a models=(
 #"country.reparam.sird_ints.poi"
 "country.reparam.sird_ints.geo"
 "country.reparam.sird_ints.nbin"
-"country.reparam.sird_ints.tnrm"
+#"country.reparam.sird_ints.tnrm"
 #"country.reparam.sird_ints.tstudent"
-"country.reparam.sird_ints.tstudent_alt"
+#"country.reparam.sird_ints.tstudent_alt"
 )
 
 mkdir ${base} -p
@@ -36,13 +37,13 @@ for model in "${models[@]}"
 do
     for c in "${countries[@]}"
     do
-        folder="$base/${c}/$model"
+        folder=$base/${c}/$model
         mkdir -p "${folder}"
 
-        outfile="${folder}/knested.out"
+        outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
             --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
-            2>&1 | tee ${outfile}
+            2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         done

@@ -63,7 +63,7 @@ class RegionalDataBase:  # Base class, not database.
 
     Strips away leading zeros in the number of cases.
     """
-    def __init__(self, region, *, populationSize, cases, lastDay=datetime.date.today(), preprocess=False):
+    def __init__(self, region, *, populationSize, cases, interventionDay, lastDay=datetime.date.today(), preprocess=False):
         self.region = region
         self.populationSize = populationSize
         self.preprocess = preprocess
@@ -99,5 +99,6 @@ class RegionalDataBase:  # Base class, not database.
         self.icu = cut(cases.icu)
         self.ventilated = cut(cases.ventilated)
         self.released = cut(cases.released)
-
+        
+        self.tact = (interventionDay - cases.start_date).days - skip
         self.time = np.asarray(range(len(self.infected)))
