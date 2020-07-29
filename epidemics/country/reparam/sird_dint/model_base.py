@@ -26,20 +26,16 @@ class ModelBase( EpidemicsCountry ):
     y0cpp   = (s0, i0, 0.0, 0.0) # S I R D
     initial = sird_int.State(y0cpp)
     
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
     infected   = np.zeros(len(cpp_res))
     recovered  = np.zeros(len(cpp_res))
     deaths     = np.zeros(len(cpp_res))
-    gradmu  = []
-    gradsig = []
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx]  = N-entry.S().val()
-        recovered[idx] = entry.R().val()
-        deaths[idx]    = entry.D().val()
-        gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), -entry.S().d(3), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        infected[idx]  = N-entry.S()
+        recovered[idx] = entry.R()
+        deaths[idx]    = entry.D()
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
@@ -50,7 +46,5 @@ class ModelBase( EpidemicsCountry ):
     sol.y       = infected
     sol.r       = recovered
     sol.d       = deaths
-    sol.gradMu  = gradmu
-    sol.gradSig = gradsig
  
     return sol

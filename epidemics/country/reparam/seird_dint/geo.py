@@ -1,22 +1,22 @@
 import numpy as np
-from .model_base import ModelBase
 
+from .model_base import ModelBase
 
 class Model( ModelBase ):
 
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seird_dint.tnrm'
-    self.modelDescription = 'Fit SEIRD on Daily Infected Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.modelName        = 'country.reparam.seird_dint.geo'
+    self.modelDescription = 'Fit SEIRD with Intervention on Daily Infected Data with Negative Binomial likelihood'
+    self.likelihoodModel  = 'Geometric'
 
     super().__init__( **kwargs )
 
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 7
+    self.nParameters = 6
     js = self.get_uniform_priors(
             ('R0', *self.defaults['R0']),
             ('D', *self.defaults['D']),
@@ -24,9 +24,6 @@ class Model( ModelBase ):
             ('eps', *self.defaults['eps']), 
             ('tact', *self.defaults['tact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('Sigma', *self.defaults['Sigma'])
             )
     
     return js
-
-

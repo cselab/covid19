@@ -8,7 +8,7 @@ class Model( ModelBase ):
   def __init__( self, **kwargs ):
 
     self.modelName        = 'country.reparam.seird_dint.nbin'
-    self.modelDescription = 'Fit SEIRD with Interventions on Daily Data with Negative Binomial likelihood'
+    self.modelDescription = 'Fit SEIRD with Intervention on Daily Infected Data with Negative Binomial likelihood'
     self.likelihoodModel  = 'Negative Binomial'
 
     super().__init__( **kwargs )

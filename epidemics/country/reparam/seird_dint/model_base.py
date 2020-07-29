@@ -18,31 +18,27 @@ class ModelBase( EpidemicsCountry ):
   def solve_ode( self, y0, T, t_eval, N, p ):
     
     seird_int  = libepidemics.country.seird_int_reparam
-    dp         = libepidemics.country.DesignParameters(N=N)
-    cppsolver  = seird_int.Solver(dp)
+    dp        = libepidemics.country.DesignParameters(N=N)
+    cppsolver = seird_int.Solver(dp)
 
-    params = seird_int.Parameters(R0=p[0], D=p[1], Z=p[2], eps=p[3], tact=p[4], dtact=self.constants['dtact'], kbeta=p[5])
+    params = seird_int.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=p[4], dtact=self.constants['dtact'], kbeta=p[5])
     
     s0, i0  = y0
     y0cpp   = (s0, p[0]*i0, i0, 0.0, 0.0) # S E I R D
     initial = seird_int.State(y0cpp)
     
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
     infected  = np.zeros(len(cpp_res))
     recovered = np.zeros(len(cpp_res))
     exposed   = np.zeros(len(cpp_res))
     deaths    = np.zeros(len(cpp_res))
-    gradmu    = []
-    gradsig   = []
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx]  = N-entry.S().val()-entry.E().val()
-        exposed[idx]   = N-entry.S().val()
-        recovered[idx] = entry.R().val()
-        deaths[idx]    = entry.D().val()
-        gradmu.append(np.array([ -entry.S().d(0)-entry.E().d(0), -entry.S().d(1)-entry.E().d(1), -entry.S().d(2)-entry.E().d(2), -entry.S().d(3)-entry.E().d(3), -entry.S().d(4)-entry.E().d(4), -entry.S().d(5)-entry.E().d(5), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        infected[idx]  = N-entry.S()-entry.E()
+        exposed[idx]   = N-entry.S()
+        recovered[idx] = entry.R()
+        deaths[idx]    = entry.D()
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
@@ -50,11 +46,9 @@ class ModelBase( EpidemicsCountry ):
     
     # Create Solution Object
     sol = Object()
-    sol.y       = infected
-    sol.e       = exposed
-    sol.r       = recovered
-    sol.d       = deaths
-    sol.gradMu  = gradmu
-    sol.gradSig = gradsig
+    sol.y = infected
+    sol.e = exposed
+    sol.r = recovered
+    sol.d = deaths
  
     return sol
