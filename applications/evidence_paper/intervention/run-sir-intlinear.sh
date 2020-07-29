@@ -37,7 +37,7 @@ do
     for c in "${countries[@]}"
     do
         folder="$base/$c/$model"
-        mkdir ${folder} -p
+        mkdir -p "${folder}"
 
         outfile="${folder}/knested.out"
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
