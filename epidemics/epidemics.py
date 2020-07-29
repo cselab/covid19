@@ -200,6 +200,7 @@ class EpidemicsBase:
     self.e['Solver']['Population Size'] = self.nSamples
     self.e['Solver']['Target Coefficient Of Variation'] = cov
     self.e['Solver']['Termination Criteria']['Max Generations'] = maxiter
+    
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
 

@@ -2,16 +2,12 @@
 
 pushd ..
 
-ns=1500
-reps=5
-
-msg="first trial, run repeated nested sampling with ${ns} samples, study variance of evidence (${reps} reps)"
+msg="run repeated nested sampling with 1500 samples, study variance of evidence (5 reps)"
 
 declare -a countries=(
-"switzerland"
 "france"
 "germany"
-"italy"
+"switzerland"
 )
 
 declare -a models=(
@@ -34,7 +30,7 @@ do
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns ${ns} -cm ${model} -dlz 1.0 -bs 8 -nt 8 -c "$c" -ui -ud -df $base -m "${msg}" \
+                --silentPlot -ns 1500 -cm ${model} -dlz 0.1 -bs 8 -nt 8 -c "$c" -ui -ud -df $base -m "${msg}" \
                 2>&1 | tee ${outfile}
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
