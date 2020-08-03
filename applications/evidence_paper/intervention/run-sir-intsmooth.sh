@@ -1,26 +1,26 @@
  #!/bin/bash
 
-msg="run intsmooth w 1500s to determine priors, increase prior of D to 50"
+msg="run intsmooth w 1500s to determine priors, increase prior of D to 50, R0 to 30"
 pushd ..
 
 declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
+#"switzerland"
+#"france"
+#"germany"
+#"italy"
 "uk"
-"spain"
-"russia"
+#"spain"
+#"russia"
 "us"
-"canada"
-"australia"
-"china"
-"japan"
+#"canada"
+#"australia"
+#"china"
+#"japan"
 "south korea"
-"turkey"
+#"turkey"
 )
 
-base="./intervention/data2/smooth/"
+base="./intervention/dataR030/smooth/"
 
 declare -a models=(
 #"country.reparam.sird_intsmooth.poi"

@@ -4,31 +4,31 @@ msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 t
 pushd ..
 
 declare -a countries=(
-#"switzerland"
-#"france"
-#"germany"
-#"italy"
+"switzerland"
+"france"
+"germany"
+"italy"
 "uk"
-#"spain"
-#"russia"
+"spain"
+"russia"
 "us"
-#"canada"
-#"australia"
-#"china"
-#"japan"
+"canada"
+"australia"
+"china"
+"japan"
 "south korea"
-#"turkey"
+"turkey"
 )
 
-base="./intervention/dataR030/linear/"
+base="./intervention/dataR030/smooth/"
 
 declare -a models=(
-#"country.reparam.seird_int.poi"
-#"country.reparam.seird_int.geo"
-"country.reparam.seird_int.nbin"
-#"country.reparam.seird_int.tnrm"
-#"country.reparam.seird_int.tstudent"
-#"country.reparam.seird_int.tstudent_alt"
+#"country.reparam.seird_intsmooth.poi"
+#"country.reparam.seird_intsmooth.geo"
+"country.reparam.seird_intsmooth.nbin"
+#"country.reparam.seird_intsmooth.tnrm"
+#"country.reparam.seird_intsmooth.tstudent"
+#"country.reparam.seird_intsmooth.tstudent_alt"
 )
 
 mkdir ${base} -p

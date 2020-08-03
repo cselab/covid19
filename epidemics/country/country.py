@@ -19,21 +19,20 @@ class EpidemicsCountry( EpidemicsBase ):
 
   def __init__( self, **kwargs ):
     
-    self.country        = kwargs.pop('country', 'switzerland')
-    self.futureDays     = kwargs.pop('futureDays', 3)
-    self.nPropagation   = kwargs.pop('nPropagation', 100)
-    self.logPlot        = kwargs.pop('logPlot', True)
-    self.nValidation    = kwargs.pop('nValidation', 0)
-    self.percentages    = kwargs.pop('percentages', [0.5])
-    self.plotMeanMedian = kwargs.pop('plotMeanMedian', False)
-    self.up_to_int      = kwargs.pop('up_to_int', False)
-    self.preprocess     = kwargs.pop('preprocess')
-    self.includeDeaths  = kwargs.pop('includeDeaths', False)
-    self.onlyDeaths     = kwargs.pop('onlyDeaths', False)
-    self.lastDay        = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
+    self.country         = kwargs.pop('country', 'switzerland')
+    self.futureDays      = kwargs.pop('futureDays', 3)
+    self.nPropagation    = kwargs.pop('nPropagation', 100)
+    self.logPlot         = kwargs.pop('logPlot', True)
+    self.nValidation     = kwargs.pop('nValidation', 0)
+    self.percentages     = kwargs.pop('percentages', [0.5])
+    self.plotMeanMedian  = kwargs.pop('plotMeanMedian', False)
+    self.up_to_int       = kwargs.pop('up_to_int', False)
+    self.useIntervention = kwargs.pop('useIntervention', False)
+    self.preprocess      = kwargs.pop('preprocess')
+    self.lastDay         = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
     
     self.defaults = { 
-            'R0'    : (1.0, 15.0),
+            'R0'    : (1.0, 30.0),
             'D'     : (1.0, 50.0),
             'Z'     : (1.0, 50.0),
             'mu'    : (0.0, 5.0),
@@ -111,6 +110,11 @@ class EpidemicsCountry( EpidemicsBase ):
     else:
         deaths, t_deaths = [], []
     
+    if self.useIntervention:
+        self.intday  = self.data["Model"]["Intervention Day"]
+    else:
+        self.intday  = 0
+
     tx = list(set(np.concatenate([t_incidences, t_deaths])))
     tx.sort()
 

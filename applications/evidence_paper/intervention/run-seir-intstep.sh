@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="run intstep w 1500s to determine priors, taxt start of intervention"
+msg="run intstep w 1500s to determine priors, taxt start of intervention, R0 30"
 pushd ..
 
 declare -a countries=(
@@ -20,7 +20,7 @@ declare -a countries=(
 "turkey"
 )
 
-base="./intervention/data4/step/"
+base="./intervention/dataR030/step/"
 
 declare -a models=(
 #"country.reparam.seird_ints.poi"

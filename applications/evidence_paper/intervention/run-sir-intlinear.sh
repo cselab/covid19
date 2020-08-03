@@ -1,26 +1,26 @@
  #!/bin/bash
 
-msg="run intlinear w 1500s to determine priors, tact start of intervention"
+msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 to 30"
 pushd ..
 
 declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
+#"switzerland"
+#"france"
+#"germany"
+#"italy"
 "uk"
-"spain"
-"russia"
+#"spain"
+#"russia"
 "us"
-"canada"
-"australia"
-"china"
-"japan"
+#"canada"
+#"australia"
+#"china"
+#"japan"
 "south korea"
-"turkey"
+#"turkey"
 )
 
-base="./intervention/data3/linear/"
+base="./intervention/dataR030/linear/"
 
 declare -a models=(
 #"country.reparam.sird_int.poi"
