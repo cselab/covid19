@@ -26,7 +26,7 @@ class ModelBase( EpidemicsCountry ):
     
     initial = seiird2_intexp.State(y0cpp)
  
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.1)
   
     exposed   = np.zeros(len(cpp_res))
     infected  = np.zeros(len(cpp_res))
@@ -35,11 +35,11 @@ class ModelBase( EpidemicsCountry ):
     deaths    = np.zeros(len(cpp_res))
 
     for idx,entry in enumerate(cpp_res):
-        exposed[idx]   = N-entry.S().val()
-        infected[idx]  = N-entry.S().val()-entry.E().val()-entry.Iu().val()
-        infectedu[idx] = N-entry.S().val()-entry.E().val()-entry.Ir().val()
-        recovered[idx] = entry.R().val()
-        deaths[idx]    = entry.D().val()
+        exposed[idx]   = N-entry.S()
+        infected[idx]  = N-entry.S()-entry.E()-entry.Iu()
+        infectedu[idx] = N-entry.S()-entry.E()-entry.Ir()
+        recovered[idx] = entry.R()
+        deaths[idx]    = entry.D()
         
  
     infected[np.isnan(infected)] = 0

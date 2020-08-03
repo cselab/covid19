@@ -8,9 +8,9 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.seiird2_intsmooth.tnrm'
+    self.modelName        = 'country.reparam.seiird2_int.tnrm'
     self.modelDescription = 'Fit SEIIRD-2 with Interventions on Daily Data with Positive Normal Likelihood'
-    self.likelihoodModel  = 'Positive Normal'
+    self.likelihoodModel  = 'Positive StudentT'
 
     super().__init__( **kwargs )
 
@@ -27,7 +27,7 @@ class Model( ModelBase ):
             ('tact', *self.defaults['tact']),
             ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('Sigma', *self.defaults['Sigma']),
+            ('cdof', *self.defaults['cdof']),
             )
     
     return js

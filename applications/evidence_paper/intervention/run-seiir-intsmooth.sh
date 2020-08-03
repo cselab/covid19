@@ -23,10 +23,10 @@ declare -a countries=(
 base="./intervention/dataR030/linear/"
 
 declare -a models=(
-"country.reparam.seiird2_int.poi"
-"country.reparam.seiird2_int.geo"
-"country.reparam.seiird2_int.nbin"
-"country.reparam.seiird2_int.tnrm"
+"country.reparam.seiird2_intsmooth.poi"
+"country.reparam.seiird2_intsmooth.geo"
+"country.reparam.seiird2_intsmooth.nbin"
+"country.reparam.seiird2_intsmooth.tnrm"
 "country.reparam.seiird2_int.tstudent_alt"
 )
 
