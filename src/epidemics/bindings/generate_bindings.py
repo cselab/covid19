@@ -144,6 +144,9 @@ def main():
 
     generate_country_model('seiird_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
     generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
+    generate_country_model('seiird2_intexp_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact k')
+    generate_country_model('seiird2_ints_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact kbeta')
+    generate_country_model('seiird2_intsmooth_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
 
     # CZ
     generate_country_model('cz_int', 'S E I P H1 H2 U R D C', 'R0 gamma sigma eps1 eps2 eps3 eps4 omega1 omega2 omega3 omega4 omega5 tact dtact kbeta')
@@ -155,7 +158,7 @@ def main():
                      'sird_int_reparam', 'sird_ints_reparam', 'sird_intsmooth_reparam', 'sird_intexp_reparam',
                      'seir_reparam', 'seir_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
                      'seird_int_reparam','seird_ints_reparam','seird_intsmooth_reparam', 'seird_intexp_reparam',
-                     'seiir_reparam', 'seiir_int_reparam', 'seiird_int_reparam', 'seiird2_int_reparam', 'seiir_intexp_reparam', 'seiir_intrem_reparam',
+                     'seiir_reparam', 'seiir_int_reparam', 'seiird_int_reparam', 'seiird2_int_reparam', 'seiird2_intexp_reparam', 'seiird2_ints_reparam', 'seiird2_intsmooth_reparam', 'seiir_intexp_reparam', 'seiir_intrem_reparam',
                      'cz_int')
 
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
