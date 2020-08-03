@@ -25,7 +25,7 @@ class Model( ModelBase ):
             ('alpha', *self.defaults['alpha']),
             ('eps', *self.defaults['eps']),
             ('tact', *self.defaults['tact']),
-            ('k', *self.defaults['k'])
+            ('k', *self.defaults['kexp'])
             )
     
     return js
