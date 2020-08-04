@@ -72,7 +72,8 @@ class RegionalDataBase:  # Base class, not database.
             print('Preprocessing')
             cases = preprocess_data(cases)
 
-        threshold = 2e-6*self.populationSize # 2 per million
+        fraction  = 5e-7 # 0.5 ppm
+        threshold = fraction*self.populationSize 
         skip  = next((i for i, x in enumerate(cases.confirmed) if (x>threshold)), None)
         zeros = next((i for i, x in enumerate(cases.confirmed) if x), None)
         end   = min((lastDay - cases.start_date).days, len(cases.confirmed))
@@ -81,8 +82,7 @@ class RegionalDataBase:  # Base class, not database.
             raise ValueError(f"Region `{region}` has no cases.")
         else:
             print('[Epidemics] Data contain {} leading zeros.'.format(zeros))
-            print('[Epidemics] Removing {} entries below threshold (2p. million), {} days of usable data'.format(skip,
-                                                    len(cases.confirmed[skip:])))
+            print('[Epidemics] Removing {} entries below threshold ({}/{} pct.), {} days of usable data'.format(skip, threshold, fraction*100, len(cases.confirmed[skip:])))
             print('[Epidemics] Omitting last {} entries'.format(len(cases.confirmed)-end))
 
         def cut(array):

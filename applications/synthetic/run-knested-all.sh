@@ -6,7 +6,9 @@ declare -a arr=(
 "seiir_int"
 )
 
-base="./kdata2/"
+base="./data/nested_rnd_100/"
+
+mkdir -p ${base}
 
 for model in "${arr[@]}"
 do

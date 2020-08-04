@@ -34,7 +34,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'R0'    : (1.0, 30.0),
             'D'     : (1.0, 50.0),
             'Z'     : (1.0, 50.0),
-            'mu'    : (0.0, 10.0),
+            'mu'    : (0.0, 1.0),
             'alpha' : (0.0, 1.0),
             'eps'   : (0.0, 1.0),
             'tact'  : (0.0, 100.0),
@@ -43,7 +43,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'kexp'  : (0.1, 5.0),   # 99% decay in ~ (1,30) days
             'Sigma' : (0.0, 100.0),
             'dof'   : (2.0, 100.0),
-            'cdof'  : (0.0, 5.0),
+            'cdof'  : (0.0, 100.0),
             'r'     : (0.0, 100.0)
         }
 
@@ -125,7 +125,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.data['Model']['y-deaths']   = deaths
 
     print('[Epidemics] Lengths incidences {} deaths {} total {}'.format(len(incidences), \
-            len(deaths),len(np.concatenate([incidences,deaths]))))
+            len(deaths),len(np.concatenate([incidences,deaths]))), flush=True)
 
     T = np.ceil( t[-1-self.nValidation] + self.futureDays )
     self.data['Propagation']['x-data'] = np.linspace(0,T,int(T+1))

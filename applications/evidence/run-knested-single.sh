@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="test student_t"
+msg="test student_t, cdof 100"
 
 declare -a countries=(
 #"switzerland"
