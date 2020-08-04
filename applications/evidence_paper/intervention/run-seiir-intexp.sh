@@ -20,14 +20,15 @@ declare -a countries=(
 "turkey"
 )
 
-base="./intervention/dataR030/exp/"
+name=`whoami`
+base="/scratch/${name}/covid19/intervention/data/run1"
 
 declare -a models=(
-"country.reparam.seiird2_intexp.poi"
+#"country.reparam.seiird2_intexp.poi"
 "country.reparam.seiird2_intexp.geo"
 "country.reparam.seiird2_intexp.nbin"
 "country.reparam.seiird2_intexp.tnrm"
-"country.reparam.seiird2_intexp.tstudent_alt"
+#"country.reparam.seiird2_intexp.tstudent_alt"
 )
 
 mkdir ${base} -p

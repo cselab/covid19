@@ -20,14 +20,14 @@ declare -a countries=(
 "turkey"
 )
 
-base="./intervention/dataR030/smooth/"
+name=`whoami`
+base="/scratch/${name}/covid19/intervention/data/run1"
 
 declare -a models=(
 #"country.reparam.seird_intsmooth.poi"
-#"country.reparam.seird_intsmooth.geo"
+"country.reparam.seird_intsmooth.geo"
 "country.reparam.seird_intsmooth.nbin"
-#"country.reparam.seird_intsmooth.tnrm"
-#"country.reparam.seird_intsmooth.tstudent"
+"country.reparam.seird_intsmooth.tnrm"
 #"country.reparam.seird_intsmooth.tstudent_alt"
 )
 

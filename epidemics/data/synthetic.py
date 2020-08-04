@@ -20,6 +20,8 @@ class SyntheticData:
         
         T = int(f.readline())
         self.infected = np.zeros(T)
+        self.deaths   = np.zeros(T) # dummy
+        self.tact     = None        # dummy
         for idx in range(T):
             self.infected[idx] = float(f.readline())
 

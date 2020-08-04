@@ -29,13 +29,12 @@ class EpidemicsCountry( EpidemicsBase ):
     self.up_to_int       = kwargs.pop('up_to_int', False)
     self.useIntervention = kwargs.pop('useIntervention', False)
     self.preprocess      = kwargs.pop('preprocess')
-    self.lastDay         = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
-    
+
     self.defaults = { 
             'R0'    : (1.0, 30.0),
             'D'     : (1.0, 50.0),
             'Z'     : (1.0, 50.0),
-            'mu'    : (0.0, 5.0),
+            'mu'    : (0.0, 10.0),
             'alpha' : (0.0, 1.0),
             'eps'   : (0.0, 1.0),
             'tact'  : (0.0, 100.0),

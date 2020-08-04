@@ -1,21 +1,27 @@
  #!/bin/bash
 
+msg="test student_t"
+
 declare -a countries=(
-#"china"
-"switzerland"
-#"france"
+#"switzerland"
+"france"
 #"germany"
 #"italy"
+#"uk"
+#"spain"
 #"russia"
 #"us"
-#"sweden"
-#"brazil"
-#"india"
+#"canada"
+#"australia"
+#"china"
+#"japan"
+#"south korea"
+#"turkey"
 )
 
-base="./data/testi/"
+base="./data/tests/"
 
-model="country.reparam.sird_int.nbin"
+model="country.reparam.sird_int.tstudent_alt"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -34,12 +40,14 @@ mkdir ${base} -p
 
 for c in "${countries[@]}"
 do
-    folder="$base/$c/$model"
-    mkdir ${folder} -p
+    folder=$base/${c}/$model
+    mkdir -p "${folder}"
 
-    outfile="${folder}/knested.out"
+    outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-        --silentPlot -ns 1500 -cm ${model} -c "$c" -ui -ud -df $base 2>&1 | tee ${outfile}
+        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
+        2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
 done
+

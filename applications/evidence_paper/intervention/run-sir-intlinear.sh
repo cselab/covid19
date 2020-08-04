@@ -4,30 +4,30 @@ msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 t
 pushd ..
 
 declare -a countries=(
-#"switzerland"
-#"france"
-#"germany"
-#"italy"
+"switzerland"
+"france"
+"germany"
+"italy"
 "uk"
-#"spain"
-#"russia"
+"spain"
+"russia"
 "us"
-#"canada"
-#"australia"
-#"china"
-#"japan"
+"canada"
+"australia"
+"china"
+"japan"
 "south korea"
-#"turkey"
+"turkey"
 )
 
-base="./intervention/dataR030/linear/"
+name=`whoami`
+base="/scratch/${name}/covid19/intervention/data/run1"
 
 declare -a models=(
 #"country.reparam.sird_int.poi"
 "country.reparam.sird_int.geo"
 "country.reparam.sird_int.nbin"
-#"country.reparam.sird_int.tnrm"
-#"country.reparam.sird_int.tstudent"
+"country.reparam.sird_int.tnrm"
 #"country.reparam.sird_int.tstudent_alt"
 )
 
