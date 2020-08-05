@@ -17,17 +17,18 @@ declare -a countries=(
 "china"
 "japan"
 "south korea"
+"turkey"
 )
 
-base="./intervention/data/dint/"
+name=`whoami`
+base="/scratch/${name}/covid19/intervention/data/run1"
 
 declare -a models=(
 #"country.reparam.sird_ints.poi"
 "country.reparam.sird_dint.geo"
 "country.reparam.sird_dint.nbin"
 "country.reparam.sird_dint.tnrm"
-#"country.reparam.sird_ints.tstudent"
-"country.reparam.sird_dint.tstudent_alt"
+#"country.reparam.sird_dint.tstudent_alt"
 )
 
 mkdir ${base} -p

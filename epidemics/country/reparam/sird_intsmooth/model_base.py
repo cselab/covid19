@@ -20,7 +20,7 @@ class ModelBase( EpidemicsCountry ):
     dp             = libepidemics.country.DesignParameters(N=N)
     cppsolver      = sird_intsmooth.Solver(dp)
 
-    params = sird_intsmooth.Parameters(R0=p[0], D=p[1], eps=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
+    params = sird_intsmooth.Parameters(R0=p[0], D=p[1], eps=p[2], tact=self.intday+p[3], dtact=p[4], kbeta=p[5])
     
     s0, i0 = y0
     y0cpp   = (s0, i0, 0.0, 0.0) # S I R D

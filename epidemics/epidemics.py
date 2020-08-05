@@ -5,6 +5,7 @@ import json
 import os
 import pickle
 import sys
+import datetime
 import time
 import random
 import glob
@@ -35,8 +36,16 @@ class EpidemicsBase:
 
     self.useInfections = False
     self.useDeaths     = False
-    observations = set(kwargs.pop('observations'))
     
+    observations = []
+
+    if self.synthetic == False:
+        self.lastDay = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
+        observations = set(kwargs.pop('observations'))
+    else:
+        self.lastDay = None
+
+   
     if 'infections' in observations:
         self.useInfections = True
         observations.remove('infections')
@@ -50,7 +59,8 @@ class EpidemicsBase:
         sys.exit()
 
     if(self.synthetic):
-        self.datafile     = kwargs.pop('dataFile')
+        self.datafile = kwargs.pop('dataFile')
+        self.useInfections = True
 
     if kwargs:
         abort(f"Unknown input arguments: {kwargs}")

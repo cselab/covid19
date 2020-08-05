@@ -14,19 +14,19 @@ class ModelBase( EpidemicsCountry ):
     super().__init__( **kwargs )
 
   def solve_ode( self, y0, T, t_eval, N, p ):
+    
+    seiird2_intexp = libepidemics.country.seiird2_intexp_reparam
+    dp             = libepidemics.country.DesignParameters(N=N)
+    cppsolver      = seiird2_intexp.Solver(dp)
 
-    seiird2_intsmooth = libepidemics.country.seiird2_intsmooth_reparam
-    dp                = libepidemics.country.DesignParameters(N=N)
-    cppsolver         = seiird2_intsmooth.Solver(dp)
-
-    params = seiird2_intsmooth.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=p[6], dtact=p[7], kbeta=p[8])
+    params = seiird2_intexp.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=self.intday+p[6], k=p[7])
 
     s0, ir0 = y0
     y0cpp   = (s0, p[0]*ir0, ir0, (1-p[4])/p[4]*ir0, 0.0, 0.0) # S E Ir Iu  R D
     
-    initial = seiird2_intsmooth.State(y0cpp)
+    initial = seiird2_intexp.State(y0cpp)
  
-    cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.1)
   
     exposed   = np.zeros(len(cpp_res))
     infected  = np.zeros(len(cpp_res))
@@ -35,11 +35,11 @@ class ModelBase( EpidemicsCountry ):
     deaths    = np.zeros(len(cpp_res))
 
     for idx,entry in enumerate(cpp_res):
-        exposed[idx]   = N-entry.S().val()
-        infected[idx]  = N-entry.S().val()-entry.E().val()-entry.Iu().val()
-        infectedu[idx] = N-entry.S().val()-entry.E().val()-entry.Ir().val()
-        recovered[idx] = entry.R().val()
-        deaths[idx]    = entry.D().val()
+        exposed[idx]   = N-entry.S()
+        infected[idx]  = N-entry.S()-entry.E()-entry.Iu()
+        infectedu[idx] = N-entry.S()-entry.E()-entry.Ir()
+        recovered[idx] = entry.R()
+        deaths[idx]    = entry.D()
         
  
     infected[np.isnan(infected)] = 0
