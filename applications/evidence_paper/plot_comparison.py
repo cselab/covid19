@@ -141,7 +141,7 @@ def plot_parameters_comparison(folder,models,countries,variable):
     #     labels.append((mpatches.Patch(color=color), label))
     labels = []
     for i, model in enumerate(models):
-        violins = plt.violinplot(data_all[model],vert=False)
+        violins = plt.violinplot(data_all[model],vert=True)
 
         # Make all the violin statistics marks a specific color:
         for partname in ('cbars','cmins','cmaxes'):
