@@ -1,6 +1,8 @@
 import sys
 sys.path.append('../../')
-from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SHORT
+import matplotlib
+matplotlib.use('Agg')
+# from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SHORT
 import os
 from subprocess import call
 import argparse
@@ -22,8 +24,8 @@ tags = {'australia':   'AU',
         'spain':       'ES',
         'switzerland': 'CH',
         'uk':          'UK',
-        'us':          'US'}
-
+        'us':          'US'
+        }
 
 def create_folder(name):
     if not os.path.exists(name):
@@ -87,7 +89,7 @@ def set_axis_style(ax, labels):
     # ax.set_xlabel('Sample name')
 
 
-def plot_parameters_comparison(folder,models,countries,variable):
+def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
 
     line_color = 'gray'
     face_colors = ['#d53e4f','#99d594','#3288bd']
@@ -131,7 +133,7 @@ def plot_parameters_comparison(folder,models,countries,variable):
 
     # Labels
     common = os.path.commonprefix(models)
-    unique = [model.replace(common,'') for model in models]
+    unique = [model.replace('country.reparam.','') for model in models]
 
 
     fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))    
@@ -168,7 +170,8 @@ def plot_parameters_comparison(folder,models,countries,variable):
     #     for violin, alpha in zip(ax.collections[::2], [0.8,0.6,0.4,0.2]):
     #         violin.set_alpha(alpha)
 
-    plt.savefig(folder+'/_figures/comp_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
+    create_folder(save_dir+'/_figures/')
+    plt.savefig(save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
 
 
 
@@ -178,22 +181,25 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--models', '-m', default='sir_int.nbin', help='Model type')
     parser.add_argument('--variable', '-v', default='R0', help='Model type')
     parser.add_argument('--countries', '-c', default='R0', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./data/', help='Model type')
 
     args = parser.parse_args()
 
-    models = ['country.reparam.sird_dint.tnrm','country.reparam.sird_dint.geo','country.reparam.sird_dint.nbin']
-    folder = 'intervention/data/dint/'
+    models = ['country.reparam.sird_int.nbin','country.reparam.seird_ints.nbin','country.reparam.seiird2_intsmooth.nbin']
+    folder = '/scratch/wadaniel/covid19/intervention/data/run2/'
     countries = ['australia','canada','china','france','germany','italy',
                  'japan','russia','south korea','spain','switzerland',
                  'uk','us']
 
-    variable = 'R0'
+    variables = ['R0','D','eps','tact','kbeta']
 
-    plot_parameters_comparison(folder,models,countries,variable)
+    save_dir = '.'
+
+    for variable in variables:
+        plot_parameters_comparison(folder,models,countries,variable,save_dir)
 
 
 
