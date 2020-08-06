@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="10 ppm "
+msg="0.5ppm, mu in (0,1)"
 pushd ..
 
 declare -a countries=(
@@ -18,22 +18,16 @@ declare -a countries=(
 "japan"
 "south korea"
 "turkey"
-"greece"
-"austria"
-"poland"
-"netherlands"
 )
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run4"
+base="/scratch/${name}/covid19/intervention/data/run2"
 
 declare -a models=(
-#"country.reparam.sird_int.poi"
-#"country.reparam.sird_int.geo"
-"country.reparam.sird_int.nbin"
-#"country.reparam.sird_int.tnrm"
-#"country.reparam.sird_int.tstudent_alt"
+"country.reparam.seird_intsmooth_nogamma.nbin"
+#"country.reparam.seird_intsmooth_nogamma.tnrm"
 )
+
 
 mkdir ${base} -p
 
@@ -41,12 +35,12 @@ for model in "${models[@]}"
 do
     for c in "${countries[@]}"
     do
-        folder=$base/$c/$model
+        folder=$base/${c}/$model
         mkdir -p "${folder}"
 
         outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

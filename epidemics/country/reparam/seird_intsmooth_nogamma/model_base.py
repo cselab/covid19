@@ -17,26 +17,16 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    cz_int    = libepidemics.country.cz_int
+    seird_int_reparam  = libepidemics.country.seird_intsmooth_reparam
     dp        = libepidemics.country.DesignParameters(N=N)
-    cppsolver = cz_int.Solver(dp)
+    cppsolver = seird_int_reparam.Solver(dp)
 
-    D = p[1]
-    Z = p[2]
-
-    params = cz_int.Parameters(R0=p[0], 
-            gamma=1/D, sigma=1/Z,
-            eps1=self.bz_constants['eps1'], eps2=self.bz_constants['eps2'],
-            eps3=p[3], eps4=self.bz_constants['eps4'],
-            omega1=self.bz_constants['omega1'], omega2=self.bz_constants['omega2'],
-            omega3=self.bz_constants['omega3'], omega4=self.bz_constants['omega4'],
-            omega5=self.bz_constants['omega5'], 
-            tact=self.intday+p[4], dtact=p[5], kbeta=p[6]) # 7 params
+    params = seird_int_reparam.Parameters(R0=p[0], D=1.0/self.constants['gamma'], Z=p[1], eps=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
     s0, i0  = y0
-    y0cpp   = (s0, p[0]*i0, i0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) # S E I P H1 H2 U R D C
+    y0cpp   = (s0, 0.0, i0, 0.0, 0.0) # S E I R D
+    initial = seird_int_reparam.State(y0cpp)
     
-    initial = cz_int.State(y0cpp)
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
     infected  = np.zeros(len(cpp_res))
@@ -45,14 +35,13 @@ class ModelBase( EpidemicsCountry ):
     deaths    = np.zeros(len(cpp_res))
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx]  = entry.C()
+        infected[idx]  = N-entry.S()-entry.E()
         exposed[idx]   = N-entry.S()
         recovered[idx] = entry.R()
         deaths[idx]    = entry.D()
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
-    deaths[np.isnan(deaths)] = 0
     
     # Create Solution Object
     sol = Object()

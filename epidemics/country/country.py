@@ -32,19 +32,24 @@ class EpidemicsCountry( EpidemicsBase ):
 
     self.defaults = { 
             'R0'    : (1.0, 30.0),
+            'beta'  : (0.01, 30.0),
             'D'     : (1.0, 50.0),
-            'Z'     : (1.0, 50.0),
-            'mu'    : (0.0, 1.0),
-            'alpha' : (0.0, 1.0),
-            'eps'   : (0.0, 1.0),
-            'tact'  : (0.0, 100.0),
-            'dtact' : (0.0, 60.0),
-            'kbeta' : (0.0, 1.0),
+            'gamma' : (0.01, 1.0),
+            'Z'     : (1.0, 50.0),  # latency period
+            'Y'     : (0.0, 50.0),  # preasymptomatic period
+            'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
+            'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
+            'eps'   : (0.0, 1.0),   # death rate
+            'tact'  : (0.0, 100.0), # intervention time
+            'dtact' : (0.0, 60.0),  # intervention duration
+            'kbeta' : (0.0, 1.0),   # reduction factor
             'kexp'  : (0.1, 5.0),   # 99% decay in ~ (1,30) days
-            'Sigma' : (0.0, 100.0),
-            'dof'   : (2.0, 100.0),
-            'cdof'  : (0.0, 100.0),
-            'r'     : (0.0, 100.0)
+            'Sigma' : (0.0, 100.0), # sdev Normal
+            'dof'   : (2.0, 100.0), # DoF StudentT
+            'cdof'  : (0.0, 100.0), # multiplicator variance StudentT
+            'r'     : (0.0, 100.0), # dispersion NB 
+            'eps3'  : (0.0, 1.0),   # CZ model, death outside of ICU
+            'eps4'  : (0.0, 1.0)    # CZ model, death rate in ICU
         }
 
     self.constants = {
