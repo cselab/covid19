@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="run intsmooth w 1500s to determine priors, increase prior of D to 50, R0 to 30"
+msg="0.5 ppm, mu in (0,1.0)"
 pushd ..
 
 declare -a countries=(
@@ -21,13 +21,13 @@ declare -a countries=(
 )
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run1"
+base="/scratch/${name}/covid19/intervention/data/run2"
 
 declare -a models=(
 #"country.reparam.sird_intsmooth.poi"
-"country.reparam.sird_intsmooth.geo"
+#"country.reparam.sird_intsmooth.geo"
 "country.reparam.sird_intsmooth.nbin"
-"country.reparam.sird_intsmooth.tnrm"
+#"country.reparam.sird_intsmooth.tnrm"
 #"country.reparam.sird_intsmooth.tstudent_alt"
 )
 

@@ -1,6 +1,6 @@
- #!/bin/bash
+#!/bin/bash
 
-msg="run intstep w 1500s to determine priors, increased prior D to 50"
+msg="10 ppm "
 pushd ..
 
 declare -a countries=(
@@ -18,16 +18,20 @@ declare -a countries=(
 "japan"
 "south korea"
 "turkey"
+"greece"
+"austria"
+"poland"
+"netherlands"
 )
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run1"
+base="/scratch/${name}/covid19/intervention/data/run4"
 
 declare -a models=(
 #"country.reparam.sird_ints.poi"
-"country.reparam.sird_ints.geo"
+#"country.reparam.sird_ints.geo"
 "country.reparam.sird_ints.nbin"
-"country.reparam.sird_ints.tnrm"
+#"country.reparam.sird_ints.tnrm"
 #"country.reparam.sird_ints.tstudent_alt"
 )
 

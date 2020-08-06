@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="10 ppm "
+msg="10 ppm"
 pushd ..
 
 declare -a countries=(
@@ -28,11 +28,11 @@ name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run4"
 
 declare -a models=(
-#"country.reparam.sird_int.poi"
-#"country.reparam.sird_int.geo"
-"country.reparam.sird_int.nbin"
-#"country.reparam.sird_int.tnrm"
-#"country.reparam.sird_int.tstudent_alt"
+#"country.reparam.spird_ints.poi"
+#"country.reparam.spird_ints.geo"
+"country.reparam.spird_ints.nbin"
+#"country.reparam.spird_ints.tnrm"
+#"country.reparam.spird_ints.tstudent_alt"
 )
 
 mkdir ${base} -p
