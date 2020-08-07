@@ -1,10 +1,10 @@
  #!/bin/bash
 
-msg="test student_t, cdof 100"
+msg="test spiird model"
 
 declare -a countries=(
-#"switzerland"
-"france"
+"switzerland"
+#"france"
 #"germany"
 #"italy"
 #"uk"
@@ -19,9 +19,10 @@ declare -a countries=(
 #"turkey"
 )
 
-base="./data/tests/"
+base="./data/spiird/"
 
-model="country.reparam.sird_int.tstudent_alt"
+model="country.reparam.spiird_int.nbin"
+model="country.reparam.seirud_int.nbin"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -49,5 +50,6 @@ do
         2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
 done
 

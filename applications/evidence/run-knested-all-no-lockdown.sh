@@ -50,4 +50,8 @@ do
 
    folder="$base/$c/$model"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+
+   rm -rf "$folder/_korali_samples"
+   rm -rf "$folder/_korali_propagation"
+
 done

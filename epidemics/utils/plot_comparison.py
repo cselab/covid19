@@ -6,6 +6,8 @@ matplotlib.use('Agg')
 import os
 from subprocess import call
 import argparse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import json
 import numpy as np
@@ -136,7 +138,7 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
     unique = [model.replace('country.reparam.','') for model in models]
 
 
-    fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))    
+    fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))
     # Matplotlib
     # def add_label(violin, label):
     #     color = violin["bodies"][0].get_facecolor().flatten()
@@ -173,15 +175,13 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
     create_folder(save_dir+'/_figures/')
     plt.savefig(save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
 
-
-
     # plt.savefig(save_dir+'/'+variable+'_phase_'+str(phase)+'.pdf')
 
 if __name__ == "__main__":  
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--models', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--model', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
     parser.add_argument('--variable', '-v', default='R0', help='Model type')
     parser.add_argument('--countries', '-c', default='R0', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./data/', help='Model type')
@@ -190,16 +190,22 @@ if __name__ == "__main__":
 
     models = ['country.reparam.sird_int.nbin','country.reparam.seird_ints.nbin','country.reparam.seiird2_intsmooth.nbin']
     folder = '/scratch/wadaniel/covid19/intervention/data/run2/'
+
+    #models = ['country.reparam.sird_dint.tnrm','country.reparam.sird_dint.geo','country.reparam.sird_dint.nbin']
+    #folder = 'intervention/data/dint/'
     countries = ['australia','canada','china','france','germany','italy',
                  'japan','russia','south korea','spain','switzerland',
                  'uk','us']
 
-    variables = ['R0','D','eps','tact','kbeta']
+    # variables = ['R0','D','eps','tact','kbeta']
 
-    save_dir = '../../applications/evidence_paper/'
+    # save_dir = '../../applications/evidence_paper/'
 
-    for variable in variables:
-        plot_parameters_comparison(folder,models,countries,variable,save_dir)
+    # for variable in variables:
+    #     plot_parameters_comparison(folder,models,countries,variable,save_dir)
+
+    print(args.model)
+    plot_parameters_comparison(args.folder, args.model, countries, args.variable)
 
 
 

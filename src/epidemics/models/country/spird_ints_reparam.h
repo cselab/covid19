@@ -54,7 +54,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto invD = 1. / p.D;
         auto invY = 1. / p.Y;
 
-        auto A = invN * r0 * invD * (x.I() + x.P()) * x.S();
+        auto A = invN * invD * r0 * (x.I() + x.P()) * x.S();
         auto B = invY * x.P();
         auto C = invD * x.I();
 
