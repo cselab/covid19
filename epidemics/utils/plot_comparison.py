@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     variables = ['R0','D','eps','tact','kbeta']
 
-    save_dir = '.'
+    save_dir = '../../applications/evidence_paper/'
 
     for variable in variables:
         plot_parameters_comparison(folder,models,countries,variable,save_dir)
