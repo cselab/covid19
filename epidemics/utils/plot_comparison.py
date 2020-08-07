@@ -4,6 +4,8 @@ from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SH
 import os
 from subprocess import call
 import argparse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import json
 import numpy as np
@@ -134,7 +136,7 @@ def plot_parameters_comparison(folder,models,countries,variable):
     unique = [model.replace(common,'') for model in models]
 
 
-    fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))    
+    fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))
     # Matplotlib
     # def add_label(violin, label):
     #     color = violin["bodies"][0].get_facecolor().flatten()
@@ -168,7 +170,7 @@ def plot_parameters_comparison(folder,models,countries,variable):
     #     for violin, alpha in zip(ax.collections[::2], [0.8,0.6,0.4,0.2]):
     #         violin.set_alpha(alpha)
 
-    plt.savefig(folder+'/_figures/comp_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
+    plt.savefig(folder+'/comp_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
 
 
 
@@ -178,22 +180,21 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--model', '-m', default='sir_int.nbin', help='Model type')
+    parser.add_argument('--model', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
     parser.add_argument('--variable', '-v', default='R0', help='Model type')
     parser.add_argument('--countries', '-c', default='R0', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./data/', help='Model type')
 
     args = parser.parse_args()
 
-    models = ['country.reparam.sird_dint.tnrm','country.reparam.sird_dint.geo','country.reparam.sird_dint.nbin']
-    folder = 'intervention/data/dint/'
+    #models = ['country.reparam.sird_dint.tnrm','country.reparam.sird_dint.geo','country.reparam.sird_dint.nbin']
+    #folder = 'intervention/data/dint/'
     countries = ['australia','canada','china','france','germany','italy',
                  'japan','russia','south korea','spain','switzerland',
                  'uk','us']
 
-    variable = 'R0'
-
-    plot_parameters_comparison(folder,models,countries,variable)
+    print(args.model)
+    plot_parameters_comparison(args.folder, args.model, countries, args.variable)
 
 
 

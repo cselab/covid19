@@ -360,12 +360,23 @@ class EpidemicsBase:
     nP = self.nParameters
     if self.e['Problem']['Type']=='Bayesian/Reference' :
       for k in range(nP):
+
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
-        self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
-        self.e['Distributions'][k]['Name'] = js['Distributions'][k]['Name']
-        self.e['Distributions'][k]['Type'] = js['Distributions'][k]['Type']
-        self.e['Distributions'][k]['Minimum'] = js['Distributions'][k]['Minimum']
-        self.e['Distributions'][k]['Maximum'] = js['Distributions'][k]['Maximum']
+        if (js['Variables'][k]['Name'] == 'D'):
+            self.e['Variables'][k]['Prior Distribution'] = 'Prior for D'
+            self.e['Distributions'][k]['Name'] = 'Prior for D'
+            self.e['Distributions'][k]['Type'] = 'Univariate/Normal'
+            self.e['Distributions'][k]['Mean'] = self.constants['D']
+            self.e['Distributions'][k]['Standard Deviation'] = self.constants['D_sdev']
+            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
+            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+
+        else:
+            self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
+            self.e['Distributions'][k]['Name'] = js['Distributions'][k]['Name']
+            self.e['Distributions'][k]['Type'] = js['Distributions'][k]['Type']
+            self.e['Distributions'][k]['Minimum'] = js['Distributions'][k]['Minimum']
+            self.e['Distributions'][k]['Maximum'] = js['Distributions'][k]['Maximum']
 
     else:
       for k in range(nP):

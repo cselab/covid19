@@ -106,5 +106,9 @@ do
             --silentPlot -ns 500 -cm ${model} -c "$c" -ui -ud -df $base 2>&1 | tee ${outfile}
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+
+        rm -rf "$folder/_korali_samples"
+        rm -rf "$folder/_korali_propagation"
+
         done
 done

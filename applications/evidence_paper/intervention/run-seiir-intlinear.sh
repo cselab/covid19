@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 to 30"
+msg="1 ppm, prior on gamma"
 pushd ..
 
 declare -a countries=(
@@ -18,16 +18,20 @@ declare -a countries=(
 "japan"
 "south korea"
 "turkey"
+"greece"
+"austria"
+"poland"
+"netherlands"
 )
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run1"
+base="/scratch/${name}/covid19/intervention/data/run6"
 
 declare -a models=(
 #"country.reparam.seiird2_int.poi"
-"country.reparam.seiird2_int.geo"
+#"country.reparam.seiird2_int.geo"
 "country.reparam.seiird2_int.nbin"
-"country.reparam.seiird2_int.tnrm"
+#"country.reparam.seiird2_int.tnrm"
 #"country.reparam.seiird2_int.tstudent_alt"
 )
 
@@ -46,6 +50,9 @@ do
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+        
+        rm -r "$folder/_korali_propagation"
+        
         done
 done
 

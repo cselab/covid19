@@ -35,7 +35,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'beta'  : (0.01, 30.0),
             'D'     : (1.0, 50.0),
             'gamma' : (0.01, 1.0),
-            'Z'     : (1.0, 50.0),  # latency period
+            'Z'     : (0.0, 50.0),  # latency period
             'Y'     : (0.0, 50.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
@@ -53,9 +53,11 @@ class EpidemicsCountry( EpidemicsBase ):
         }
 
     self.constants = {
-            'gamma' : 1.0/5.2,
-            'Z'     : 2.7,
-            'dtact' : 14.0
+            'gamma'  : 1.0/5.2,
+            'D'      : 5.2, # from nature paper
+            'D_sdev' : 2.8, # from nature paper
+            'Z'      : 2.7,
+            'dtact'  : 14.0
     }
   
     self.bz_constants = {

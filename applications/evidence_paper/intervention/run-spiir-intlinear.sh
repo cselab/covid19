@@ -1,6 +1,6 @@
 #!/bin/bash
 
-msg="1 ppm, prior on gamma no uint cut"
+msg="1 ppm, prior on gamma, no uint cut"
 pushd ..
 
 declare -a countries=(
@@ -28,11 +28,11 @@ name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run7"
 
 declare -a models=(
-#"country.reparam.seird_int.poi"
-#"country.reparam.seird_int.geo"
-"country.reparam.seird_int.nbin"
-#"country.reparam.seird_int.tnrm"
-#"country.reparam.seird_int.tstudent_alt"
+#"country.reparam.spiird_int.poi"
+#"country.reparam.spiird_int.geo"
+"country.reparam.spiird_int.nbin"
+#"country.reparam.spiird_int.tnrm"
+#"country.reparam.spiird_int.tstudent_alt"
 )
 
 mkdir ${base} -p
@@ -52,7 +52,7 @@ do
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         
         rm -r "$folder/_korali_propagation"
-        
+
         done
 done
 
