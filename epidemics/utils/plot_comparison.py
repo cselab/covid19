@@ -99,6 +99,9 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
     alpha = 0.7
     med_width_factor = 2
 
+    plot_medians = True
+    plot_centers = True
+
     # Get data
     data_all = {}
     for model in models:
@@ -140,6 +143,7 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
 
 
     fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))
+    ax.grid(which='minor', axis='y', linestyle='--')
     # Matplotlib
     # def add_label(violin, label):
     #     color = violin["bodies"][0].get_facecolor().flatten()
@@ -155,16 +159,26 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
             vp.set_linewidth(1)
 
         # Plot medians
-        vp = violins['cmedians']
-        segments = vp.get_segments()
-        med_width = segments[0][1][0]-segments[0][0][0]
-        med_width *= med_width_factor
-        for j in range(len(segments)):
-            segments[j][0][0] -=0.5*med_width
-            segments[j][1][0] +=0.5*med_width
-        vp.set_segments(segments)
-        vp.set_edgecolor(face_colors[i])
-        vp.set_linewidth(1)
+        if plot_medians or plot_centers:
+            vp = violins['cmedians']
+            segments = vp.get_segments()
+
+            if plot_medians:
+                med_width = segments[0][1][0]-segments[0][0][0]
+                med_width *= med_width_factor
+                for j in range(len(segments)):
+                    segments[j][0][0] -=0.5*med_width
+                    segments[j][1][0] +=0.5*med_width
+                vp.set_segments(segments)
+                vp.set_edgecolor(face_colors[i])
+                vp.set_linewidth(1)
+            else:
+                vp.set_alpha(0)
+
+            if plot_centers:
+                centers = [[(segment[0][0]+segment[1][0])/2,segment[0][1]] for segment in segments]
+                plt.plot([c[0] for c in centers],[c[1] for c in centers],color=face_colors[i])
+                
 
         for vp in violins['bodies']:
             vp.set_facecolor(face_colors[i])
@@ -173,23 +187,23 @@ def plot_parameters_comparison(folder,models,countries,variable,saved_dir):
             vp.set_alpha(alpha)
 
         labels.append((mpatches.Patch(color=face_colors[i],alpha=alpha), unique[i]))
-
+    
     plt.legend(*zip(*labels), loc=2)
     plt.title(common[:-1])
     set_axis_style(ax, [tags[country] for country in countries])
     plt.ylabel(variable)
+
+
+    create_folder(save_dir+'/_figures/')
+    plt.savefig(save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
+
+    # plt.savefig(save_dir+'/'+variable+'_phase_'+str(phase)+'.pdf')
     # #Seaborn101
     # colors = ['green','blue','orange']
     # for i, model in enumerate(models):
     #     sns.violinplot(data=[d for d in data_all[model]],color=colors[i],inner=None,saturation=0.7)
     #     for violin, alpha in zip(ax.collections[::2], [0.8,0.6,0.4,0.2]):
     #         violin.set_alpha(alpha)
-
-    create_folder(save_dir+'/_figures/')
-    plt.savefig(save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
-
-    # plt.savefig(save_dir+'/'+variable+'_phase_'+str(phase)+'.pdf')
-
 if __name__ == "__main__":  
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
