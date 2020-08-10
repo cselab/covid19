@@ -362,12 +362,32 @@ class EpidemicsBase:
       for k in range(nP):
 
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
-        if (js['Variables'][k]['Name'] == 'D'):
+        if (js['Variables'][k]['Name'] == 'D' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for D'
             self.e['Distributions'][k]['Name'] = 'Prior for D'
-            self.e['Distributions'][k]['Type'] = 'Univariate/Normal'
-            self.e['Distributions'][k]['Mean'] = self.constants['D']
-            self.e['Distributions'][k]['Standard Deviation'] = self.constants['D_sdev']
+            self.e['Distributions'][k]['Type'] = 'Univariate/Exponential'
+            self.e['Distributions'][k]['Mean'] = self.informed_priors['D_mean']
+            #self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
+            #self.e['Distributions'][k]['Shape'] = self.informed_priors['D_shape']
+            #self.e['Distributions'][k]['Scale'] = self.informed_priors['D_scale']
+            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
+            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+ 
+        elif (js['Variables'][k]['Name'] == 'Z' and self.useInformedPriors):
+            self.e['Variables'][k]['Prior Distribution'] = 'Prior for Z'
+            self.e['Distributions'][k]['Name'] = 'Prior for Z'
+            self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
+            self.e['Distributions'][k]['Shape'] = self.informed_priors['Z_shape']
+            self.e['Distributions'][k]['Scale'] = self.informed_priors['Z_scale']
+            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
+            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+ 
+        elif (js['Variables'][k]['Name'] == 'Y' and self.useInformedPriors):
+            self.e['Variables'][k]['Prior Distribution'] = 'Prior for Y'
+            self.e['Distributions'][k]['Name'] = 'Prior for Y'
+            self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
+            self.e['Distributions'][k]['Shape'] = self.informed_priors['Y_shape']
+            self.e['Distributions'][k]['Scale'] = self.informed_priors['Y_scale']
             self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
             self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
 

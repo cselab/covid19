@@ -19,27 +19,28 @@ class EpidemicsCountry( EpidemicsBase ):
 
   def __init__( self, **kwargs ):
     
-    self.country         = kwargs.pop('country', 'switzerland')
-    self.futureDays      = kwargs.pop('futureDays', 3)
-    self.nPropagation    = kwargs.pop('nPropagation', 100)
-    self.logPlot         = kwargs.pop('logPlot', True)
-    self.nValidation     = kwargs.pop('nValidation', 0)
-    self.percentages     = kwargs.pop('percentages', [0.5])
-    self.plotMeanMedian  = kwargs.pop('plotMeanMedian', False)
-    self.up_to_int       = kwargs.pop('up_to_int', False)
-    self.useIntervention = kwargs.pop('useIntervention', False)
-    self.preprocess      = kwargs.pop('preprocess')
+    self.country           = kwargs.pop('country', 'switzerland')
+    self.futureDays        = kwargs.pop('futureDays', 3)
+    self.nPropagation      = kwargs.pop('nPropagation', 100)
+    self.logPlot           = kwargs.pop('logPlot', True)
+    self.nValidation       = kwargs.pop('nValidation', 0)
+    self.percentages       = kwargs.pop('percentages', [0.5])
+    self.plotMeanMedian    = kwargs.pop('plotMeanMedian', False)
+    self.up_to_int         = kwargs.pop('up_to_int', False)
+    self.useIntervention   = kwargs.pop('useIntervention', False)
+    self.useInformedPriors = kwargs.pop('useInformedPriors', False)
+    self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
             'R0'    : (1.0, 30.0),
             'beta'  : (0.01, 30.0),
-            'D'     : (1.0, 50.0),
-            'gamma' : (0.01, 1.0),
+            'D'     : (0.0, 50.0),  # recovery period
+            'gamma' : (0.01, 1.0),  # recovery rate
             'Z'     : (0.0, 50.0),  # latency period
             'Y'     : (0.0, 50.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
-            'eps'   : (0.0, 1.0),   # death rate
+            'eps'   : (0.0, 1.0),   # fatality rate
             'tact'  : (0.0, 100.0), # intervention time
             'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
@@ -58,6 +59,16 @@ class EpidemicsCountry( EpidemicsBase ):
             'D_sdev' : 2.8, # from nature paper
             'Z'      : 2.7,
             'dtact'  : 14.0
+    }
+
+    self.informed_priors = {
+        'D_mean'  : 1.0/(np.log(2)/14.0), # median at 14 days, 87.5 pct at 6w (exponential)
+        'D_shape' : 4.337,  # median at 14 days, 99pct < 6w (gamma)
+        'D_scale' : 3.970,  # median at 14 days, 99pct < 6w
+        'Y_shape' : 32.62105263157895,
+        'Y_scale' : 0.07050661503710874,
+        'Z_shape' : 1.1671052631578946,
+        'Z_scale' : 2.4931393061857263,
     }
   
     self.bz_constants = {
