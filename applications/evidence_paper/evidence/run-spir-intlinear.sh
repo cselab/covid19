@@ -3,26 +3,7 @@
 msg="1 ppm, prior on gamma, no uint cut"
 pushd ..
 
-declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
-"uk"
-"spain"
-"russia"
-"us"
-"canada"
-"australia"
-"china"
-"japan"
-"south korea"
-"turkey"
-"greece"
-"austria"
-"poland"
-"netherlands"
-)
+source countries.sh
 
 name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run7"

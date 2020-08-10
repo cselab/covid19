@@ -3,31 +3,16 @@
 msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 to 30"
 pushd ..
 
-declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
-"uk"
-"spain"
-"russia"
-"us"
-"canada"
-"australia"
-"china"
-"japan"
-"south korea"
-"turkey"
-)
+source countries.sh
 
 name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run1"
 
 declare -a models=(
 #"country.reparam.seiird2_ints.poi"
-"country.reparam.seiird2_ints.geo"
+#"country.reparam.seiird2_ints.geo"
 "country.reparam.seiird2_ints.nbin"
-"country.reparam.seiird2_ints.tnrm"
+#"country.reparam.seiird2_ints.tnrm"
 #"country.reparam.seiird2_ints.tstudent_alt"
 )
 

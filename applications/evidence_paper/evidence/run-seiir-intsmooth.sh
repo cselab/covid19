@@ -3,31 +3,16 @@
 msg="0.5 ppm, mu in (0,1.0)"
 pushd ..
 
-declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
-"uk"
-"spain"
-"russia"
-"us"
-"canada"
-"australia"
-"china"
-"japan"
-"south korea"
-"turkey"
-)
+source countries.sh
 
 name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run2"
 
 declare -a models=(
 #"country.reparam.seiird2_intsmooth.poi"
-"country.reparam.seiird2_intsmooth.geo"
+#"country.reparam.seiird2_intsmooth.geo"
 "country.reparam.seiird2_intsmooth.nbin"
-"country.reparam.seiird2_intsmooth.tnrm"
+#"country.reparam.seiird2_intsmooth.tnrm"
 #"country.reparam.seiird2_int.tstudent_alt"
 )
 

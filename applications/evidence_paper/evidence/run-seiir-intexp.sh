@@ -3,22 +3,7 @@
 msg="run intlinear w 1500s to determine priors, tact start of intervention, R0 to 30"
 pushd ..
 
-declare -a countries=(
-"switzerland"
-"france"
-"germany"
-"italy"
-"uk"
-"spain"
-"russia"
-"us"
-"canada"
-"australia"
-"china"
-"japan"
-"south korea"
-"turkey"
-)
+source countries.sh
 
 name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/run1"
