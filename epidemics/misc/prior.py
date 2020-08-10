@@ -121,7 +121,6 @@ if __name__ == '__main__':
         print("Shape {} - Scale {}".format(k_lat, th_lat))
         print("X"*20)
 
-
         th_rec = 3.970
         k_rec  = 4.337
         

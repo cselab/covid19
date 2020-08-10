@@ -18,7 +18,7 @@ def model_pdf(p):
   th = p["Parameters"][1]
 
   pct40 = 14 # median of the 80 pct mild cases cases
-  pct99 = 21 # duration of severe cases (3-6w)
+  pct99 = 42 # duration of severe cases (3-6w)
         
   cdf40 = scipy.stats.gamma.cdf(pct40, a=k, scale=th)
   cdf99 = scipy.stats.gamma.cdf(pct99, a=k, scale=th)
