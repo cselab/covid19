@@ -8,7 +8,7 @@ class Model( ModelBase ):
   def __init__( self, **kwargs ):
 
     self.modelName        = 'country.reparam.seirud_int.geo'
-    self.modelDescription = 'Fit SEIRUD with Intervention on Daily Infected Data with Negative Binomial likelihood'
+    self.modelDescription = 'Fit SEIRUD with Intervention on Daily Infected Data with Geometric likelihood'
     self.likelihoodModel  = 'Geometric'
 
     super().__init__( **kwargs )

@@ -7,16 +7,16 @@ class Model( ModelBase ):
 
   def __init__( self, **kwargs ):
 
-    self.modelName        = 'country.reparam.spiird_int.tstudent_alt'
-    self.modelDescription = 'Fit SPIIRD with Intervention on Daily Infected Data with Positive StudentT likelihood'
-    self.likelihoodModel  = 'Positive StudentT'
+    self.modelName        = 'country.reparam.spiird_ints.poi'
+    self.modelDescription = 'Fit SPIIRD with Intervention on Daily Infected Data with Poisson likelihood'
+    self.likelihoodModel  = 'Poisson'
 
     super().__init__( **kwargs )
 
 
   def get_variables_and_distributions( self ):
  
-    self.nParameters = 9
+    self.nParameters = 7
     js = self.get_uniform_priors(
             ('R0', *self.defaults['R0']),
             ('D', *self.defaults['D']),
@@ -24,9 +24,7 @@ class Model( ModelBase ):
             ('alpha', *self.defaults['alpha']), 
             ('eps', *self.defaults['eps']), 
             ('tact', *self.defaults['tact']),
-            ('dtact', *self.defaults['dtact']),
             ('kbeta', *self.defaults['kbeta']),
-            ('cdof', *self.defaults['cdof'])
             )
     
     return js
