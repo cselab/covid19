@@ -65,8 +65,10 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.spird_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.spiird_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.spiird_ints_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.spiird_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seirud_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seirud_ints_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seirud_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_int.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intsmooth.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intexp.generated.cpp
