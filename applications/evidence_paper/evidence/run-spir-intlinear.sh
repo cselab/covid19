@@ -1,12 +1,12 @@
 #!/bin/bash
 
-msg="1 ppm, prior on gamma, no uint cut"
+msg="2 ppm, informed priors, gamma D"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run7"
+base="/scratch/${name}/covid19/intervention/data/run2"
 
 declare -a models=(
 #"country.reparam.spird_int.poi"
@@ -27,7 +27,7 @@ do
 
         outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -uint -bs 8 -nt 8 -df $base -m "${msg}" \
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

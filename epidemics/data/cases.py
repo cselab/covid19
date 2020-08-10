@@ -72,7 +72,7 @@ class RegionalDataBase:  # Base class, not database.
             print('Preprocessing')
             cases = preprocess_data(cases)
 
-        fraction  = 1e-6 # 1 ppm
+        fraction  = 2e-6 # 2 ppm
         threshold = fraction*self.populationSize 
         skip  = next((i for i, x in enumerate(cases.confirmed) if (x>threshold)), None)
         zeros = next((i for i, x in enumerate(cases.confirmed) if x), None)

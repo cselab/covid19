@@ -1,12 +1,12 @@
 #!/bin/bash
 
-msg="1 ppm, informed priors, "
+msg="2 ppm, informed priors, gamma D"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run1"
+base="/scratch/${name}/covid19/intervention/data/run2"
 
 declare -a models=(
 #"country.reparam.sird_int.poi"

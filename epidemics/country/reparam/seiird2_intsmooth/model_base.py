@@ -26,7 +26,7 @@ class ModelBase( EpidemicsCountry ):
     
     initial = seiird2_intsmooth.State(y0cpp)
  
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
   
     exposed   = np.zeros(len(cpp_res))
     infected  = np.zeros(len(cpp_res))

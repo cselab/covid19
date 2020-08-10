@@ -41,7 +41,7 @@ do
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns 1500 -dlz ${dlz} -cm ${model} -c "$c" -ui -ud -df -uint -uip $base -m "${msg}" \
+                --silentPlot -ns 1500 -dlz ${dlz} -cm "${model}" -c "$c" -ui -ud -uint -uip -df "$base" -m "${msg}" \
                 2>&1 | tee ${outfile}
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
