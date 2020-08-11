@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 msg="1 ppm, informed priors"
 pushd ..
@@ -9,11 +9,11 @@ name=`whoami`
 base="/scratch/${name}/covid19/intervention/data/g9"
 
 declare -a models=(
-#"country.reparam.seiir_int.poi"
-#"country.reparam.seiir_int.geo"
-"country.reparam.seiir_int.nbin"
-#"country.reparam.seiir_int.tnrm"
-#"country.reparam.seiir_int.tstudent_alt"
+#"country.reparam.sird_int.poi"
+#"country.reparam.sird_int.geo"
+"country.reparam.sird_int.nbin"
+#"country.reparam.sird_int.tnrm"
+#"country.reparam.sird_int.tstudent_alt"
 )
 
 mkdir ${base} -p
@@ -27,7 +27,7 @@ do
 
         outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -uip -uint -bs 8 -nt 8 -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -uint -bs 8 -nt 8 -df $base -m "${msg}" \
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
