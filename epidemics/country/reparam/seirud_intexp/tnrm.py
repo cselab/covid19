@@ -20,7 +20,7 @@ class Model( ModelBase ):
     js = self.get_uniform_priors(
             ('R0', *self.defaults['R0']),
             ('D', *self.defaults['D']),
-            ('Z', *self.defaults['Z']),
+            ('Zl', *self.defaults['Zl']),
             ('Y', *self.defaults['Y']), 
             ('alpha', *self.defaults['alpha']), 
             ('eps', *self.defaults['eps']), 

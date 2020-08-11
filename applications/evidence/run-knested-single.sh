@@ -1,13 +1,13 @@
  #!/bin/bash
 
-msg="test seiird model"
+msg="test Z prior"
 
 declare -a countries=(
 "switzerland"
-#"france"
-#"germany"
+"france"
+"germany"
 "italy"
-#"uk"
+"uk"
 #"spain"
 #"russia"
 #"us"
@@ -19,10 +19,10 @@ declare -a countries=(
 #"turkey"
 )
 
-base="./data/spiird/"
+base="./data/seirdZ/"
 
 #model="country.reparam.spiird_int.nbin"
-#model="country.reparam.seirud_int.nbin"
+model="country.reparam.seirud_int.nbin"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -34,7 +34,7 @@ base="./data/spiird/"
 #model="country.reparam.seird_int.nbin"
 #model="country.reparam.seiird_dint.nbin"
 #model="country.reparam.seiird_int.nbin"
-model="country.reparam.seiird2_int.nbin"
+#model="country.reparam.seiird2_int.nbin"
 #model="country.reparam.seiird2_dint.nbin"
 
 mkdir ${base} -p

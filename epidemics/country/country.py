@@ -36,8 +36,8 @@ class EpidemicsCountry( EpidemicsBase ):
             'beta'  : (0.01, 30.0),
             'D'     : (0.0, 50.0),  # recovery period
             'gamma' : (0.01, 1.0),  # recovery rate
-            'Z'     : (0.0, 50.0),  # latency period
-            'Zlp'   : (0.0, 50.0),  # latency period (latency == incubation period)
+            'Z'     : (0.0, 50.0),  # latency period (latency == incubation period)
+            'Zl'    : (0.0, 50.0),  # latency period (incubation period)
             'Y'     : (0.0, 50.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
@@ -45,7 +45,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'tact'  : (0.0, 100.0), # intervention time
             'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
-            'kexp'  : (0.1, 5.0),   # 99% decay in ~ (1,30) days
+            'kexp'  : (0.1, 3.3),   # 90% decay in ~ (1,30) days
             'Sigma' : (0.0, 100.0), # sdev Normal
             'dof'   : (2.0, 100.0), # DoF StudentT
             'cdof'  : (0.0, 100.0), # multiplicator variance StudentT
@@ -68,10 +68,10 @@ class EpidemicsCountry( EpidemicsBase ):
         'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
         'Y_shape'   : 32.62105263157895,   # preasymptomatic period started from 2.3 days (0.8, 3.0 95%-CI)
         'Y_scale'   : 0.07050661503710874, # preasymptomatic period
-        'Z_shape'   : 1.1671052631578946,  # simulated and fitted latency period
-        'Z_scale'   : 2.4931393061857263,  # simulated and fitted latency period
-        'Zlp_shape' : 3.448979591836735,  # mean 5.2, sdev 2.8 (latency == incubation period)
-        'Zlp_scale' : 1.5076923076923074, # mean 5.2, sdev 2.8
+        'Zl_shape'  : 1.1671052631578946,  # simulated and fitted latency period
+        'Zl_scale'  : 2.4931393061857263,  # simulated and fitted latency period
+        'Z_shape'   : 3.448979591836735,  # mean 5.2, sdev 2.8 (latency == incubation period)
+        'Z_scale'   : 1.5076923076923074, # mean 5.2, sdev 2.8
     }
   
     self.bz_constants = {

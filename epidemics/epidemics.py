@@ -381,6 +381,15 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Scale'] = self.informed_priors['Z_scale']
             self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
             self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+  
+        elif (js['Variables'][k]['Name'] == 'Zl' and self.useInformedPriors):
+            self.e['Variables'][k]['Prior Distribution'] = 'Prior for Zl'
+            self.e['Distributions'][k]['Name'] = 'Prior for Zl'
+            self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
+            self.e['Distributions'][k]['Shape'] = self.informed_priors['Zl_shape']
+            self.e['Distributions'][k]['Scale'] = self.informed_priors['Zl_scale']
+            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
+            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
  
         elif (js['Variables'][k]['Name'] == 'Y' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Y'
