@@ -1,20 +1,16 @@
 #!/bin/bash
 
+# g7 + russia + china
 declare -a countries=(
-"switzerland"
+"canada"
+"china"
 "france"
 "germany"
 "italy"
-"uk"
-"spain"
-"russia"
-"us"
-"canada"
-"australia"
-"china"
 "japan"
-"south korea"
-"turkey"
+"russia"
+"uk"
+"us"
 )
 
 

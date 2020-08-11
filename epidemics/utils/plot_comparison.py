@@ -212,22 +212,21 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--model', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
-    #parser.add_argument('--variable', '-v', default='R0', help='Model type')
+    parser.add_argument('--models', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
+    parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
     #parser.add_argument('--countries', '-c', default='R0', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
 
-    models = ['country.reparam.sird_int.nbin','country.reparam.seird_int.nbin']
-    folder = '/scratch/wadaniel/covid19/intervention/data/run2/'
+    models = ['country.reparam.sird_int.nbin',
+            'country.reparam.seird_int.nbin',
+            'country.reparam.seiird2_int.nbin']
+    #'country.reparam.seirud_int.nbin',
+    #'country.reparam.spiird_int.nbin']
 
-    countries = ['australia','canada','china','france','germany','italy',
-                 'japan','russia','south korea','spain','switzerland',
-                 'uk','us']
+    countries = ['canada','china','france','germany','italy',
+                 'japan','russia', 'uk','us']
 
-    variables = ['R0','D','eps','tact','kbeta']
-
-
-    for variable in variables:
-        plot_parameters_comparison(folder,models,countries,variable,args.save_dir)
+    for variable in args.variables:
+        plot_parameters_comparison(args.folder,args.models,countries,variable,args.save_dir)
