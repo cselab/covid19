@@ -196,9 +196,9 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
 
     create_folder(save_dir+'/_figures/')
 
-    output = save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf'
+    output = save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'
     print("Creating output {}".format(output))
-    plt.savefig(save_dir+'/_figures/comp_'+variable+'_('+common[:-1]+')_'+'-'.join(unique)+'.pdf')
+    plt.savefig(output)
 
     # plt.savefig(save_dir+'/'+variable+'_phase_'+str(phase)+'.pdf')
     # #Seaborn101
@@ -218,9 +218,10 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-
-    #countries = ['canada','china','france','germany','italy',
-    #             'japan','russia', 'uk','us']
+    
+    countries = ['canada','china','france','germany','italy',
+                 'japan','russia', 'uk','us']
+    args.countries = ['canada', 'china', 'france']
 
     for variable in args.variables:
         plot_parameters_comparison(args.folder,args.models,args.countries,variable,args.save_dir)
