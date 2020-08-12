@@ -5,7 +5,7 @@
 
 namespace epidemics {
 namespace country {
-namespace saphire_ints_reparam {
+namespace saphire_intexp_reparam {
 
 template <typename T>
 struct Parameters {
@@ -60,7 +60,7 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto invD   = 1 / p.D;
         double invN = 1. / dp_.N;
 
-        T r0 = intervention_exp(p.R0, t, p.kbeta, p.tact);
+        T r0 = intervention_exp(p.R0, t, p.k, p.tact);
 
         auto C1 = invN * r0 * invD * x.S() * (p.mu * (x.Iu() + x.P()) + x.Ir());
         auto C2 = invZ * x.E();
@@ -78,6 +78,6 @@ struct Solver : SolverBase<Solver, State, Parameters> {
     }
 };
 
-}  // namespace saphire_int_reparam
+}  // namespace saphire_intexp_reparam
 }  // namespace country
 }  // namespace epidemics

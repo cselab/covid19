@@ -73,6 +73,9 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.cz_intsmooth.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intexp.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intstep.generated.cpp
+    ${CODE_DIR}/bindings/_country.saphire_int_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.saphire_ints_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.saphire_intexp_reparam.generated.cpp
 
 )
 
