@@ -1,13 +1,13 @@
  #!/bin/bash
 
-msg="test Z prior"
+msg="test sphire model"
 
 declare -a countries=(
-"switzerland"
+#"switzerland"
 "france"
-"germany"
-"italy"
-"uk"
+#"germany"
+#"italy"
+#"uk"
 #"spain"
 #"russia"
 #"us"
@@ -19,10 +19,11 @@ declare -a countries=(
 #"turkey"
 )
 
-base="./data/seirdZ/"
+base="./data/saphire/"
 
+model="country.reparam.saphire_int.nbin"
 #model="country.reparam.spiird_int.nbin"
-model="country.reparam.seirud_int.nbin"
+#model="country.reparam.seirud_int.nbin"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -46,7 +47,7 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -uint -uip -df "$base" -m "${msg}" \
+        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -uint -uip -df "$base" -m "${msg}" \
         2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

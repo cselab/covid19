@@ -1,17 +1,25 @@
 #!/bin/bash
 
-base='/scratch/wadaniel/covid19/intervention/data/g9_D52'
-outdir='./result_D52/'
+base='/scratch/wadaniel/covid19/intervention/data/g9'
+outdir='./result/'
 
 mkdir -p $outdir
 
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -m "country.reparam.seir_int.nbin" "country.reparam.seir_ints.nbin" \
-    -v "R0" "D" "Z" "tact" "kbeta"
+#python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
+#    -m "country.reparam.sir_int.nbin" "country.reparam.sir_ints.nbin" \
+#    -v "R0" "D" "tact" "kbeta"
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -m "country.reparam.sir_int.nbin" "country.reparam.sir_ints.nbin" \
-    -v "R0" "D" "tact" "kbeta"
+    -m "country.reparam.spiird_int.nbin" "country.reparam.seiird2_int.nbin" \
+    -v "alpha"
+
+exit
+
+python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
+    -m "country.reparam.sir_int.nbin" "country.reparam.seir_int.nbin" \
+    -v "R0" "D" "tact"
+
+exit
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -m "country.reparam.sir_int.nbin" "country.reparam.seir_int.nbin" "country.reparam.seiir_int.nbin" \

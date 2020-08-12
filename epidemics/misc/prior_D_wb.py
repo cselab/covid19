@@ -14,16 +14,18 @@ import scipy.integrate as integrate
 # with the 95th percentile of the distribution at 12.5 days.
 
 def model_pdf(p):
-  shape  = p["Parameters"][0]
-  scale  = p["Parameters"][1]
+  scale  = p["Parameters"][0]
 
-  pct05 = 4.1 # median of the 80 pct mild cases cases
-  pct95 = 7.0 # duration of severe cases (3-6w)
-        
+  mu    = 5.2
+  pct95 = 12.5 # duration of severe cases (3-6w)
+    
+  mean, var = scipy.stats.weibull_min.stats(c=shape, scale = scale)
   cdf05 = 1-np.exp(-scale*pct05**shape)
   cdf95 = 1-np.exp(-scale*pct95**shape)
  
-  p["F(x)"] = - (cdf05 - .05)**2 - (cdf95 - 0.95)**2
+  print(mean)
+  print(cdf95,flush=True)
+  p["F(x)"] = - (mean - mu)**2 - (cdf95 - 0.95)**2
 
 
 if __name__ == '__main__':
@@ -37,22 +39,19 @@ if __name__ == '__main__':
     e = korali.Experiment()
 
     # Configuring Problem
-    e["Random Seed"] = 0xC0FEE
+    #e["Random Seed"] = 0xC0FEE
     e["Problem"]["Type"] = "Optimization"
     e["Problem"]["Objective Function"] = model_pdf
 
     # Defining the problem's variables.
-    e["Variables"][0]["Name"] = "shape"
-    e["Variables"][0]["Lower Bound"] = 0.0
-    e["Variables"][0]["Upper Bound"] = 10.0
  
-    e["Variables"][1]["Name"] = "scale"
-    e["Variables"][1]["Lower Bound"] = 0.0
-    e["Variables"][1]["Upper Bound"] = 10.0
+    e["Variables"][0]["Name"] = "scale"
+    e["Variables"][0]["Lower Bound"] = 0.0
+    e["Variables"][0]["Upper Bound"] = 5.0
 
     # Configuring CMA-ES parameters
     e["Solver"]["Type"] = "Optimizer/CMAES"
-    e["Solver"]["Population Size"] = 8
+    e["Solver"]["Population Size"] = 16
     e["Solver"]["Termination Criteria"]["Min Value Difference Threshold"] = 1e-15
     e["Solver"]["Termination Criteria"]["Max Generations"] = 1000
 

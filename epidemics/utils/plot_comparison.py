@@ -221,7 +221,7 @@ if __name__ == "__main__":
     
     countries = ['canada','china','france','germany','italy',
                  'japan','russia', 'uk','us']
-    args.countries = ['canada', 'china', 'france']
+    args.countries = countries #['canada', 'france', 'germany', 'italy']
 
     for variable in args.variables:
         plot_parameters_comparison(args.folder,args.models,args.countries,variable,args.save_dir)
