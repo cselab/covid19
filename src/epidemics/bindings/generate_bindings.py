@@ -159,6 +159,10 @@ def main():
     generate_country_model('seirud_ints_reparam', 'S E P Ir Iu R D', 'R0 Z Y D alpha eps tact kbeta')
     generate_country_model('seirud_intexp_reparam', 'S E P Ir Iu R D', 'R0 Z Y D alpha eps tact k')
     
+    generate_country_model('saphire_int_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact dtact kbeta')
+    generate_country_model('saphire_ints_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact kbeta')
+    generate_country_model('saphire_intexp_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact k')
+
     # CZ
     generate_country_model('cz_int', 'S E I P H1 H2 U R D C', 'R0 gamma sigma eps1 eps2 eps3 eps4 omega1 omega2 omega3 omega4 omega5 tact dtact kbeta')
     generate_country_model('cz_intsmooth', 'S E I P H1 H2 U R D C', 'R0 gamma sigma eps1 eps2 eps3 eps4 omega1 omega2 omega3 omega4 omega5 tact dtact kbeta')
@@ -173,7 +177,8 @@ def main():
                      'seir_reparam', 'seir_int_reparam', 'seir_intexp_reparam', 'seir_intrem_reparam', 
                      'seird_int_reparam','seird_ints_reparam','seird_intsmooth_reparam', 'seird_intexp_reparam',
                      'seiir_reparam', 'seiir_int_reparam', 'seiird_int_reparam', 'seiird2_int_reparam', 'seiird2_intexp_reparam', 'seiird2_ints_reparam', 'seiird2_intsmooth_reparam', 'seiir_intexp_reparam', 'seiir_intrem_reparam',
-                     'cz_int', 'cz_intsmooth', 'cz_intexp', 'cz_intstep', 'spird_int_reparam', 'spird_ints_reparam', 'spiird_int_reparam', 'spiird_ints_reparam', 'spiird_intexp_reparam', 'seirud_int_reparam', 'seirud_ints_reparam', 'seirud_intexp_reparam')
+                     'cz_int', 'cz_intsmooth', 'cz_intexp', 'cz_intstep', 'spird_int_reparam', 'spird_ints_reparam', 'spiird_int_reparam', 'spiird_ints_reparam', 'spiird_intexp_reparam', 'seirud_int_reparam', 'seirud_ints_reparam', 'seirud_intexp_reparam',
+                     'saphire_int_reparam', 'saphire_ints_reparam', 'saphire_intexp_reparam')
 
     generate_canton('sei_c', 'seii_c', 'seiin', 'seiin_interventions')
 
