@@ -1,25 +1,22 @@
  #!/bin/bash
 
-msg="test Z prior"
+msg="test D prior normal"
 
 declare -a countries=(
-"switzerland"
+"canada"
+#"switzerland"
 "france"
 "germany"
-"italy"
-"uk"
+#"italy"
+#"uk"
 #"spain"
 #"russia"
 #"us"
-#"canada"
-#"australia"
 #"china"
 #"japan"
-#"south korea"
-#"turkey"
 )
 
-base="./data/seirdZ/"
+base="./data/seirud/"
 
 #model="country.reparam.spiird_int.nbin"
 model="country.reparam.seirud_int.nbin"
