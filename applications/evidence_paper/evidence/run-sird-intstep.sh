@@ -1,19 +1,19 @@
 #!/bin/bash
 
-msg="1 ppm, informed priors, short D"
+msg="1 ppm, prior on gamma, no uint cut"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/g9_D52"
+base="/scratch/${name}/covid19/intervention/data/run7"
 
 declare -a models=(
-#"country.reparam.seir_int.poi"
-#"country.reparam.seir_int.geo"
-"country.reparam.seir_int.nbin"
-#"country.reparam.seir_int.tnrm"
-#"country.reparam.seir_int.tstudent_alt"
+#"country.reparam.sird_ints.poi"
+#"country.reparam.sird_ints.geo"
+"country.reparam.sird_ints.nbin"
+#"country.reparam.sird_ints.tnrm"
+#"country.reparam.sird_ints.tstudent_alt"
 )
 
 mkdir ${base} -p
@@ -22,18 +22,18 @@ for model in "${models[@]}"
 do
     for c in "${countries[@]}"
     do
-        folder=$base/$c/$model
+        folder=$base/${c}/$model
         mkdir -p "${folder}"
 
         outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -uip -uint -bs 8 -nt 8 -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -df $base -m "${msg}" \
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
-        
+
+
         rm -r "$folder/_korali_propagation"
-        
         done
 done
 

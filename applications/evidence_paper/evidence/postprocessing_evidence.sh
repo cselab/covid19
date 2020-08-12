@@ -2,7 +2,7 @@
 
 source ../countries.sh
 
-base='/scratch/wadaniel/covid19/intervention/data/run1'
+base='/scratch/wadaniel/covid19/intervention/data/g9'
 outdir='./result'
 
 mkdir -p $outdir

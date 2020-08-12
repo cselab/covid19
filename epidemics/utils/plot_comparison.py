@@ -125,7 +125,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
             print('   ({}/{}) {}'.format(i+1,n_countries,country))
             data = get_samples_data(country_path)
             numdim = len(data['Variables'])
-            samples = data['Solver']['Sample Database']
+            samples = data['Solver']['Posterior Sample Database']
             numentries = len(samples)
             samplesTmp = np.reshape(samples,(numentries,numdim))
 
@@ -214,13 +214,13 @@ if __name__ == "__main__":
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
     parser.add_argument('--models', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
     parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
-    #parser.add_argument('--countries', '-c', default='R0', help='Model type')
+    parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
 
-    countries = ['canada','china','france','germany','italy',
-                 'japan','russia', 'uk','us']
+    #countries = ['canada','china','france','germany','italy',
+    #             'japan','russia', 'uk','us']
 
     for variable in args.variables:
-        plot_parameters_comparison(args.folder,args.models,countries,variable,args.save_dir)
+        plot_parameters_comparison(args.folder,args.models,args.countries,variable,args.save_dir)

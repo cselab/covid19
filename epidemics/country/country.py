@@ -65,14 +65,16 @@ class EpidemicsCountry( EpidemicsBase ):
 
     self.informed_priors = {
         'D_mean'    : 1.0/(np.log(2)/14.0), # median at 14 days, 87.5 pct at 6w (exponential dist.)
-        'D_shape'   : 4.337,  # median at 14 days, 99pct < 6w (gamma dist.)
-        'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
+#        'D_shape'   : 4.337,  # median at 14 days, 99pct < 6w (gamma dist.)
+#        'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
+        'D_shape'   : 3.448979591836735,   # test (need better sdev)
+        'D_scale'   : 1.5076923076923074,  # test (need better sdev)
         'Y_shape'   : 32.62105263157895,   # preasymptomatic period started from 2.3 days (0.8, 3.0 95%-CI)
         'Y_scale'   : 0.07050661503710874, # preasymptomatic period
         'Zl_shape'  : 1.1671052631578946,  # simulated and fitted latency period
         'Zl_scale'  : 2.4931393061857263,  # simulated and fitted latency period
-        'Z_shape'   : 3.448979591836735,  # mean 5.2, sdev 2.8 (latency == incubation period)
-        'Z_scale'   : 1.5076923076923074, # mean 5.2, sdev 2.8
+        'Z_shape'   : 3.448979591836735,   # mean 5.2, sdev 2.8 (latency == incubation period)
+        'Z_scale'   : 1.5076923076923074,  # mean 5.2, sdev 2.8
     }
   
     self.bz_constants = {
