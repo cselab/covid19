@@ -219,12 +219,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    models = ['country.reparam.sird_int.nbin',
-            'country.reparam.seird_int.nbin',
-            'country.reparam.seiird2_int.nbin']
-    #'country.reparam.seirud_int.nbin',
-    #'country.reparam.spiird_int.nbin']
-
     countries = ['canada','china','france','germany','italy',
                  'japan','russia', 'uk','us']
 

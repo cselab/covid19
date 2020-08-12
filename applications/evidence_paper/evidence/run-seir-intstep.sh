@@ -1,19 +1,20 @@
 #!/bin/bash
 
-msg="1 ppm, prior on gamma, no uint cut"
+msg="1 ppm, informed priors"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/run7"
+base="/scratch/${name}/covid19/intervention/data/g9"
+
 
 declare -a models=(
-#"country.reparam.seird_ints.poi"
-#"country.reparam.seird_ints.geo"
-"country.reparam.seird_ints.nbin"
-#"country.reparam.seird_ints.tnrm"
-#"country.reparam.seird_ints.tstudent_alt"
+#"country.reparam.seir_ints.poi"
+#"country.reparam.seir_ints.geo"
+"country.reparam.seir_ints.nbin"
+#"country.reparam.seir_ints.tnrm"
+#"country.reparam.seir_ints.tstudent_alt"
 )
 
 mkdir ${base} -p

@@ -59,7 +59,8 @@ class EpidemicsCountry( EpidemicsBase ):
             'D'      : 5.2, # from nature paper
             'D_sdev' : 2.8, # from nature paper
             'Z'      : 2.7,
-            'dtact'  : 14.0
+            'dtact'  : 14.0,
+            'eps'    : 0.01 # dummy
     }
 
     self.informed_priors = {
