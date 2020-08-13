@@ -100,7 +100,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
     med_width_factor = 2
 
     plot_medians = True
-    plot_centers = True
+    plot_centers = False
 
     # Get data
     data_all = {}
@@ -140,7 +140,6 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
     # Labels
     common = os.path.commonprefix(models)
     unique = [model.replace('country.reparam.','') for model in models]
-
 
     fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))
     ax.grid(which='minor', axis='y', linestyle='--')
