@@ -25,8 +25,8 @@ class ModelBase( EpidemicsCountry ):
  
     s0, ir0 = y0
     iu0     = (1-p[4])/p[4] * ir0
-    p0      = (np.exp(p[0])-1)/np.exp(1/p[3]) * iu0
-    e0      = (np.exp(p[0])-1)/np.exp(1/p[2]) * p0
+    p0      = ((np.exp(p[0])-1) * iu0 - ir0)/np.exp(1/p[3])
+    e0      = ((np.exp(p[0])-1) * iu0 - ir0)/np.exp(1/p[2])
     
     y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
     

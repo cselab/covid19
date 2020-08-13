@@ -34,7 +34,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.defaults = { 
             'R0'    : (1.0, 10.0),
             'beta'  : (0.01, 30.0),
-            'D'     : (0.0, 25.0),  # recovery period
+            'D'     : (1.0, 25.0),  # recovery period
             'gamma' : (0.01, 1.0),  # recovery rate
             'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
             'Zl'    : (0.0, 25.0),  # latency period (incubation period)
@@ -167,15 +167,16 @@ class EpidemicsCountry( EpidemicsBase ):
     tt  = np.linspace(0, t[-1], int(T+1))
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt, N=N, p=p)
 
+    eps = 1e-12
     # get infected
     infected = np.diff(sol.y) 
-    eps = 1e-32
+    infected[np.isnan(infected-infected)] = eps
     infected[infected < eps] = eps
     
     # get deaths
     if hasattr(sol, 'd'):
         deaths = np.diff(sol.d)
-        eps = 1e-32
+        deaths[np.isnan(infected-infected)] = eps
         deaths[deaths < eps] = eps
     else:
         deaths = []

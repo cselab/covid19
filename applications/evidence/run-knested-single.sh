@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="test E0 with prior normal"
+msg="test initialization"
 
 declare -a countries=(
 "canada"
@@ -15,24 +15,14 @@ declare -a countries=(
 #"japan"
 )
 
-base="./data/seird/"
+base="./data/seird2/"
 
-#model="country.reparam.saphire_int.nbin"
-#model="country.reparam.spiird_int.nbin"
+#model="country.reparam.sir_int.nbin"
+model="country.reparam.saphired_int.nbin"
 #model="country.reparam.seirud_int.nbin"
-#model="country.cz_int.nbin"
-#model="country.reparam.sird_dint.tstudent"
-#model="country.reparam.sird_dint.tstudent_alt"
-#model="country.reparam.sird_dint.poi"
-#model="country.reparam.sird_dint.geo"
-#model="country.reparam.sird_dint.tnrm"
-#model="country.reparam.sird_dint.nbin"
-#model="country.reparam.seird_dint.nbin"
-model="country.reparam.seird_int.nbin"
-#model="country.reparam.seiird_dint.nbin"
-#model="country.reparam.seiird_int.nbin"
+#model="country.reparam.sird_int.nbin"
+#model="country.reparam.seird_int.nbin"
 #model="country.reparam.seiird2_int.nbin"
-#model="country.reparam.seiird2_dint.nbin"
 
 mkdir ${base} -p
 
