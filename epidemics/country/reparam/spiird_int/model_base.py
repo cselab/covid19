@@ -24,7 +24,10 @@ class ModelBase( EpidemicsCountry ):
     params = spiird_int.Parameters(R0=p[0], D=p[1], Y=p[2], alpha=p[3], eps=p[4], tact=self.intday+p[5], dtact=p[6], kbeta=p[7])
     
     s0, ir0 = y0
-    y0cpp   = (s0, p[0]*ir0, ir0, (1-p[3])/p[3]*ir0, 0.0, 0.0) # S P Ir Iu R D
+    iu0     = (1-p[3])/p[3] * ir0
+    e0      = (np.exp(p[0])-1)/np.exp(1/p[2]) * (iu0 + Ir0)
+ 
+    y0cpp   = (s0, e0, ir0, iu0, 0.0, 0.0) # S P Ir Iu R D
     
     initial = spiird_int.State(y0cpp)
     

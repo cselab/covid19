@@ -32,13 +32,13 @@ class EpidemicsCountry( EpidemicsBase ):
     self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
-            'R0'    : (1.0, 50.0),
+            'R0'    : (1.0, 10.0),
             'beta'  : (0.01, 30.0),
-            'D'     : (0.0, 50.0),  # recovery period
+            'D'     : (0.0, 25.0),  # recovery period
             'gamma' : (0.01, 1.0),  # recovery rate
-            'Z'     : (0.0, 50.0),  # latency period (latency == incubation period)
-            'Zl'    : (0.0, 50.0),  # latency period (incubation period)
-            'Y'     : (0.0, 50.0),  # preasymptomatic period
+            'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
+            'Zl'    : (0.0, 25.0),  # latency period (incubation period)
+            'Y'     : (0.0, 25.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
             'eps'   : (0.0, 1.0),   # fatality rate
@@ -67,8 +67,8 @@ class EpidemicsCountry( EpidemicsBase ):
         'D_mean'    : 1.0/(np.log(2)/14.0), # median at 14 days, 87.5 pct at 6w (exponential dist.)
 #        'D_shape'   : 4.337,  # median at 14 days, 99pct < 6w (gamma dist.)
 #        'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
-        'D_shape'   : 3.448979591836735,   # test (need better sdev)
-        'D_scale'   : 1.5076923076923074,  # test (need better sdev)
+        'D_shape'   : 3.448979591836735,   # test (taken from Z, TODO: calibrate)
+        'D_scale'   : 1.5076923076923074,  # test (taken from Z, TODO: calibrate)
         'Y_shape'   : 32.62105263157895,   # preasymptomatic period started from 2.3 days (0.8, 3.0 95%-CI)
         'Y_scale'   : 0.07050661503710874, # preasymptomatic period
         'Zl_shape'  : 1.1671052631578946,  # simulated and fitted latency period

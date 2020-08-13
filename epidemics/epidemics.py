@@ -266,7 +266,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 25
+    self.e["Console Output"]["Frequency"] = 100
     
     if(self.silent): self.e['Console Output']['Verbosity'] = 'Silent'
 
@@ -365,12 +365,12 @@ class EpidemicsBase:
         if (js['Variables'][k]['Name'] == 'D' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for D'
             self.e['Distributions'][k]['Name'] = 'Prior for D'
-#            self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
-#            self.e['Distributions'][k]['Shape'] = self.informed_priors['D_shape']
-#            self.e['Distributions'][k]['Scale'] = self.informed_priors['D_scale']
-            self.e['Distributions'][k]['Type'] = 'Univariate/Normal'
-            self.e['Distributions'][k]['Mean'] = 5.2
-            self.e['Distributions'][k]['Standard Deviation'] = 2.8
+            self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
+            self.e['Distributions'][k]['Shape'] = self.informed_priors['D_shape']
+            self.e['Distributions'][k]['Scale'] = self.informed_priors['D_scale']
+#            self.e['Distributions'][k]['Type'] = 'Univariate/Normal'
+#            self.e['Distributions'][k]['Mean'] = 5.2
+#            self.e['Distributions'][k]['Standard Deviation'] = 2.8
             self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
             self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
  

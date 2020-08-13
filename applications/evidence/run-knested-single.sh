@@ -1,10 +1,9 @@
  #!/bin/bash
 
-msg="test D prior normal"
+msg="test E0 with prior normal"
 
 declare -a countries=(
 "canada"
-#"switzerland"
 "france"
 "germany"
 #"italy"
@@ -16,10 +15,11 @@ declare -a countries=(
 #"japan"
 )
 
-base="./data/seirud/"
+base="./data/seird/"
 
+#model="country.reparam.saphire_int.nbin"
 #model="country.reparam.spiird_int.nbin"
-model="country.reparam.seirud_int.nbin"
+#model="country.reparam.seirud_int.nbin"
 #model="country.cz_int.nbin"
 #model="country.reparam.sird_dint.tstudent"
 #model="country.reparam.sird_dint.tstudent_alt"
@@ -28,7 +28,7 @@ model="country.reparam.seirud_int.nbin"
 #model="country.reparam.sird_dint.tnrm"
 #model="country.reparam.sird_dint.nbin"
 #model="country.reparam.seird_dint.nbin"
-#model="country.reparam.seird_int.nbin"
+model="country.reparam.seird_int.nbin"
 #model="country.reparam.seiird_dint.nbin"
 #model="country.reparam.seiird_int.nbin"
 #model="country.reparam.seiird2_int.nbin"

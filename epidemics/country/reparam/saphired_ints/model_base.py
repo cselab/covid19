@@ -17,28 +17,35 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    spird_int = libepidemics.country.spird_int_reparam
-    dp        = libepidemics.country.DesignParameters(N=N)
-    cppsolver = spird_int.Solver(dp)
+    saphire_ints = libepidemics.country.saphire_ints_reparam
+    dp           = libepidemics.country.DesignParameters(N=N)
+    cppsolver    = saphire_ints.Solver(dp)
 
-    params = spird_int.Parameters(R0=p[0], D=p[1], Y=p[2],eps=p[3], tact=self.intday+p[4], dtact=p[5], kbeta=p[6])
+    params = saphire_ints.Parameters(R0=p[0], D=p[1], Z=p[2], Y=p[3], mu=p[4], alpha=p[5], eps=p[6], tact=self.intday+p[7], kbeta=p[8])
+  
+    s0, ir0  = y0
+    iu0  = (1-p[5])/p[5]*ir0
+    p0   = (np.exp(p[0])-1)/np.exp(1/p[3]) * ir0 + (np.exp(p[0]*p[4])-1)/np.exp(1/p[3]) * iu0
+    e0   = (np.exp(p[0])-1)/np.exp(1/p[2]) * p0
     
-    s0, i0 = y0
-    p0     = (np.exp(p[0])-1)/np.exp(1/p[2]) * i0
- 
-    y0cpp   = (s0, p0, i0, 0.0, 0.0) # S P I R D
-    initial = spird_int.State(y0cpp)
+    y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
+    
+    initial = saphire_ints.State(y0cpp)
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     
     infected        = np.zeros(len(cpp_res))
+    exposed         = np.zeros(len(cpp_res))
+    infectedu       = np.zeros(len(cpp_res))
     recovered       = np.zeros(len(cpp_res))
     preasymptomatic = np.zeros(len(cpp_res))
     deaths          = np.zeros(len(cpp_res))
 
     for idx,entry in enumerate(cpp_res):
-        infected[idx]        = N-entry.S()-entry.P()
-        preasymptomatic[idx] = N-entry.S()
+        exposed[idx]         = N-entry.S()
+        preasymptomatic[idx] = N-entry.S()-entry.E()
+        infected[idx]        = N-entry.S()-entry.E()-entry.P()-entry.Iu()
+        infectedu[idx]       = N-entry.S()-entry.E()-entry.P()-entry.Ir()
         recovered[idx]       = entry.R()
         deaths[idx]          = entry.D()
 
@@ -50,6 +57,7 @@ class ModelBase( EpidemicsCountry ):
     sol = Object()
     sol.y = infected
     sol.p = preasymptomatic
+    sol.e = exposed
     sol.r = recovered
     sol.d = deaths
  

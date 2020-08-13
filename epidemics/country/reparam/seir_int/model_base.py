@@ -24,7 +24,9 @@ class ModelBase( EpidemicsCountry ):
     params = seir_int.Parameters(R0=p[0], D=p[1], Z=p[2], tact=p[3], dtact=p[4], kbeta=p[5])
     
     s0, i0  = y0
-    y0cpp   = (s0, 0.0, i0, 0.0)
+    e0   = (np.exp(p[0])-1)/np.exp(1/p[2]) * i0
+ 
+    y0cpp   = (s0, e0, i0, 0.0)
     initial = seir_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)

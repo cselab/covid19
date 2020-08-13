@@ -17,20 +17,21 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    seirud_intexp = libepidemics.country.seirud_intexp_reparam
-    dp            = libepidemics.country.DesignParameters(N=N)
-    cppsolver     = seirud_intexp.Solver(dp)
+    saphire_int = libepidemics.country.saphire_int_reparam
+    dp         = libepidemics.country.DesignParameters(N=N)
+    cppsolver  = saphire_int.Solver(dp)
 
-    params = seirud_intexp.Parameters(R0=p[0], D=p[1], Z=p[2], Y=p[3], alpha=p[4], eps=p[5], tact=self.intday+p[6], k=p[7])
+    params = saphire_int.Parameters(R0=p[0], D=p[1], Z=p[2], Y=p[3], mu=p[4], alpha=p[5], eps=p[6], tact=self.intday+p[7], dtact=p[8], kbeta=p[9])
   
-    s0, ir0 = y0
-    iu0     = (1-p[4])/p[4] * ir0
-    p0      = (np.exp(p[0])-1)/np.exp(1/p[3]) * iu0
-    e0      = (np.exp(p[0])-1)/np.exp(1/p[2]) * p0
+    s0, ir0  = y0
+    iu0  = (1-p[5])/p[5]*ir0
+    p0   = (np.exp(p[0])-1)/np.exp(1/p[3]) * ir0 + (np.exp(p[0]*p[4])-1)/np.exp(1/p[3]) * iu0
+    e0   = (np.exp(p[0])-1)/np.exp(1/p[2]) * p0
     
+    s0, ir0 = y0
     y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
- 
-    initial = seirud_intexp.State(y0cpp)
+    
+    initial = saphire_int.State(y0cpp)
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     

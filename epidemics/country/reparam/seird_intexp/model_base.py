@@ -23,8 +23,10 @@ class ModelBase( EpidemicsCountry ):
 
     params = seird_intexp.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=self.intday+p[4], k=p[5])
     
-    s0, i0  = y0
-    y0cpp   = (s0, p[0]*i0, i0, 0.0, 0.0) # S E I R D
+    s0, i0 = y0
+    e0     = (np.exp(p[0])-1)/np.exp(1/p[2]) * i0
+    
+    y0cpp   = (s0, e0, i0, 0.0, 0.0) # S E I R D
     initial = seird_intexp.State(y0cpp)
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
