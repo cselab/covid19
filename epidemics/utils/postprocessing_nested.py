@@ -96,7 +96,7 @@ def getStats(samples, pct):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--src', type=str, help='Directory to traverse and look for result files.', required=True)
-    parser.add_argument('--res', type=str, help='Name of sample folders.', required=True)
+    parser.add_argument('--res', type=str, default='_korali_samples', help='Name of sample folders.', required=False)
     parser.add_argument('--par', type=str, help='Name of parameter to analyse.', required=True)
     parser.add_argument('--out', type=str, default='nested_post.csv', help='Output file.')
     args = parser.parse_args()

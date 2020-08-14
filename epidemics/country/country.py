@@ -19,31 +19,33 @@ class EpidemicsCountry( EpidemicsBase ):
 
   def __init__( self, **kwargs ):
     
-    self.country         = kwargs.pop('country', 'switzerland')
-    self.futureDays      = kwargs.pop('futureDays', 3)
-    self.nPropagation    = kwargs.pop('nPropagation', 100)
-    self.logPlot         = kwargs.pop('logPlot', True)
-    self.nValidation     = kwargs.pop('nValidation', 0)
-    self.percentages     = kwargs.pop('percentages', [0.5])
-    self.plotMeanMedian  = kwargs.pop('plotMeanMedian', False)
-    self.up_to_int       = kwargs.pop('up_to_int', False)
-    self.useIntervention = kwargs.pop('useIntervention', False)
-    self.preprocess      = kwargs.pop('preprocess')
+    self.country           = kwargs.pop('country', 'switzerland')
+    self.futureDays        = kwargs.pop('futureDays', 3)
+    self.nPropagation      = kwargs.pop('nPropagation', 100)
+    self.logPlot           = kwargs.pop('logPlot', True)
+    self.nValidation       = kwargs.pop('nValidation', 0)
+    self.percentages       = kwargs.pop('percentages', [0.5])
+    self.plotMeanMedian    = kwargs.pop('plotMeanMedian', False)
+    self.up_to_int         = kwargs.pop('up_to_int', False)
+    self.useIntervention   = kwargs.pop('useIntervention', False)
+    self.useInformedPriors = kwargs.pop('useInformedPriors', False)
+    self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
-            'R0'    : (1.0, 30.0),
+            'R0'    : (1.0, 10.0),
             'beta'  : (0.01, 30.0),
-            'D'     : (1.0, 50.0),
-            'gamma' : (0.01, 1.0),
-            'Z'     : (0.0, 50.0),  # latency period
-            'Y'     : (0.0, 50.0),  # preasymptomatic period
+            'D'     : (1.0, 25.0),  # recovery period
+            'gamma' : (0.01, 1.0),  # recovery rate
+            'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
+            'Zl'    : (0.0, 25.0),  # latency period (incubation period)
+            'Y'     : (0.0, 25.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
-            'eps'   : (0.0, 1.0),   # death rate
+            'eps'   : (0.0, 1.0),   # fatality rate
             'tact'  : (0.0, 100.0), # intervention time
             'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
-            'kexp'  : (0.1, 5.0),   # 99% decay in ~ (1,30) days
+            'kexp'  : (0.1, 3.3),   # 90% decay in ~ (1,30) days
             'Sigma' : (0.0, 100.0), # sdev Normal
             'dof'   : (2.0, 100.0), # DoF StudentT
             'cdof'  : (0.0, 100.0), # multiplicator variance StudentT
@@ -57,7 +59,22 @@ class EpidemicsCountry( EpidemicsBase ):
             'D'      : 5.2, # from nature paper
             'D_sdev' : 2.8, # from nature paper
             'Z'      : 2.7,
-            'dtact'  : 14.0
+            'dtact'  : 14.0,
+            'eps'    : 0.01 # dummy
+    }
+
+    self.informed_priors = {
+        'D_mean'    : 1.0/(np.log(2)/14.0), # median at 14 days, 87.5 pct at 6w (exponential dist.)
+#        'D_shape'   : 4.337,  # median at 14 days, 99pct < 6w (gamma dist.)
+#        'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
+        'D_shape'   : 3.448979591836735,   # test (taken from Z, TODO: calibrate)
+        'D_scale'   : 1.5076923076923074,  # test (taken from Z, TODO: calibrate)
+        'Y_shape'   : 32.62105263157895,   # preasymptomatic period started from 2.3 days (0.8, 3.0 95%-CI)
+        'Y_scale'   : 0.07050661503710874, # preasymptomatic period
+        'Zl_shape'  : 1.1671052631578946,  # simulated and fitted latency period
+        'Zl_scale'  : 2.4931393061857263,  # simulated and fitted latency period
+        'Z_shape'   : 3.448979591836735,   # mean 5.2, sdev 2.8 (latency == incubation period)
+        'Z_scale'   : 1.5076923076923074,  # mean 5.2, sdev 2.8
     }
   
     self.bz_constants = {
@@ -150,15 +167,16 @@ class EpidemicsCountry( EpidemicsBase ):
     tt  = np.linspace(0, t[-1], int(T+1))
     sol = self.solve_ode(y0=y0,T=t[-1], t_eval = tt, N=N, p=p)
 
+    eps = 1e-12
     # get infected
     infected = np.diff(sol.y) 
-    eps = 1e-32
+    infected[np.isnan(infected-infected)] = eps
     infected[infected < eps] = eps
     
     # get deaths
     if hasattr(sol, 'd'):
         deaths = np.diff(sol.d)
-        eps = 1e-32
+        deaths[np.isnan(infected-infected)] = eps
         deaths[deaths < eps] = eps
     else:
         deaths = []

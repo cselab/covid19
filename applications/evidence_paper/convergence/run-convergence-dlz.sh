@@ -8,6 +8,7 @@ declare -a dlogz=(
 "1.0"
 "0.1"
 "0.01"
+"0.001"
 )
 
 declare -a countries=(
@@ -21,6 +22,8 @@ declare -a models=(
 "country.reparam.sird_int.nbin"
 "country.reparam.seird_int.nbin"
 "country.reparam.seiird2_int.nbin"
+"country.reparam.seirud_int.nbin"
+"country.reparam.spiird_int.nbin"
 )
 
 
@@ -38,7 +41,7 @@ do
             
             outfile="${folder}/knested.out"
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns 1500 -dlz ${dlz} -cm ${model} -c "$c" -ui -ud -df $base -m "${msg}" \
+                --silentPlot -ns 1500 -dlz ${dlz} -cm "${model}" -c "$c" -ui -ud -uint -uip -df "$base" -bs 8 -nt 8 -m "${msg}" \
                 2>&1 | tee ${outfile}
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

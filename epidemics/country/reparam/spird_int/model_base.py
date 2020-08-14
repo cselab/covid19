@@ -23,8 +23,10 @@ class ModelBase( EpidemicsCountry ):
 
     params = spird_int.Parameters(R0=p[0], D=p[1], Y=p[2],eps=p[3], tact=self.intday+p[4], dtact=p[5], kbeta=p[6])
     
-    s0, i0  = y0
-    y0cpp   = (s0, p[0]*i0, i0, 0.0, 0.0) # S P I R D
+    s0, i0 = y0
+    p0     = (np.exp(p[0])-1)/np.exp(1/p[2]) * i0
+ 
+    y0cpp   = (s0, p0, i0, 0.0, 0.0) # S P I R D
     initial = spird_int.State(y0cpp)
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)

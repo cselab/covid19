@@ -20,13 +20,20 @@ class ModelBase( EpidemicsCountry ):
     cppsolver   = seiird2_int.Solver(dp)
 
     params = seiird2_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=self.intday+p[6], dtact=p[7], kbeta=p[8])
-
-    s0, ir0 = y0
-    y0cpp   = (s0, p[0]*ir0, ir0, (1-p[4])/p[4]*ir0, 0.0, 0.0) # S E Ir Iu  R D
+ 
+    re = p[0]*p[4] + p[0]*p[3]*(1-p[4])
+    lm = (re-1)/p[1]
+    
+    s0, ir0  = y0
+    iu0 = (1-p[4])/p[4]*ir0
+    i0  = ir0 + iu0
+    e0  = (lm + 1/p[1])*i0*p[2]
+ 
+    y0cpp  = (s0, e0, ir0, iu0, 0.0, 0.0) # S E Ir Iu  R D
     
     initial = seiird2_int.State(y0cpp)
  
-    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.1)
+    cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
   
     exposed   = np.zeros(len(cpp_res))
     infected  = np.zeros(len(cpp_res))

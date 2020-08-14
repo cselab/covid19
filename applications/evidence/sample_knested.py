@@ -30,7 +30,8 @@ parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')
 parser.add_argument('--preprocess', '-pre', type=bool, default=False, help='Preprocessing.')
 parser.add_argument('--up_to_int', '-utint', type=bool, default=False, help='Use only data before intervention')
-parser.add_argument('--useIntervention', '-uint', type=bool, default=True, help='Use only data before intervention')
+parser.add_argument('--useIntervention', '-uint', action='store_true', help='Use only data before intervention')
+parser.add_argument('--useInformedPriors', '-uip', action='store_true', help='Use informed priors on D, Z and Y.')
 parser.add_argument('--plotMeanMedian', dest='plotMeanMedian', action='store_true', default=False, help='Plot mean and median of states.')
 parser.add_argument('--useInfections', '-ui', action='store_true', help='Use infections to fit data.')
 parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths to fit data.')
@@ -44,7 +45,7 @@ if args.useInfections:
 if args.useDeaths:
     obs.append('deaths')
 
-put_comment(args.msg, args.dataFolder)
+put_comment(args.msg, args.dataFolder, args.country, args.compModel)
 
 x = copy.deepcopy(args)
 x.observations=obs
