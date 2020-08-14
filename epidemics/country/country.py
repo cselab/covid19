@@ -32,7 +32,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
-            'R0'    : (1.0, 10.0),
+            'R0'    : (1.0, 25.0),
             'beta'  : (0.01, 30.0),
             'D'     : (1.0, 25.0),  # recovery period
             'gamma' : (0.01, 1.0),  # recovery rate
