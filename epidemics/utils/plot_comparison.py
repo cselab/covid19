@@ -90,6 +90,24 @@ def set_axis_style(ax, labels):
     ax.set_xlim(0.25, len(labels) + 0.75)
     # ax.set_xlabel('Sample name')
 
+def get_prior(ref_data,variable):
+
+    n_var = len(ref_data['Variables'])
+
+    idx = [ref_data['Variables'][i]['Distribution Index'] for i in range(n_var) 
+            if ref_data['Variables'][i]['Name'] == variable][0]
+
+    distrib_type = ref_data['Distributions'][idx]['Type']
+
+    if distrib_type == 'Univariate/Uniform':
+        samples = np.random.uniform(low=ref_data['Distributions'][idx]['Minimum'],
+                                    high=ref_data['Distributions'][idx]['Maximum'],
+                                    size=10000)
+
+    elif distrib_type == 'Univariate/Gaussian':
+        samples = np.random.normal(loc=25,scale=10,size=10000)
+
+    return samples
 
 def plot_parameters_comparison(folder,models,countries,variable,save_dir):
 
@@ -101,6 +119,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
 
     plot_medians = True
     plot_centers = False
+    plot_prior = True
 
     # Get data
     data_all = {}
@@ -113,12 +132,15 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
         var_idx = variables.index(variable)
-
+        prior_samples = get_prior(ref_data,variable)
+        
         bin_max = 0
         bin_min = 10
 
-        data_to_plot = []
-
+        if plot_prior:
+            data_to_plot = [prior_samples]
+        else:
+            data_to_plot = []
         for i in range(n_countries):
             country = countries[i]
             country_path = countries_folders[i]
@@ -149,7 +171,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
     #     labels.append((mpatches.Patch(color=color), label))
     labels = []
     for i, model in enumerate(models):
-        violins = plt.violinplot(data_all[model],vert=True,showmedians=True,quantiles=[0.05,0.95])
+        violins = plt.violinplot(data_all[model],vert=True,showmedians=True)
 
         # Make all the violin statistics marks a specific color:
         for partname in ('cbars','cmins','cmaxes'):
@@ -189,7 +211,12 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
     
     plt.legend(*zip(*labels), loc=2)
     plt.title(common[:-1])
-    set_axis_style(ax, [tags[country] for country in countries])
+    
+    x_labels = [tags[country] for country in countries]
+    if plot_prior:
+        x_labels = ['Prior'] + x_labels
+
+    set_axis_style(ax, x_labels)
     plt.ylabel(variable)
 
 
@@ -211,13 +238,17 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--models', '-m', default='sir_int.nbin', type=str, nargs='+', help='Model type')
+    parser.add_argument('--models', '-m', default='country.reparam.sir_int.nbin', type=str, nargs='+', help='Model type')
     parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
     parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-    
+
+    args.models = ['country.reparam.sir_int.nbin']
+    args.variables = ['R0']
+    args.folder = '/scratch/wadaniel/covid19/intervention/data/g9'
+
     countries = ['canada','china','france','germany','italy',
                  'japan','russia', 'uk','us']
     args.countries = countries #['canada', 'france', 'germany', 'italy']
