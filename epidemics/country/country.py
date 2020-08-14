@@ -51,7 +51,11 @@ class EpidemicsCountry( EpidemicsBase ):
             'cdof'  : (0.0, 100.0), # multiplicator variance StudentT
             'r'     : (0.0, 100.0), # dispersion NB 
             'eps3'  : (0.0, 1.0),   # CZ model, death outside of ICU
-            'eps4'  : (0.0, 1.0)    # CZ model, death rate in ICU
+            'eps4'  : (0.0, 1.0),   # CZ model, death rate in ICU
+            'e0'    : (0.0, 10.0),  # multiplicator e0 init
+            'p0'    : (0.0, 10.0),  # multiplicator p0 init
+            'iu0'   : (0.0, 10.0)   # multiplicator iu0 init
+
         }
 
     self.constants = {

@@ -17,28 +17,17 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    seird_int = libepidemics.country.seird_int_reparam
-    dp        = libepidemics.country.DesignParameters(N=N)
-    cppsolver = seird_int.Solver(dp)
+    seird_ints = libepidemics.country.seird_ints_reparam
+    dp         = libepidemics.country.DesignParameters(N=N)
+    cppsolver  = seird_ints.Solver(dp)
 
-    params = seird_int.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=self.intday+p[4], dtact=p[5], kbeta=p[6])
+    params = seird_ints.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=self.intday+p[4], kbeta=p[5])
   
-    ld = (p[0]-1)/p[1]
     s0, i0  = y0
-
-# try 0
-#    ld = p[0]
-#    e0 = ld*i0*p[2]
-#    e0 = ld*i0*np.exp(-1/p[2])
-
-# try 1
-#    e0      = (lm + 1/p[1])*i0*p[2]
-    
-# name: init
-    e0 = (ld*i0+i0/p[1])*p[2]
+    e0 =  i0*p[6]
 
     y0cpp   = (s0, e0, i0, 0.0, 0.0) # S E I R D
-    initial = seird_int.State(y0cpp)
+    initial = seird_ints.State(y0cpp)
     
     cpp_res = cppsolver.solve(params, initial, t_eval=t_eval, dt = 0.01)
     

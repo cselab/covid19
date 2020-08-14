@@ -15,14 +15,18 @@ declare -a countries=(
 #"japan"
 )
 
-base="./data/init4/"
+base="./data/init0_lmr0/"
+
+#model="country.reparam.seird_int_init.nbin"
+#model="country.reparam.seiird2_int_init.nbin"
+#model="country.reparam.saphire_int_init.nbin"
 
 #model="country.reparam.sir_int.nbin"
 #model="country.reparam.seird_int.nbin"
 #model="country.reparam.saphired_int.nbin"
-#model="country.reparam.seirud_int.nbin"
+model="country.reparam.seirud_int.nbin"
 #model="country.reparam.sird_int.nbin"
-model="country.reparam.seiird2_int.nbin"
+#model="country.reparam.seiird2_int.nbin"
 
 mkdir ${base} -p
 
