@@ -14,6 +14,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.patches as mpatches
 
+
 tags = {'australia':   'AU',
         'canada':      'CA',
         'china':       'CN',
@@ -33,54 +34,105 @@ def create_folder(name):
     if not os.path.exists(name):
         os.makedirs(name)
 
-def get_samples_data(path):
+def get_stat(data, nt, pct):
+    mean   = np.zeros((nt,1))
+    median = np.zeros((nt,1))
+    quant  = np.zeros((2,nt))
+    for k in range(nt):
+        median[k]  = np.quantile( data[:,k],0.5)
+        quant[0,k] = np.quantile( data[:,k],0.5+pct/2)
+        quant[1,k] = np.quantile( data[:,k],0.5-pct/2)
+        mean[k]    = np.mean( data[:,k] )
 
-    configFile = path + '/gen00000000.json'
+    return mean, median, quant
 
-    with open(configFile) as f: js = json.load(f)
-    configRunId = js['Run ID']
 
-    resultFiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith('gen')]
-    resultFiles = sorted(resultFiles)
 
-    genList = { } 
+def plot_samples_data(paths, output, pct=0.90, ndraws=100):
+    
+    fig = plt.figure(figsize=(12, 8))
+    #fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
-    for file in resultFiles:
-        with open(path + '/' + file) as f:
+    ax  = fig.subplots(2,2)
+
+    ax_daily_incidence = ax[0][0]
+    ax_cumul_incidence = ax[1][0]
+
+    ax_daily_deaths = ax[0][1]
+    ax_cumul_deaths = ax[1][1]
+
+
+    for path in paths :
+        print("Reading {} ..".format(path))
+        with open(path) as f: 
             genJs = json.load(f)
-            solverRunId = genJs['Run ID']
+            results = genJs["Samples"]
+            
+            ns = len(results)
+            nt = results[0]["Saved Results"]["Length of Variables"]
 
-        if (configRunId == solverRunId):
-            curGen = genJs['Current Generation']
-            genList[curGen] = genJs
-    del genList[0]
+            all_incidence = np.zeros((ns*ndraws,nt))
+            all_deaths    = np.zeros((ns*ndraws,nt))
 
-    lastGen = 0
-    for i in genList: 
-     if genList[i]['Current Generation'] > lastGen:
-      lastGen = genList[i]['Current Generation']
+            for k in range(ns):
+                nv = results[k]["Saved Results"]["Number of Variables"]
+                dispI = np.array(results[k]["Saved Results"]["Dispersion Daily Deaths"])
+                dispD = np.array(results[k]["Saved Results"]["Dispersion Daily Incidence"])
+                
+                death     = None
+                incidence = None
+                for variable in results[k]["Saved Results"]["Variables"]:
+                    if variable["Name"] == "Daily Incidence":
+                        incidence = np.array(variable["Values"])
+                    if variable["Name"] == "Daily Deaths":
+                        death     = np.array(variable["Values"])
 
-    return genList[lastGen]
+                pi = incidence/(incidence+dispI)
+                pd = death/(death+dispD)
+                xi = np.asarray([ np.random.negative_binomial(dispI,1-pi) for _ in range(ndraws) ])
+                xd = np.asarray([ np.random.negative_binomial(dispD,1-pd) for _ in range(ndraws) ])
+                
+                all_incidence[k*ndraws:(k+1)*ndraws,:] = xi
+                all_deaths[k*ndraws:(k+1)*ndraws,:]    = xd
+  
+            all_incidence_cum = np.cumsum(all_incidence, axis=1)
+            all_deaths_cum    = np.cumsum(all_deaths, axis=1)
 
-def plot_histogram(ax,ax_i,ax_j,theta,var_idx):
-    dim = theta.shape[1]
-    num_bins = 30
+            meani, mediani, quanti = get_stat(all_incidence, nt, pct)
+            meanic, medianic, quantic = get_stat(all_incidence_cum, nt, pct)
+            meand, mediand, quantd = get_stat(all_deaths, nt, pct)
+            meandc, mediandc, quantdc = get_stat(all_deaths_cum, nt, pct)
+
+
+            ax_daily_incidence.plot( range(nt), meani, '--', lw=2, label='Mean', color='black')
+            ax_daily_incidence.plot( range(nt), mediani, '-', lw=2, label='Median', color='black')
+            ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=0.3)
+
+            ax_cumul_incidence.plot( range(nt), meanic, '--', lw=2, label='Mean', color='black')
+            ax_cumul_incidence.plot( range(nt), medianic, '-', lw=2, label='Median', color='black')
+            ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=0.3)
+ 
+            #ax_daily_incidence.plot( 0:nt, quanti[0,:], '-', lw=2, label='Median', color='black')
+            #ax_daily_incidence.plot( 0:nt, quanti[0,:], '-', lw=2, label='Median', color='black')
+            #ax.plot( self.data['Propagation']['x-data'], median, '--', lw=2, label='Median', color='black')
+
+            ax_daily_deaths.plot( range(nt), meand, '--', lw=2, label='Mean', color='black')
+            ax_daily_deaths.plot( range(nt), mediand, '-', lw=2, label='Median', color='black')
+            ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=0.3)
+  
+            ax_cumul_deaths.plot( range(nt), meandc, '--', lw=2, label='Mean', color='black')
+            ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=2, label='Median', color='black')
+            ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=0.3)
+ 
+            #ax.legend(loc='upper left')
+            #ax.set_ylabel( ylabel )
+            #x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
+            #ax.set_xticks( x[0:-1:14] )
     
-    ax_loc = ax[ax_i,ax_j]
-
-    hist, bins, _ = ax_loc.hist(theta[:, var_idx], num_bins, density=True, color='lightgreen', ec='black')
-    
-    hist = hist / np.max(hist) * (ax_loc.get_xlim()[1] - ax_loc.get_xlim()[0])
-    bottom = ax_loc.get_xlim()[0]
-    widths = np.diff(bins)
-    ax_loc.cla()
-    ax_loc.bar(bins[:-1], hist, widths, color='lightgreen', ec='black', bottom=bottom)
-    ax_loc.set_ylim(ax_loc.get_xlim())
-    ax_loc.set_yticklabels([])
-    ax_loc.tick_params(axis='both', which='both', length=0)
-
-    return np.max(bins), np.min(bins)
-
+    create_folder(output+'/_figures/')
+    output = output+'/_figures/propagation.pdf'
+    print("Creating output {}".format(output))
+    plt.savefig(output)
 
 def set_axis_style(ax, labels):
     ax.get_xaxis().set_tick_params(direction='out')
@@ -90,26 +142,7 @@ def set_axis_style(ax, labels):
     ax.set_xlim(0.25, len(labels) + 0.75)
     # ax.set_xlabel('Sample name')
 
-def get_prior(ref_data,variable):
-
-    n_var = len(ref_data['Variables'])
-
-    idx = [ref_data['Variables'][i]['Distribution Index'] for i in range(n_var) 
-            if ref_data['Variables'][i]['Name'] == variable][0]
-
-    distrib_type = ref_data['Distributions'][idx]['Type']
-
-    if distrib_type == 'Univariate/Uniform':
-        samples = np.random.uniform(low=ref_data['Distributions'][idx]['Minimum'],
-                                    high=ref_data['Distributions'][idx]['Maximum'],
-                                    size=10000)
-
-    elif distrib_type == 'Univariate/Gaussian':
-        samples = np.random.normal(loc=25,scale=10,size=10000)
-
-    return samples
-
-def plot_propagation(folder,models,countries,variable,save_dir):
+def plot_propagation(folder,models,countries,save_dir):
 
     line_color = 'gray'
     face_colors = ['#d53e4f','#99d594','#3288bd']
@@ -126,112 +159,9 @@ def plot_propagation(folder,models,countries,variable,save_dir):
 
     for country in countries:
         n_models = len(models)
-        models_folders = [folder+'/'+country+'/'+model+ '/_korali_propagation' for model in models]
+        models_files = [folder+'/'+country+'/'+model+ '/_korali_propagation/latest' for model in models]
 
-        ref_data = get_samples_data(countries_folders[0])
-        variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
-        var_idx = variables.index(variable)
-        prior_samples = get_prior(ref_data,variable)
-        
-        bin_max = 0
-        bin_min = 10
-
-        if plot_prior:
-            data_to_plot = [prior_samples]
-        else:
-            data_to_plot = []
-        for i in range(n_countries):
-            country = countries[i]
-            country_path = countries_folders[i]
-            print('   ({}/{}) {}'.format(i+1,n_countries,country))
-            data = get_samples_data(country_path)
-            numdim = len(data['Variables'])
-            samples = data['Solver']['Posterior Sample Database']
-            numentries = len(samples)
-            samplesTmp = np.reshape(samples,(numentries,numdim))
-
-            data_to_plot.append(samplesTmp[:,var_idx])
-
-        data_all[model] = data_to_plot
-
-    print('Plotting {}'.format(variable))
-
-    # Plotting 
-
-    # Labels
-    common = os.path.commonprefix(models)
-    unique = [model.replace('country.reparam.','') for model in models]
-
-    fig, ax = plt.subplots(nrows = 1, ncols = 1,figsize =(18, 9))
-    ax.grid(which='minor', axis='y', linestyle='--')
-    # Matplotlib
-    # def add_label(violin, label):
-    #     color = violin["bodies"][0].get_facecolor().flatten()
-    #     labels.append((mpatches.Patch(color=color), label))
-    labels = []
-    for i, model in enumerate(models):
-        violins = plt.violinplot(data_all[model],vert=True,showmedians=True)
-
-        # Make all the violin statistics marks a specific color:
-        for partname in ('cbars','cmins','cmaxes'):
-            vp = violins[partname]
-            vp.set_edgecolor(line_color)
-            vp.set_linewidth(1)
-
-        # Plot medians
-        if plot_medians or plot_centers:
-            vp = violins['cmedians']
-            segments = vp.get_segments()
-
-            if plot_medians:
-                med_width = segments[0][1][0]-segments[0][0][0]
-                med_width *= med_width_factor
-                for j in range(len(segments)):
-                    segments[j][0][0] -=0.5*med_width
-                    segments[j][1][0] +=0.5*med_width
-                vp.set_segments(segments)
-                vp.set_edgecolor(face_colors[i])
-                vp.set_linewidth(1)
-            else:
-                vp.set_alpha(0)
-
-            if plot_centers:
-                centers = [[(segment[0][0]+segment[1][0])/2,segment[0][1]] for segment in segments]
-                plt.plot([c[0] for c in centers],[c[1] for c in centers],color=face_colors[i])
-                
-
-        for vp in violins['bodies']:
-            vp.set_facecolor(face_colors[i])
-            vp.set_edgecolor(line_color)
-            vp.set_linewidth(1)
-            vp.set_alpha(alpha)
-
-        labels.append((mpatches.Patch(color=face_colors[i],alpha=alpha), unique[i]))
-    
-    plt.legend(*zip(*labels), loc=2)
-    plt.title(common[:-1])
-    
-    x_labels = [tags[country] for country in countries]
-    if plot_prior:
-        x_labels = ['Prior'] + x_labels
-
-    set_axis_style(ax, x_labels)
-    plt.ylabel(variable)
-
-
-    create_folder(save_dir+'/_figures/')
-
-    output = save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'
-    print("Creating output {}".format(output))
-    plt.savefig(output)
-
-    # plt.savefig(save_dir+'/'+variable+'_phase_'+str(phase)+'.pdf')
-    # #Seaborn101
-    # colors = ['green','blue','orange']
-    # for i, model in enumerate(models):
-    #     sns.violinplot(data=[d for d in data_all[model]],color=colors[i],inner=None,saturation=0.7)
-    #     for violin, alpha in zip(ax.collections[::2], [0.8,0.6,0.4,0.2]):
-    #         violin.set_alpha(alpha)
+        ref_data = plot_samples_data(models_files, save_dir)
 
 if __name__ == "__main__":  
 
@@ -242,4 +172,4 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-    plot_propagation(args.folder,args.models,args.countries,variable,args.save_dir)
+    plot_propagation(args.folder,args.models,args.countries, args.save_dir)
