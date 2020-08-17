@@ -23,27 +23,15 @@ class ModelBase( EpidemicsCountry ):
 
     params = seirud_int.Parameters(R0=p[0], D=p[1], Z=p[2], Y=p[3], alpha=p[4], eps=p[5], tact=self.intday+p[6], dtact=p[7], kbeta=p[8])
   
-    Re = p[0]#p[0]*((1-p[4])*p[1]/(p[1]+p[3]) + p[3]/(p[1]+p[3]))
-    ld = (Re-1)/p[1]
-    ly = (Re-1)/p[3]
+    beta = p[0]*p[1]
   
     s0, ir0 = y0
     iu0     = (1-p[4])/p[4] * ir0
     i0      = iu0 + ir0
+ 
+    p0 = beta*p[3]*i0
+    e0 = beta*p[2]*p0
 
-# name: init
-    p0 = (ld*i0+i0/p[1])*p[3]
-    e0 = (ly*i0+i0/p[2])*p[2]
-
-#    p0      = (lm*i0+i0/p[1])*p[3]
-#    e0      = (lm*p0+p0/p[3])*p[2]
-#    p0      = ((np.exp(p[0])-1) * iu0 - ir0)/np.exp(1/p[3])
-#    e0      = ((np.exp(p[0])-1) * iu0 - ir0)/np.exp(1/p[2])
-# TO try:
-    # p0 = i0*(p[1]+p[3])/p[3]
-    # itot = p0 + i0
-    # e0   = (lm*itot+itot/(p[1]+p[3])*p[2]
-       
     y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
     
     initial = seirud_int.State(y0cpp)

@@ -23,20 +23,12 @@ class ModelBase( EpidemicsCountry ):
 
     params = seird_int.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=self.intday+p[4], dtact=p[5], kbeta=p[6])
   
-    ld = (p[0]-1)/p[1]
-    s0, i0  = y0
-
-# try 0
-#    ld = p[0]
-#    e0 = ld*i0*p[2]
-#    e0 = ld*i0*np.exp(-1/p[2])
-
-# try 1
-#    e0      = (lm + 1/p[1])*i0*p[2]
+    beta = p[0]*p[1]
     
-# name: init
-    e0 = (ld*i0+i0/p[1])*p[2]
+    s0, i0 = y0
 
+    e0 = beta*p[2]*i0
+ 
     y0cpp   = (s0, e0, i0, 0.0, 0.0) # S E I R D
     initial = seird_int.State(y0cpp)
     

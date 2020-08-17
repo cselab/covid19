@@ -6,7 +6,7 @@ pushd ..
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/g9_init2"
+base="/scratch/${name}/covid19/intervention/data/g9"
 
 declare -a models=(
 #"country.reparam.sird_int.poi"
