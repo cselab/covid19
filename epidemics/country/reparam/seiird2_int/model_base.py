@@ -21,7 +21,7 @@ class ModelBase( EpidemicsCountry ):
 
     params = seiird2_int.Parameters(R0=p[0], D=p[1], Z=p[2], mu=p[3], alpha=p[4], eps=p[5], tact=self.intday+p[6], dtact=p[7], kbeta=p[8])
  
-    beta = p[0]*p[1]
+    beta = p[0]/p[1]
     
     s0, ir0  = y0
     iu0 = (1-p[4])/p[4]*ir0

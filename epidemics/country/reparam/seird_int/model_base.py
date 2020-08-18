@@ -23,7 +23,7 @@ class ModelBase( EpidemicsCountry ):
 
     params = seird_int.Parameters(R0=p[0], D=p[1], Z=p[2],eps=p[3], tact=self.intday+p[4], dtact=p[5], kbeta=p[6])
   
-    beta = p[0]*p[1]
+    beta = p[0]/p[1]
     
     s0, i0 = y0
 

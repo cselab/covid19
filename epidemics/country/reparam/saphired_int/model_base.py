@@ -23,7 +23,7 @@ class ModelBase( EpidemicsCountry ):
 
     params = saphire_int.Parameters(R0=p[0], D=p[1], Z=p[2], Y=p[3], mu=p[4], alpha=p[5], eps=p[6], tact=self.intday+p[7], dtact=p[8], kbeta=p[9])
   
-    beta = p[0]*p[1]
+    beta = p[0]/p[1]
 
     s0, ir0  = y0
     iu0 = (1-p[5])/p[5]*ir0

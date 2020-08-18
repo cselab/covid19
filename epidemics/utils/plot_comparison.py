@@ -119,7 +119,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
 
     plot_medians = True
     plot_centers = False
-    plot_prior = True
+    plot_prior = False
 
     # Get data
     data_all = {}
@@ -132,12 +132,12 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
         var_idx = variables.index(variable)
-        prior_samples = get_prior(ref_data,variable)
         
         bin_max = 0
         bin_min = 10
 
         if plot_prior:
+            prior_samples = get_prior(ref_data,variable)
             data_to_plot = [prior_samples]
         else:
             data_to_plot = []
@@ -244,14 +244,6 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-
-    args.models = ['country.reparam.sir_int.nbin']
-    args.variables = ['R0']
-    args.folder = '/scratch/wadaniel/covid19/intervention/data/g9'
-
-    countries = ['canada','china','france','germany','italy',
-                 'japan','russia', 'uk','us']
-    args.countries = countries #['canada', 'france', 'germany', 'italy']
 
     for variable in args.variables:
         plot_parameters_comparison(args.folder,args.models,args.countries,variable,args.save_dir)
