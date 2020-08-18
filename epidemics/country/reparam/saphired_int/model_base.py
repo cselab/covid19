@@ -31,6 +31,7 @@ class ModelBase( EpidemicsCountry ):
     
     p0 = beta*p[3]*i0
     e0 = beta*p[2]*p0
+    s0 = s0 - e0 - p0 - iu0
 
     y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
     

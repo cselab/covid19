@@ -28,7 +28,8 @@ class ModelBase( EpidemicsCountry ):
     s0, i0 = y0
 
     e0 = beta*p[2]*i0
- 
+    s0 = s0 - e0
+
     y0cpp   = (s0, e0, i0, 0.0, 0.0) # S E I R D
     initial = seird_int.State(y0cpp)
     

@@ -13,10 +13,11 @@ from itertools import groupby
 from operator import itemgetter
 
 
-def joinres(a,b,c):
+def joinres(a,b,c,d):
     dct0 = dict(b)
     dct1 = dict(c)
-    ret = [ (k, [v]+[dct0[k]]+list(dct1[k])) for k,v in a if k in dct1 ]
+    tmp = dict([ (k, [v]+[dct0[k]]+list(dct1[k])) for k,v in d if k in dct1 ])
+    ret = [ (k, [v]+list(tmp[k])) for k,v in a if k in tmp ]
     return ret
 
 
@@ -71,6 +72,17 @@ def getEvidence(resfiles):
 
   return evidence
 
+def getVariance(resfiles):
+  variance = []
+  for m, file in resfiles:
+    with open(file) as f:
+      r = json.load(f)
+    
+      e = r['Solver']['LogEvidence Var']
+      variance.append( (m, e) )
+
+  return variance
+
 
 def getBestLLk(resfiles):
   best = []
@@ -102,17 +114,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     dirs = findResults(args.src, args.res)
+    print("Processing {0}..".format(args.src))
     print("{0} results found.".format(len(dirs)))
 
     samples = getSamples(dirs, args.par)
     stats = [ (m,getStats(s, 0.9)) for m,s in samples]
 
     evidence = getEvidence(dirs)
+    variance = getVariance(dirs)
     best = getBestLLk(dirs)
 
-    out = joinres(evidence, best, stats)
+    out = joinres(evidence, best, stats, variance)
     
     df = pd.DataFrame(out,columns=["model", "values"])
-    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
+    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'variance', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
     print(df3)
     df3.to_csv(args.out, index=True, header=True)
