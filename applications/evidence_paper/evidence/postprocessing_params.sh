@@ -8,12 +8,12 @@ mkdir -p $outdir
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
     -m "country.reparam.sird_int.nbin" "country.reparam.seird_int.nbin" "country.reparam.seiird2_int.nbin" \
-    -v "R0" "D"
+    -v "R0" "D" "eps"
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
     -m "country.reparam.sird_int.nbin" "country.reparam.saphired_int.nbin" "country.reparam.seirud_int.nbin" \
-    -v "R0" "D"
+    -v "R0" "D" "eps"
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \

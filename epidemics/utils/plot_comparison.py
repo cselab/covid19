@@ -29,6 +29,21 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
+vdict = {
+        'R0':       'Basic Reproduction Number',
+        'D':        'Sumptomatic Infectious Period',
+        'Y':        'Presymptomatic Infectious Period',
+        'Z':        'Latency Period',
+        'Zl':       'Latency Period (before Presymptomatic)',
+        'alpha':    'Reporting Rate',
+        'eps':      'Mortality Rate',
+        'mu':       'Reduction Factor',
+        'kbeta':    'Intervention Reduction Factor',
+        'tact':     'Intervention Time',
+        'dtact':    'Intervention Duration',
+        }
+
+
 def create_folder(name):
     if not os.path.exists(name):
         os.makedirs(name)
@@ -210,7 +225,7 @@ def plot_parameters_comparison(folder,models,countries,variable,save_dir):
         labels.append((mpatches.Patch(color=face_colors[i],alpha=alpha), unique[i]))
     
     plt.legend(*zip(*labels), loc=2)
-    plt.title(common[:-1])
+    plt.title("Comparison {}".format(vdict[variable]))
     
     x_labels = [tags[country] for country in countries]
     if plot_prior:

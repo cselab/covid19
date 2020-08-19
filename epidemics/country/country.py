@@ -38,10 +38,10 @@ class EpidemicsCountry( EpidemicsBase ):
             'gamma' : (0.01, 1.0),  # recovery rate
             'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
             'Zl'    : (0.0, 25.0),  # latency period (incubation period)
-            'Y'     : (0.0, 25.0),  # preasymptomatic period
+            'Y'     : (0.0, 10.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
-            'eps'   : (0.0, 1.0),   # fatality rate
+            'eps'   : (0.01, 0.15), # case fatality rate
             'tact'  : (0.0, 100.0), # intervention time
             'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
@@ -98,7 +98,7 @@ class EpidemicsCountry( EpidemicsBase ):
     super().__init__( **kwargs )
   
     if(self.synthetic):
-        self.regionalData = SyntheticData( self.datafile )
+        self.regionalData = SyntheticData( self.datafile, self.useInfections, self.useDeaths )
     else:
         self.regionalData = CountryData(self.country, lastDay=self.lastDay,
                                         preprocess=self.preprocess, up_to_int=self.up_to_int)
