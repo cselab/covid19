@@ -32,7 +32,7 @@ do
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         
-#        rm -r "$folder/_korali_propagation"
+        #rm -r "$folder/_korali_propagation"
 
         done
 done

@@ -44,6 +44,7 @@ class EpidemicsBase:
         observations = set(kwargs.pop('observations'))
     else:
         self.lastDay = None
+        observations = set(kwargs.pop('observations'))
 
    
     if 'infections' in observations:
@@ -60,7 +61,6 @@ class EpidemicsBase:
 
     if(self.synthetic):
         self.datafile = kwargs.pop('dataFile')
-        self.useInfections = True
 
     if kwargs:
         abort(f"Unknown input arguments: {kwargs}")

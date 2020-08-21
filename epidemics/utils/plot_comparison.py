@@ -15,6 +15,8 @@ import seaborn as sns
 import matplotlib.patches as mpatches
 from scipy.special import gamma
 
+################################################################################
+
 tags = {'australia':   'AU',
         'canada':      'CA',
         'china':       'CN',
@@ -30,7 +32,19 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
-################################################################################
+ vdict = {
+        'R0':       'Basic Reproduction Number',
+        'D':        'Sumptomatic Infectious Period',
+        'Y':        'Presymptomatic Infectious Period',
+        'Z':        'Latency Period',
+        'Zl':       'Latency Period (before Presymptomatic)',
+        'alpha':    'Reporting Rate',
+        'eps':      'Mortality Rate',
+        'mu':       'Reduction Factor',
+        'kbeta':    'Intervention Reduction Factor',
+        'tact':     'Intervention Time',
+        'dtact':    'Intervention Duration',
+        }
 
 # Plotting Options
 line_color = 'gray'
@@ -260,6 +274,8 @@ def plot_violin_style(data,save_dir):
 
     plt.title(common[:-1])
     plt.legend(*zip(*labels), loc=2)
+    plt.legend(*zip(*labels), loc=2)
+    plt.title("Comparison {}".format(vdict[variable]))
     
     x_labels = [tags[country] for country in countries]
     if plot_prior:
@@ -340,7 +356,7 @@ def plot_ridge_style(data,save_dir):
             ax[j].text(0.02, 0.05, countries[j-1].capitalize(), fontsize=17,transform = ax[j].transAxes) 
 
     # plt.legend(*zip(*labels), loc=2)
-    ax[0].set_title('Model comparison for variable {}'.format(variable),fontsize=17,fontweight='bold',pad=10)
+    ax[0].set_title('Model comparison for {}'.format(vdict[variable]),fontsize=17,fontweight='bold',pad=10)
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(0.5, -0.15),
           fancybox=False, shadow=False, ncol=len(models),frameon=False,fontsize='x-large')
 

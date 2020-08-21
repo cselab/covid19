@@ -1,20 +1,25 @@
  #!/bin/bash
 
 declare -a arr=(
-"sir_int"
-"seir_int"
-"seiir_int"
+#"sird_int"
+#"saphired_int"
+#"seiird2_int"
+"seirud_int"
 )
 
-base="./data/nested_rnd_100/"
+base="./data/"
 
 mkdir -p ${base}
 
 for model in "${arr[@]}"
 do
-   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot -ns 1500 -bs 8 -nt 8 -cm "country.reparam.${model}.tstudent_alt" -c "$c" -df $base --synthetic -dat "./data/${model}_rnd.txt" | tee "${base}/${model}.out" 
+   PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py --silentPlot \
+       -ns 1500 -dlz 0.1 -bs 8 -nt 8 -cm "country.reparam.${model}.nbin" \
+       -ui -ud -uip \
+       -c "$c" -df $base --synthetic -dat "./data/${model}_rnd.txt"
   
-   folder="${base}/country.reparam.${model}.tstudent_alt"
+   folder="${base}/country.reparam.${model}.nbin"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+   rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
   
 done
