@@ -13,6 +13,27 @@ sys.path.append('../../build')
 from epidemics.utils.misc import import_from
 from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SHORT
 
+def create_folder(name):
+    if not os.path.exists(name):
+        os.makedirs(name)
+
+def get_regions(regions):
+    ## Select regions
+    if regions == '/cantons':
+        regions = CANTON_LIST
+        folder_name = 'cantons'
+    elif regions == '/cantons_short':
+        regions = CANTON_LIST_SHORT
+        folder_name = '/cantons_short'
+    elif regions == 'g9':
+        regions = ['canada','china','france','germany','italy','japan','russia','switzerland','uk','us']
+        folder_name = '/g9'
+
+    else:
+        regions = regions
+        folder_name = str(regions)
+    return regions, folder_name
+
 def sampling(phase_1_path,phase_2_path,phase_3_path):
 
     e = korali.Experiment()
@@ -74,29 +95,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
     model = args.model
 
-    if args.regions == 'all':
-        regions = [region for region in os.listdir(args.phase_1_path) if not region.startswith('_')]
-        folder_name = '/all_countries'
-    elif args.regions == '/cantons':
-        regions = CANTON_LIST
-        folder_name = 'cantons'
-    elif args.regions == '/cantons_short':
-        regions = CANTON_LIST_SHORT
-        folder_name = '/cantons_short'
-    else:
-        regions = args.regions
-        folder_name = str(regions)
+    regions,folder_name = get_regions(args.regions)
 
-    phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples/latest'
+    # phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples/latest'
+    phase_2_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples/latest'
 
 
     for region in regions:
         print('Processing {}'.format(region))
 
         phase_1_path = args.phase_1_path+'/'+region+'/'+model+'/_korali_samples/latest'
-        phase_3_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_3_results/'+region
+        # phase_3_path = args.phase_1_path + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
+        phase_3_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
 
-        print(phase_1_path,phase_2_path,phase_3_path)
+        print('Phase 1: {}'.format(phase_1_path))
+        print('Phase 2: {}'.format(phase_2_path))
+        print('Phase 3: {}'.format(phase_3_path))
+
         sampling(phase_1_path,phase_2_path,phase_3_path)
 
         # propagation(model,region,phase_3_path)
