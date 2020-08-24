@@ -10,19 +10,79 @@ from epidemics.cantons.data.canton_population import CANTON_LIST, CANTON_LIST_SH
 import argparse
 
 '''
-    Hierearchical setup for SIR models with negative binomial
+    Hierearchical setup for epidemiology models 
 '''
 
+def create_folder(name):
+    if not os.path.exists(name):
+        os.makedirs(name)
 
-def run_phase_2_auto(phase_1_path,phase_2_path,variables):
+def get_regions(regions):
+    ## Select regions
+    if args.regions == 'all':
+        regions = [region for region in os.listdir(args.phase_1_path) if not region.startswith('_')]
+        print(regions)
+        folder_name = '/all_countries'
+    elif args.regions == '/cantons':
+        regions = CANTON_LIST
+        folder_name = 'cantons'
+    elif args.regions == '/cantons_short':
+        regions = CANTON_LIST_SHORT
+        folder_name = '/cantons_short'
+    elif args.regions == 'g9':
+        regions = ['canada','china','france','germany','italy','japan','russia','switzerland','uk','us']
+        folder_name = '/g9'
+
+    else:
+        regions = args.regions
+        folder_name = str(regions)
+    return regions, folder_name
+
+def get_variables(model):
+
+    model_parts = model.split('.')
+    model_name = model_parts[-2]
+    stat_model = model_parts[-1]
+
+    possible_variables = {
+                'R0':       {'name':'R0','cond_type':'Normal',      'Mean':(0.0,10.0),'Std':(0.0,5.0)},     # Average reproduction number
+                'D':        {'name':'D','cond_type':'Normal',       'Mean':(0.0,25.0),'Std':(0.0,10.0)},    # Average recovery period
+                'Z':        {'name':'Z','cond_type':'Normal',       'Mean':(0.0,30.0),'Std':(0.0,10.0)},    # Average incubation period
+                'eps':      {'name':'eps','cond_type':'Normal',     'Mean':(0.0,0.25),'Std':(0.0,0.2)},     # Death rate
+                'mu':       {'name':'mu','cond_type':'Normal',      'Mean':(0.0,30.0),'Std':(0.0,10.0)},    # Reduction factor for unreported infected
+                'alpha':    {'name':'alpha','cond_type':'Normal',   'Mean':(0.0,30.0),'Std':(0.0,10.0)},    # Percentage reported
+                'tact':     {'name':'tact','cond_type':'Normal',    'Mean':(0.0,30.0),'Std':(0.0,10.0)},    # Intervention timne
+                'dtact':    {'name':'dtact','cond_type':'Normal',   'Mean':(0.0,50.0),'Std':(0.0,10.0)},    # Intervention lengths
+                'kbeta':    {'name':'kbeta','cond_type':'Normal',   'Mean':(0.0,1.0),'Std':(0.0,0.1)},      # R0 reduction factor
+                'r':        {'name':'r','cond_type':'Normal',       'Mean':(0.0,15.0),'Std':(0.0,5)},      # Nbin stat param
+                'Sigma':    {'name':'Sigma','cond_type':'Normal',   'Mean':(0.0,5.0),'Std':(0.0,2.5)}       # Nbin stat param
+            }
+
+    # Variables for each parameter
+    if model_name == 'sird_int':
+        variables = ['R0','D','eps','tact','dtact','kbeta']
+    elif model_name == 'sird':
+        variables = ['R0','D','eps']
+
+    # Stat model
+    if stat_model == 'nbin':
+        variables.append('r')
+    elif stat_model == 'tnrm':
+        variables.append('Sigma')
+
+    return [possible_variables[var] for var in variables ]
+
+
+def run_phase_2(phase_1_paths,phase_2_path,variables):
 
     # Problem
     e = korali.Experiment()
     e["Problem"]["Type"] = "Hierarchical/Psi"
-    for i in range(len(phase_1_path)):
-        print(phase_1_path[i])
+
+    for i in range(len(phase_1_paths)):
+        print(phase_1_paths[i])
         subProblem = korali.Experiment()
-        subProblem.loadState(phase_1_path[i])
+        subProblem.loadState(phase_1_paths[i])
         e["Problem"]["Sub Experiments"][i] = subProblem
 
     # Define conditionals
@@ -66,11 +126,13 @@ def run_phase_2_auto(phase_1_path,phase_2_path,variables):
 
     e["Console Output"]["Verbosity"] = "Detailed"
     e["File Output"]["Path"] = phase_2_path
+    create_folder(phase_2_path)    
 
     # Starting Korali's Engine and running experiment
     k = korali.Engine()
     # k["Conduit"]["Type"] = "Concurrent"
     # k["Conduit"]["Concurrent Jobs"] = 12
+    print('Launching Korali')
     k.run(e)
 
 if __name__ == "__main__":  
@@ -83,34 +145,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     model = args.model
 
-    if args.regions == 'all':
-        regions = [region for region in os.listdir(args.phase_1_path) if not region.startswith('_')]
-        print(regions)
-        folder_name = '/all_countries'
-    elif args.regions == '/cantons':
-        regions = CANTON_LIST
-        folder_name = 'cantons'
-    elif args.regions == '/cantons_short':
-        regions = CANTON_LIST_SHORT
-        folder_name = '/cantons_short'
-    else:
-        regions = args.regions
-        folder_name = str(regions)
+    ## Get regions and models
+    regions,folder_name = get_regions(args.regions)
+    variables = get_variables(args.model)
 
+    ## Paths
     phase_1_data = [args.phase_1_path+'/'+region+'/'+model+'/_korali_samples/latest' for region in regions]
-
-    phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples'
-
-
-    variables = [   {'name':'R0','cond_type':'Normal',      'Mean':(0.1,10.0),'Std':(0.0,5.0)},
-                    {'name':'D','cond_type':'Normal',       'Mean':(0.0,30.0),'Std':(0.0,10.0)},
-                    {'name':'tact','cond_type':'Normal',    'Mean':(0.0,30.0),'Std':(0.0,10.0)},
-                    {'name':'dtact','cond_type':'Normal',   'Mean':(0.0,50.0),'Std':(0.0,10.0)},
-                    {'name':'kbeta','cond_type':'Normal',   'Mean':(0.0,1.0),'Std':(0.0,0.1)},
-                    {'name':'[r]','cond_type':'Normal',     'Mean':(0.0,5.0),'Std':(0.0,2.5)}] 
-
-    variables = [   {'name':'R0','cond_type':'Normal',      'Mean':(0.1,10.0),'Std':(0.0,5.0)},
-                    {'name':'D','cond_type':'Normal',       'Mean':(0.0,30.0),'Std':(0.0,10.0)},
-                    {'name':'[r]','cond_type':'Normal',     'Mean':(0.0,5.0),'Std':(0.0,2.5)}] 
-    # run_phase_2(phase_1_data,phase_2_path)
-    run_phase_2_auto(phase_1_data,phase_2_path,variables)
+    phase_2_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples'
+    run_phase_2(phase_1_data,phase_2_path,variables)
