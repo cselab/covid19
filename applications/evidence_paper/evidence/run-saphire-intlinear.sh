@@ -10,8 +10,8 @@ base="/scratch/${name}/covid19/intervention/data/g9_D52"
 
 declare -a models=(
 #"country.reparam.saphire_int.poi"
-#"country.reparam.saphire_int.geo"
-"country.reparam.saphire_int.nbin"
+"country.reparam.saphire_int.geo"
+#"country.reparam.saphire_int.nbin"
 #"country.reparam.saphire_int.tnrm"
 #"country.reparam.saphire_int.tstudent_alt"
 )

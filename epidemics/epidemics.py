@@ -33,18 +33,15 @@ class EpidemicsBase:
     self.sampler     = kwargs.pop('sampler','TMCMC')
     self.synthetic   = kwargs.pop('synthetic', False)
     self.display     = os.environ['HOME']
+    observations     = set(kwargs.pop('observations'))
 
     self.useInfections = False
     self.useDeaths     = False
-    
-    observations = []
 
     if self.synthetic == False:
         self.lastDay = datetime.datetime.strptime(kwargs.pop('lastDay'),"%Y-%m-%d").date()
-        observations = set(kwargs.pop('observations'))
     else:
         self.lastDay = None
-        observations = set(kwargs.pop('observations'))
 
    
     if 'infections' in observations:
@@ -701,6 +698,45 @@ class EpidemicsBase:
     plt.draw()
     plt.pause(0.001)
 
+  def fit_curve(self, order = 4):
+
+    xi = self.data['Model']['x-infected']
+    yi = self.data['Model']['y-infected']
+    xd = self.data['Model']['x-deaths']
+    yd = self.data['Model']['y-deaths']
+
+    zi = np.polyfit(xi, yi, order)
+    zd = np.polyfit(xd, yd, order)
+    
+    fi = np.poly1d(zi)
+    fd = np.poly1d(zd)
+    #result = scipy.optimize.minimize_scalar(f, bounds=(row["minls"], row["maxls"]), method='boun0ded')
+    fig = self.new_figure()
+    ax  = fig.subplots(2,1)
+    ax_normal = ax[0]
+    ax_logy = ax[1]
+    
+    ax_normal.plot(xi, yi, '.', xi, fi(xi), '-')
+    ax_normal.plot(xd, yd, '.', xd, fd(xd), '-')
+ 
+    ax_logy.plot(xi, yi, '.', xi, fi(xi), '-')
+    ax_logy.plot(xd, yd, '.', xd, fd(xd), '-')
+    ax_logy.set_yscale('log')
+    ax_logy.set_ylim(bottom=1e-1)
+
+
+
+    file = os.path.join(self.saveInfo['figures'],'fit.png');
+    prepare_folder( os.path.dirname(file) )
+    fig.savefig(file)
+
+    if (self.display): 
+        plt.show()
+    else: 
+        print("[Epidemics] Cant show figure, '$DISPLAY' not set..")
+
+    plt.close(fig)
+
 
 def load_param_samples(datadir):
     """
@@ -731,3 +767,6 @@ def load_param_samples(datadir):
     comb[names_add[0]] = logprior
     comb[names_add[1]] = loglike
     return comb
+
+
+

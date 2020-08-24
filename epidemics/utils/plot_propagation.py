@@ -48,7 +48,9 @@ def get_stat(data, nt, pct):
 
 
 
-def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100):
+def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndraws=5):
+    models = [model.replace('country.reparam.','') for model in models]
+    models = [model.replace('_int','') for model in models]
   
     line_color = 'gray'
     face_colors = ['#d53e4f','#1a9850','#3288bd']
@@ -64,7 +66,6 @@ def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100)
 
    
     fig = plt.figure(figsize=(12, 8))
-    #fig.suptitle(self.modelDescription + '  (' + self.country + ')')
 
     ax  = fig.subplots(2,2)
 
@@ -79,6 +80,12 @@ def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100)
     deaths = []
     deaths_cum = []
  
+    ax_daily_incidence.set_title('Daily reported infections')
+    ax_cumul_incidence.set_title('Total infections')
+ 
+    ax_daily_deaths.set_title('Daily reported deaths')
+    ax_cumul_deaths.set_title('Total deaths')
+
     with open(samplespath) as f: 
         genJs   = json.load(f)
         refdata = np.array(genJs["Problem"]["Reference Data"])
@@ -89,10 +96,10 @@ def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100)
         deaths = refdata[mid:] 
         deaths_cum = np.cumsum(deaths)
 
-        ax_daily_incidence.plot( range(len(incidences)), incidences, 'o', markersize=2, label='Daily Incidences', color='black')
-        ax_cumul_incidence.plot( range(len(incidences_cum)), incidences_cum, 'o', markersize=2, label='Daily Incidences', color='black')
-        ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, label='Daily Deaths', color='black')
-        ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, label='Daily Deaths', color='black')
+        ax_daily_incidence.plot( range(len(incidences)), incidences, 'o', markersize=2, color='black')
+        ax_cumul_incidence.plot( range(len(incidences_cum)), incidences_cum, 'o', markersize=2, color='black')
+        ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, color='black')
+        ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
             
 
 
@@ -110,8 +117,8 @@ def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100)
 
             for k in range(ns):
                 nv = results[k]["Saved Results"]["Number of Variables"]
-                dispI = np.array(results[k]["Saved Results"]["Dispersion Daily Deaths"])
-                dispD = np.array(results[k]["Saved Results"]["Dispersion Daily Incidence"])
+                dispI = np.array(results[k]["Saved Results"]["Dispersion Daily Incidence"])
+                dispD = np.array(results[k]["Saved Results"]["Dispersion Daily Deaths"])
                 
                 death     = None
                 incidence = None
@@ -137,35 +144,32 @@ def plot_samples_data(paths, samplespath, country, output, pct=0.90, ndraws=100)
             meand, mediand, quantd = get_stat(all_deaths, nt, pct)
             meandc, mediandc, quantdc = get_stat(all_deaths_cum, nt, pct)
 
-            ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, color=face_colors[idx])
+            ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, color=face_colors[idx], label=models[idx])
             ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, color=face_colors[idx])
             
             ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[idx])
             ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[idx])
             
             if plot_medians:
-                ax_daily_incidence.plot( range(nt), mediani, '-', lw=1, label='Median', color=line_color)
-                ax_cumul_incidence.plot( range(nt), medianic, '-', lw=1, label='Median', color=line_color)
+                ax_daily_incidence.plot( range(nt), mediani, '-', lw=1, color=line_color)
+                ax_cumul_incidence.plot( range(nt), medianic, '-', lw=1, color=line_color)
                 
-                ax_daily_deaths.plot( range(nt), mediand, '-', lw=1, label='Median', color=line_color)
-                ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=1, label='Median', color=line_color)
+                ax_daily_deaths.plot( range(nt), mediand, '-', lw=1, color=line_color)
+                ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=1, color=line_color)
   
             if plot_mean:
-                ax_daily_incidence.plot( range(nt), meani, '--', lw=1, label='Mean', color=line_color)
-                ax_cumul_incidence.plot( range(nt), meanic, '--', lw=1, label='Mean', color=line_color)
+                ax_daily_incidence.plot( range(nt), meani, '--', lw=1, color=line_color)
+                ax_cumul_incidence.plot( range(nt), meanic, '--', lw=1, color=line_color)
  
-                ax_daily_deaths.plot( range(nt), meand, '--', lw=1, label='Mean', color='black')
-                ax_cumul_deaths.plot( range(nt), meandc, '--', lw=1, label='Mean', color='black')
+                ax_daily_deaths.plot( range(nt), meand, '--', lw=1, color=line_color)
+                ax_cumul_deaths.plot( range(nt), meandc, '--', lw=1, color=line_color)
      
+            ax_daily_incidence.legend(loc="upper right")
             
-            #ax.legend(loc='upper left')
-            #ax.set_ylabel( ylabel )
-            #x = range( np.ceil( max( self.data['Propagation']['x-data'] )+1 ).astype(int) )
-            #ax.set_xticks( x[0:-1:14] )
-    
     output = output+'/_figures/'
     create_folder(output)
-    plot = output+"/propagation_{}.pdf".format(country)
+    model_str = '-'.join(models)
+    plot = output+"/propagation_{}_{}.pdf".format(country, model_str)
     print("Creating output {}".format(plot))
     plt.savefig(plot)
 
@@ -186,13 +190,13 @@ def plot_propagation(folder,models,countries,save_dir):
         n_models = len(models)
         models_files = [folder+'/'+country+'/'+model+ '/_korali_propagation/latest' for model in models]
         samples_file = folder+'/'+country+'/'+models[0]+'/_korali_samples/latest'
-        ref_data = plot_samples_data(models_files, samples_file, country, save_dir)
+        ref_data = plot_samples_data(models_files, models, samples_file, country, save_dir)
 
 if __name__ == "__main__":  
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--models', '-m', default='country.reparam.sir_int.nbin', type=str, nargs='+', help='Model type')
+    parser.add_argument('--models', '-m', default='country.reparam.sird_int.nbin', type=str, nargs='+', help='Model type')
     parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
