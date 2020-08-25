@@ -710,17 +710,37 @@ class EpidemicsBase:
     
     fi = np.poly1d(zi)
     fd = np.poly1d(zd)
-    #result = scipy.optimize.minimize_scalar(f, bounds=(row["minls"], row["maxls"]), method='boun0ded')
+ 
+    maxi = -1
+    maxti = -1
+    for t in xi:
+        if (fi(t) > maxi):
+            maxti = t
+            maxi = fi(t)
+
+    maxd = -1
+    maxtd = -1
+    for t in xd:
+        if (fd(t) > maxd):
+            maxtd = t
+            maxd = fd(t)
+
+    print("[Epidemics] Days difference between max deaths and incidences {}".format(maxtd-maxti))
+
     fig = self.new_figure()
     ax  = fig.subplots(2,1)
     ax_normal = ax[0]
     ax_logy = ax[1]
     
     ax_normal.plot(xi, yi, '.', xi, fi(xi), '-')
+    ax_normal.plot(maxti, maxi, '^')
     ax_normal.plot(xd, yd, '.', xd, fd(xd), '-')
+    ax_normal.plot(maxtd, maxd, 'v')
  
     ax_logy.plot(xi, yi, '.', xi, fi(xi), '-')
+    ax_logy.plot(maxti, maxi, '^')
     ax_logy.plot(xd, yd, '.', xd, fd(xd), '-')
+    ax_logy.plot(maxtd, maxd, 'v')
     ax_logy.set_yscale('log')
     ax_logy.set_ylim(bottom=1e-1)
 

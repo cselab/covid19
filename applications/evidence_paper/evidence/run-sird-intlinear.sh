@@ -1,17 +1,17 @@
 #!/bin/bash
 
-msg="1 ppm, informed priors, short D"
+msg="1 ppm, informed priors"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/g9"
+base="/scratch/${name}/covid19/intervention/data/g9_new"
 
 declare -a models=(
 #"country.reparam.sird_int.poi"
-"country.reparam.sird_int.geo"
-#"country.reparam.sird_int.nbin"
+#"country.reparam.sird_int.geo"
+"country.reparam.sird_int.nbin"
 #"country.reparam.sird_int.tnrm"
 #"country.reparam.sird_int.tstudent_alt"
 )

@@ -1,17 +1,17 @@
  #!/bin/bash
 
-msg="1 ppm, informed priors, short D"
+msg="1 ppm, informed priors, compare with deaths"
 pushd ..
 
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/g9_D52"
+base="/scratch/${name}/covid19/intervention/data/g9_new"
 
 declare -a models=(
 #"country.reparam.saphire_int.poi"
-"country.reparam.saphire_int.geo"
-#"country.reparam.saphire_int.nbin"
+#"country.reparam.saphire_int.geo"
+"country.reparam.saphire_int.nbin"
 #"country.reparam.saphire_int.tnrm"
 #"country.reparam.saphire_int.tstudent_alt"
 )
@@ -32,7 +32,7 @@ do
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
         
-        rm -r "$folder/_korali_propagation"
+#        rm -r "$folder/_korali_propagation"
         
         done
 done
