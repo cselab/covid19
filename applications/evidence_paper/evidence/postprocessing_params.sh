@@ -1,9 +1,16 @@
 #!/bin/bash
 
-base='/scratch/wadaniel/covid19/intervention/data/g9'
-outdir='./result_init/'
+base='/scratch/wadaniel/covid19/intervention/data/g9_new'
+outdir='./result_compare_nodeath/'
 
 mkdir -p $outdir
+
+python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
+    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
+    -m "country.reparam.sir_int.nbin" "country.reparam.sird_int.nbin"  \
+    -v "R0" "D" "tact" "dtact"
+
+exit
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \

@@ -32,15 +32,15 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
- vdict = {
+vdict = {
         'R0':       'Basic Reproduction Number',
-        'D':        'Sumptomatic Infectious Period',
+        'D':        'Symptomatic Infectious Period',
         'Y':        'Presymptomatic Infectious Period',
         'Z':        'Latency Period',
         'Zl':       'Latency Period (before Presymptomatic)',
         'alpha':    'Reporting Rate',
         'eps':      'Mortality Rate',
-        'mu':       'Reduction Factor',
+        'mu':       'Transmission Reduction Factor',
         'kbeta':    'Intervention Reduction Factor',
         'tact':     'Intervention Time',
         'dtact':    'Intervention Duration',
@@ -406,12 +406,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
     parser.add_argument('--models', '-m', default='country.reparam.sir_int.nbin', type=str, nargs='+', help='Model type')
-    parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
+    parser.add_argument('--variables', '-v', default=['R0'], type=str, nargs='+', help='Model type')
     parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-
     for variable in args.variables:
 
         data = get_data(args.folder,args.models,args.countries,variable)
