@@ -6,14 +6,10 @@ pushd ..
 source countries.sh
 
 name=`whoami`
-base="/scratch/${name}/covid19/intervention/data/g9_new"
+base="/scratch/${name}/covid19/data/delay"
 
 declare -a models=(
-#"country.reparam.seirud_int.poi"
-#"country.reparam.seirud_int.geo"
-"country.reparam.seirud_int.nbin"
-#"country.reparam.seirud_int.tnrm"
-#"country.reparam.seirud_int.tstudent_alt"
+"country.reparam.seirudelay_int.nbin"
 )
 
 mkdir ${base} -p

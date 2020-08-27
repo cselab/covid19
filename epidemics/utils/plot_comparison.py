@@ -44,6 +44,7 @@ vdict = {
         'kbeta':    'Intervention Reduction Factor',
         'tact':     'Intervention Time',
         'dtact':    'Intervention Duration',
+        'delay':    'Time Shift for Reported Deaths',
         }
 
 # Plotting Options
@@ -69,33 +70,13 @@ def create_folder(name):
         os.makedirs(name)
 
 def get_samples_data(path):
+    resultfile = path + '/latest'
 
-    configFile = path + '/gen00000000.json'
+    samples_data = None
+    with open(resultfile) as f:
+            samples_data = json.load(f)
 
-    with open(configFile) as f: js = json.load(f)
-    configRunId = js['Run ID']
-
-    resultFiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith('gen')]
-    resultFiles = sorted(resultFiles)
-
-    genList = { } 
-
-    for file in resultFiles:
-        with open(path + '/' + file) as f:
-            genJs = json.load(f)
-            solverRunId = genJs['Run ID']
-
-        if (configRunId == solverRunId):
-            curGen = genJs['Current Generation']
-            genList[curGen] = genJs
-    del genList[0]
-
-    lastGen = 0
-    for i in genList: 
-     if genList[i]['Current Generation'] > lastGen:
-      lastGen = genList[i]['Current Generation']
-
-    return genList[lastGen]
+    return samples_data
 
 def plot_histogram(ax,ax_i,ax_j,theta,var_idx):
     dim = theta.shape[1]
@@ -415,5 +396,5 @@ if __name__ == "__main__":
 
         data = get_data(args.folder,args.models,args.countries,variable)
 
-        # plot_violin_style(data,args.save_dir)
+        #plot_violin_style(data,args.save_dir)
         plot_ridge_style(data,args.save_dir)
