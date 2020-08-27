@@ -17,9 +17,9 @@ class ModelBase( EpidemicsCountry ):
 
   def solve_ode( self, y0, T, t_eval, N, p ):
     
-    saphire_int = libepidemics.country.saphiredg_int_reparam
-    dp         = libepidemics.country.DesignParameters(N=N)
-    cppsolver  = saphire_int.Solver(dp)
+    saphire_int = libepidemics.country.saphireg_int_reparam
+    dp          = libepidemics.country.DesignParameters(N=N)
+    cppsolver   = saphire_int.Solver(dp)
 
     params = saphire_int.Parameters(R0=p[0], D=p[1], F=p[2], Z=p[3], Y=p[4], mu=p[5], alpha=p[6], eps=p[7], tact=self.intday+p[8], dtact=p[9], kbeta=p[10])
   
