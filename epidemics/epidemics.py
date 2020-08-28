@@ -238,6 +238,48 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
+# ///////////////////////////////////////////////////////////
+# 	//TODO: define sample_hmc with parameters scpecifit to sampler
+# ////////////////////////////////////////////////////////////////////////////////
+
+  def sample_hmc(self, nLiveSamples=1500, maxiter=1e9):
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Bayesian/Reference'
+    self.e['Problem']["Likelihood Model"] = self.likelihoodModel
+    self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Computational Model'] = self.computational_model
+
+    self.e["Solver"]["Type"] = "Sampler/HMC"
+    self.e["Solver"]["Version"] = "Euclidean"
+    self.e["Solver"]["Use Adaptive Time Stepping"] = True
+    self.e["Solver"]["Use NUTS"] = True
+    self.e["Solver"]["Max Depth"] = 10
+
+    self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
+
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
+
+    self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
+    self.e['Console Output']['Verbosity'] = 'Detailed'
+    self.e["Console Output"]["Frequency"] = 100
+    
+    printlog('Copy variables from Korali to Epidemics...')
+    
+    myDatabase = self.e['Results']['Posterior Sample Database']
+    self.nSamples, _ = np.shape(myDatabase)
+    
+    self.parameters = []
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
+
+    self.has_been_called['sample'] = True
+    self.has_been_called['propagate'] = False
+    printlog('Done copying variables.')
+
   def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1, batch=1 ):
 
     self.e = korali.Experiment()
