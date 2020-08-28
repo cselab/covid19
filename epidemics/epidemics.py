@@ -242,7 +242,7 @@ class EpidemicsBase:
 # 	//TODO: define sample_hmc with parameters scpecifit to sampler
 # ////////////////////////////////////////////////////////////////////////////////
 
-  def sample_hmc(self, nLiveSamples=1500, maxiter=1e9):
+  def sample_hmc(self, maxiter=1000):
     self.e = korali.Experiment()
 
     self.e['Problem']['Type'] = 'Bayesian/Reference'
@@ -252,11 +252,12 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = "Euclidean"
-    self.e["Solver"]["Use Adaptive Time Stepping"] = True
+    self.e["Solver"]["Use Adaptive Step Size"] = True
     self.e["Solver"]["Use NUTS"] = True
     self.e["Solver"]["Max Depth"] = 10
+    # self.e["Solver"]["Initial Mean"] = 1.0
 
-    self.e["Solver"]["Termination Criteria"]["Max Generations"] = maxiter
+    self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
     js = self.get_variables_and_distributions()
     self.set_variables_and_distributions(js)
@@ -265,9 +266,15 @@ class EpidemicsBase:
     self.e['Console Output']['Verbosity'] = 'Detailed'
     self.e["Console Output"]["Frequency"] = 100
     
+    k = korali.Engine()
+    k['Conduit']['Type'] = 'Concurrent'
+    k['Conduit']['Concurrent Jobs'] = self.nThreads
+    
     printlog('Copy variables from Korali to Epidemics...')
     
-    myDatabase = self.e['Results']['Posterior Sample Database']
+
+    k.run(self.e)
+    myDatabase = self.e['Results']['Sample Database']
     self.nSamples, _ = np.shape(myDatabase)
     
     self.parameters = []
@@ -399,6 +406,9 @@ class EpidemicsBase:
     nP = self.nParameters
     if self.e['Problem']['Type']=='Bayesian/Reference' :
       for k in range(nP):
+
+        self.e['Variables'][k]['Initial Mean'] = 5.0
+        self.e['Variables'][k]['Initial Standard Deviation'] = 1.0
 
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
         if (js['Variables'][k]['Name'] == 'D' and self.useInformedPriors):
