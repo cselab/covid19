@@ -32,18 +32,17 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
- vdict = {
-        'R0':       'Basic Reproduction Number',
-        'D':        'Sumptomatic Infectious Period',
-        'Y':        'Presymptomatic Infectious Period',
-        'Z':        'Latency Period',
-        'Zl':       'Latency Period (before Presymptomatic)',
-        'alpha':    'Reporting Rate',
-        'eps':      'Mortality Rate',
-        'mu':       'Reduction Factor',
-        'kbeta':    'Intervention Reduction Factor',
-        'tact':     'Intervention Time',
-        'dtact':    'Intervention Duration',
+vdict = {   'R0':       'Basic Reproduction Number',
+            'D':        'Sumptomatic Infectious Period',
+            'Y':        'Presymptomatic Infectious Period',
+            'Z':        'Latency Period',
+            'Zl':       'Latency Period (before Presymptomatic)',
+            'alpha':    'Reporting Rate',
+            'eps':      'Mortality Rate',
+            'mu':       'Reduction Factor',
+            'kbeta':    'Intervention Reduction Factor',
+            'tact':     'Intervention Time',
+            'dtact':    'Intervention Duration',
         }
 
 # Plotting Options
@@ -155,6 +154,7 @@ def get_data(folder,models,countries,variable):
 
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
+        print('Variables: {}'.format(variables))
         var_idx = variables.index(variable)
         
         prior_info[model] = get_prior_info(ref_data,variable)
@@ -190,19 +190,31 @@ def get_prior(data,scale=True):
 
     n = 1000
     if prior_info['Type'] ==  'Univariate/Uniform':
-        y = np.linspace(prior_info['Minimum'],prior_info['Maximum'],n)  
-        x = np.ones(n)*1/(prior_info['Maximum']-prior_info['Minimum'])
+        x = np.linspace(prior_info['Minimum'],prior_info['Maximum'],n)  
+        y = np.ones(n)*1/(prior_info['Maximum']-prior_info['Minimum'])
 
+        x_median = (prior_info['Maximum']+prior_info['Minimum'])/2
+        y_median = get_median_y(x,y,x_median)
+        median = [x_median,y_median]
     elif prior_info['Type'] == 'Univariate/Gamma':
         k = prior_info['Shape']
         theta = prior_info['Scale']
-        y = np.linspace(0,np.max([y_max,5*k]),n)
-        x = 1/(gamma(k)*theta**k)*y**(k-1)*np.exp(-y/theta)
+        x = np.linspace(0,np.max([y_max,5*k]),n)
+        y = 1/(gamma(k)*theta**k)*x**(k-1)*np.exp(-x/theta)
+
+        samples = np.random.gamma(k, scale=theta, size=10000)
+        x_median = np.median(samples)
+        y_median = get_median_y(x,y,x_median)
+        median = [x_median,y_median]
 
     if scale:
-        x = x/x.max()*0.3
+        y = y/y.max()*0.3
 
-    return y, x
+    return x, y, median
+
+def get_median_y(x,y,val):
+    return (y[np.where([x<val])[-1][-1]] + y[np.where([x>val])[-1][0]])/2
+
 
 # ---------------------------------------------------------------------------- #
 #                                  Plots                                       #
@@ -268,7 +280,7 @@ def plot_violin_style(data,save_dir):
                 plt.plot([c[0] for c in centers],[c[1] for c in centers],color=face_colors[i])
     
     if plot_prior:        
-        y_prior, x_prior = get_prior(data)
+        y_prior, x_prior, _ = get_prior(data)
         plt.plot(x_prior+1,y_prior,color=line_color)
         plt.fill_betweenx(y_prior,x_prior+1,np.ones(len(x_prior)),color=line_color,alpha=alpha)
 
@@ -311,18 +323,29 @@ def plot_ridge_style(data,save_dir):
         # Get posterior samples and plot violins
         samples = data['samples'][model]
         for j in range(1,N):
-            p = sns.kdeplot(data=samples[j-1], ax=ax[j], shade=True, color=face_colors[i],gridsize=1000,  bw=1, legend=False)
+
+            if data['prior_info']['Type'] == 'Univariate/Uniform':
+                clip = [data['prior_info']['Minimum'],data['prior_info']['Maximum']]
+            else:
+                clip = None
+            bw=1
+
+            if model == 'country.reparam.saphired_int.nbin':
+                if j == 2 and variable == 'eps':
+                    bw = 0.1
+
+            p = sns.kdeplot(data=samples[j-1], ax=ax[j], 
+                clip = clip,
+                shade=True, color=face_colors[i],gridsize=1000,  bw=bw, legend=False)
             x,y = p.get_lines()[l_idx].get_data()
-            # ax[j].plot(x,y,c='k')
-            get_y = lambda val : (y[np.where([x<val])[-1][-1]] + y[np.where([x>val])[-1][0]])/2
 
             median = np.median(samples[j-1])
             q10 = np.quantile(samples[j-1],0.1)
             q90 = np.quantile(samples[j-1],0.9)
 
-            y_median = get_y(median)
-            y_q10 = get_y(q10)
-            y_q90 = get_y(q90)
+            y_median = get_median_y(x,y,median)
+            y_q10 = get_median_y(x,y,q10)
+            y_q90 = get_median_y(x,y,q90)
 
             ax[j].plot([median,median],[0,y_median],color=face_colors[i],alpha=0.9)
             # ax[j].plot([q10,q10],[0,y_q10],color=face_colors[i],linestyle='--')
@@ -335,10 +358,19 @@ def plot_ridge_style(data,save_dir):
                 n_lines = len(p.get_lines())                    
         l_idx += n_lines
 
-    x_prior, y_prior = get_prior(data,scale=False)
+    x_prior, y_prior, prior_median = get_prior(data,scale=False)
     ax[0].plot(x_prior,y_prior,color=line_color)
     ax[0].fill_between(x_prior,y_prior,color=line_color,alpha=alpha)
     ax[0].set_xticks([])
+    ax[0].plot([prior_median[0],prior_median[0]],[0,prior_median[1]],color=line_color,alpha=0.9)
+
+    x_min = np.min([ax[i].get_xlim()[0] for i in range(N)])
+    x_max = np.max([ax[i].get_xlim()[1] for i in range(N)])
+
+    if data['prior_info']['Type'] == 'Univariate/Uniform':
+        x_range = ax[0].get_xlim()
+        x_min = x_range[0]
+        x_max = x_range[1]
 
     for j in range(N):
         ax[j].set_yticks([])
@@ -349,6 +381,8 @@ def plot_ridge_style(data,save_dir):
         ax[j].spines['bottom'].set_edgecolor('#444444')
         ax[j].spines['bottom'].set_linewidth(1)
         ax[j].set_ylim([0,ax[j].get_ylim()[1]])
+
+        ax[j].set_xlim([x_min,x_max])
 
         if j == 0:
             ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
@@ -365,39 +399,6 @@ def plot_ridge_style(data,save_dir):
     plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.08)
     plt.savefig(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'_ridge.pdf')
 
-    # x_max = np.max([np.max([np.max(data['samples'][model][i]) for i in range(len(data['countries']))]) for model in data['models']])
-    # x_min = np.min([np.min([np.min(data['samples'][model][i]) for i in range(len(data['countries']))]) for model in data['models']])
-    # x_max_prior = np.max(x_prior)
-    # x_min_prior = np.max(x_prior)
-
-    # x_lim = [np.min([x_min,x_min_prior]),np.max([x_max_prior,x_max])]
-
-
-    # for j in range(N):
-    #     ax[j].set_xlim(x_lim)
-    # plt.title(common[:-1])
-    # plt.legend(*zip(*labels), loc=2)
-    
-    # x_labels = [tags[country] for country in countries]
-    # if plot_prior:
-    #     x_labels = ['Prior'] + x_labels
-    # set_axis_style(ax, x_labels)
-    # plt.ylabel(variable)
-
-    # def ax_settings(ax):
-    #     # ax.set_xlim(x_min,x_max)
-    #     ax.set_yticks([])
-        
-    #     ax.spines['left'].set_visible(False)
-    #     ax.spines['right'].set_visible(False)
-    #     ax.spines['top'].set_visible(False)
-        
-    #     ax.spines['bottom'].set_edgecolor('#444444')
-    #     ax.spines['bottom'].set_linewidth(1)
-    #     ax.set_ylim([0,ax.get_ylim()[1]])
-
-    #     # ax.text(0.02, 0.05, var_name, fontsize=17, fontweight="bold", transform = ax.transAxes) 
-    #     return None
 
 if __name__ == "__main__":  
 

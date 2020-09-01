@@ -117,22 +117,35 @@ def run_phase_2(phase_1_paths,phase_2_path,variables):
             e["Distributions"][j]["Maximum"] = var[cond_param][1]
             i += 1
 
-    # Solver
-    e["Solver"]["Type"] = "Sampler/TMCMC"
-    e["Solver"]["Population Size"] = 2000
-    e["Solver"]["Default Burn In"] = 3;
-    e["Solver"]["Target Coefficient Of Variation"] = 0.6
-    e["Solver"]["Covariance Scaling"] = 0.01
+    #Solver
+    # e["Solver"]["Type"] = "Sampler/TMCMC"
+    # e["Solver"]["Population Size"] = 2000
+    # e["Solver"]["Default Burn In"] = 3;
+    # e["Solver"]["Target Coefficient Of Variation"] = 0.6
+    # e["Solver"]["Covariance Scaling"] = 0.01
+
+    e["Solver"]["Type"] = "Sampler/Nested"
+    e["Solver"]["Resampling Method"] = "Multi Ellipse"
+    e["Solver"]["Number Live Points"] = 1500
+    e["Solver"]["Proposal Update Frequency"] = 1500
+    e["Solver"]["Ellipsoidal Scaling"] = 1.10
+    batch = 12
+    e["Solver"]["Batch Size"] = batch
+ 
+    e["Solver"]["Termination Criteria"]["Max Generations"] = 1e9
+    e["Solver"]["Termination Criteria"]["Min Log Evidence Delta"] = 0.1
+    e["Solver"]["Termination Criteria"]["Max Effective Sample Size"] = 25000
 
     e["Console Output"]["Verbosity"] = "Detailed"
     e["File Output"]["Path"] = phase_2_path
+    e["File Output"]["Frequency"] = 5000
     create_folder(phase_2_path)    
 
     # Starting Korali's Engine and running experiment
     k = korali.Engine()
     # k["Conduit"]["Type"] = "Concurrent"
-    # k["Conduit"]["Concurrent Jobs"] = 12
-    print('Launching Korali')
+    # k["Conduit"]["Concurrent Jobs"] = batch
+    # print('Launching Korali')
     k.run(e)
 
 if __name__ == "__main__":  
@@ -141,6 +154,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', '-m', default='country.reparam.sir_int.tnrm', help='Model type')
     parser.add_argument('--phase_1_path', '-p', default='./data/country.reparam.sir_int.tnrm/phase_1_results', help='Model type')
     parser.add_argument('--regions', '-r', default='all', help='Model type')
+    parser.add_argument('--output', '-o', default='same', help='output path')
 
     args = parser.parse_args()
     model = args.model
@@ -149,7 +163,15 @@ if __name__ == "__main__":
     regions,folder_name = get_regions(args.regions)
     variables = get_variables(args.model)
 
+    if args.output == 'same':
+        output_path = args.phase_1_path
+    else:
+        output_path = args.output
+
+
     ## Paths
     phase_1_data = [args.phase_1_path+'/'+region+'/'+model+'/_korali_samples/latest' for region in regions]
-    phase_2_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples'
+    phase_2_path = output_path + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples'
+    print(phase_2_path)
+
     run_phase_2(phase_1_data,phase_2_path,variables)

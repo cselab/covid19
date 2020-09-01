@@ -40,9 +40,11 @@ def sampling(phase_1_path,phase_2_path,phase_3_path):
     theta = korali.Experiment()
     psi = korali.Experiment()
 
+    print(phase_1_path)
+    print(phase_2_path)
+
     theta.loadState(phase_1_path)
     psi.loadState(phase_2_path)
-
 
     e["Problem"]["Type"]  = "Hierarchical/Theta"
     e["Problem"]["Theta Experiment"] = theta
@@ -91,22 +93,28 @@ if __name__ == "__main__":
     parser.add_argument('--model', '-m', default='country.reparam.sir_int.tnrm', help='Model type')
     parser.add_argument('--regions', '-r', default='all', help='Model type')
     parser.add_argument('--phase_1_path', '-p', default='./data/country.reparam.sir_int.tnrm/phase_1_results', help='Model type')
+    parser.add_argument('--output', '-o', default='same', help='output path')
 
     args = parser.parse_args()
     model = args.model
 
     regions,folder_name = get_regions(args.regions)
 
-    # phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples/latest'
-    phase_2_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples/latest'
+    if args.output == 'same':
+        output_path = args.phase_1_path
+    else:
+        output_path = args.output
+
+    phase_2_path = args.phase_1_path + '/_hierarchical/'+model+folder_name+'/phase_2_results/_korali_samples_tmcmc/latest'
+    # phase_2_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_2_results/_korali_samples/latest'
 
 
     for region in regions:
         print('Processing {}'.format(region))
 
         phase_1_path = args.phase_1_path+'/'+region+'/'+model+'/_korali_samples/latest'
-        # phase_3_path = args.phase_1_path + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
-        phase_3_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
+        phase_3_path = output_path + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
+        # phase_3_path = 'test_daniel' + '/_hierarchical/'+model+'/'+folder_name+'/phase_3_results/'+region
 
         print('Phase 1: {}'.format(phase_1_path))
         print('Phase 2: {}'.format(phase_2_path))
