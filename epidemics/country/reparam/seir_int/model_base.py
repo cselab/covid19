@@ -30,7 +30,7 @@ class ModelBase( EpidemicsCountry ):
     e0 = beta*p[2]*i0
  
     y0cpp   = (s0, e0, i0, 0.0) # S E I R 
-    initial = seird_int.State(y0cpp)
+    initial = seir_int.State(y0cpp)
     
     cpp_res = cppsolver.solve_params_ad(params, initial, t_eval=t_eval, dt = 0.01)
     

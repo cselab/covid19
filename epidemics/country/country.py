@@ -35,13 +35,14 @@ class EpidemicsCountry( EpidemicsBase ):
             'R0'    : (1.0, 25.0),
             'beta'  : (0.01, 30.0),
             'D'     : (1.0, 25.0),  # recovery period
+            'F'     : (1.0, 50.0),  # removal period
             'gamma' : (0.01, 1.0),  # recovery rate
             'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
             'Zl'    : (0.0, 25.0),  # latency period (incubation period)
             'Y'     : (0.0, 10.0),  # preasymptomatic period
             'mu'    : (0.0, 1.0),   # SEIIR, reduction factor unreported
             'alpha' : (0.0, 1.0),   # SEIIR, reporting rate
-            'eps'   : (0.01, 0.15), # case fatality rate
+            'eps'   : (0.01, 0.25), # case fatality rate
             'tact'  : (0.0, 100.0), # intervention time
             'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
@@ -54,8 +55,8 @@ class EpidemicsCountry( EpidemicsBase ):
             'eps4'  : (0.0, 1.0),   # CZ model, death rate in ICU
             'e0'    : (0.0, 10.0),  # multiplicator e0 init
             'p0'    : (0.0, 10.0),  # multiplicator p0 init
-            'iu0'   : (0.0, 10.0)   # multiplicator iu0 init
-
+            'iu0'   : (0.0, 10.0),  # multiplicator iu0 init
+            'delay' : (0.0, 14.0)   # delay for deaths
         }
 
     self.constants = {

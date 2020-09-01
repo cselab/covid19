@@ -3,29 +3,34 @@
 msg="test initialization"
 
 declare -a countries=(
-"canada"
-"france"
+#"canada"
+#"china"
+#"france"
 #"germany"
 #"italy"
-#"uk"
-#"spain"
-#"russia"
-#"us"
-#"china"
 #"japan"
+#"russia"
+"switzerland"
+#"uk"
+#"us"
 )
 
-base="./data/test/"
+base="./data/test_delay/"
 
 #model="country.reparam.seird_int_init.nbin"
 #model="country.reparam.seiird2_int_init.nbin"
 #model="country.reparam.saphire_int_init.nbin"
 
-model="country.reparam.sird_int.nbin"
-#model="country.reparam.seird_int.nbin"
-# model="country.reparam.saphired_int.nbin"
-#model="country.reparam.seirud_int.nbin"
+#model="country.reparam.sirdelay_int.nbin"
+#model="country.reparam.seirdelay_int.nbin"
 #model="country.reparam.sird_int.nbin"
+#model="country.reparam.seird_int.nbin"
+#model="country.reparam.saphired_int.nbin"
+#model="country.reparam.saphiredelay_int.nbin"
+#model="country.reparam.seirudelay_int.nbin"
+model="country.reparam.seirud_int.nbin"
+#model="country.reparam.sird_int.nbin"
+#model="country.reparam.seiirdelay_int.nbin"
 #model="country.reparam.seiird2_int.nbin"
 
 mkdir ${base} -p
@@ -37,7 +42,7 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-        --silentPlot -ns 500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -uint -uip -df "$base" -m "${msg}" \
+        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -uint -uip -df "$base" -m "${msg}" \
         2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

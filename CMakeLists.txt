@@ -42,6 +42,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.sird_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sird_intsmooth_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sird_intexp_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.sirdg_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.sir_intrem_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_reparam.generated.cpp
@@ -50,6 +51,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seird_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seird_intsmooth_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seird_intexp_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seirdg_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seir_intrem_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_reparam.generated.cpp
@@ -59,6 +61,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seiird2_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiird2_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiird2_intsmooth_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seiirdg_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_intexp_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seiir_intrem_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.spird_int_reparam.generated.cpp
@@ -69,6 +72,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.seirud_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seirud_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.seirud_intexp_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.seirudg_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_int.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intsmooth.generated.cpp
     ${CODE_DIR}/bindings/_country.cz_intexp.generated.cpp
@@ -76,6 +80,7 @@ set(GENERATED_COUNTRY_BINDINGS
     ${CODE_DIR}/bindings/_country.saphire_int_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.saphire_ints_reparam.generated.cpp
     ${CODE_DIR}/bindings/_country.saphire_intexp_reparam.generated.cpp
+    ${CODE_DIR}/bindings/_country.saphireg_int_reparam.generated.cpp
 
 )
 

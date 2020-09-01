@@ -1,7 +1,7 @@
 #!/bin/bash
 
 base='/scratch/wadaniel/covid19/intervention/data/g9'
-outdir='./result_init/'
+outdir='./figures/'
 
 mkdir -p $outdir
 

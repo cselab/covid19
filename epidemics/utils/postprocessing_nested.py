@@ -13,11 +13,13 @@ from itertools import groupby
 from operator import itemgetter
 
 
-def joinres(a,b,c,d):
+def joinres(a,b,c,d,e):
     dct0 = dict(b)
     dct1 = dict(c)
-    tmp = dict([ (k, [v]+[dct0[k]]+list(dct1[k])) for k,v in d if k in dct1 ])
-    ret = [ (k, [v]+list(tmp[k])) for k,v in a if k in tmp ]
+    dct2 = dict(e)
+    tmp0 = dict([ (k, [v]+[dct0[k]]+list(dct1[k])) for k,v in d if k in dct1 ])
+    tmp1 = dict([ (k, [v]+list(tmp0[k])) for k,v in e if k in tmp0 ])
+    ret = [ (k, [v]+list(tmp1[k])) for k,v in a if k in tmp1 ]
     return ret
 
 
@@ -84,6 +86,22 @@ def getVariance(resfiles):
   return variance
 
 
+def computeProbabilities(evidence):
+    maxlogevidence = -999999999999
+    for m, e in evidence:
+        if e > maxlogevidence:
+            maxlogevidence = e
+
+    evidence = [(m, np.exp(e - maxlogevidence)) for m, e in evidence]
+ 
+    sumevidence = 0.0
+    for m, e in evidence:
+        sumevidence += e
+
+    ps = [(m, e/sumevidence) for m, e in evidence]
+    return ps
+
+
 def getBestLLk(resfiles):
   best = []
   for m, file in resfiles:
@@ -121,12 +139,13 @@ if __name__ == '__main__':
     stats = [ (m,getStats(s, 0.9)) for m,s in samples]
 
     evidence = getEvidence(dirs)
+    probs = computeProbabilities(evidence)
     variance = getVariance(dirs)
     best = getBestLLk(dirs)
 
-    out = joinres(evidence, best, stats, variance)
+    out = joinres(evidence, best, stats, probs, variance)
     
     df = pd.DataFrame(out,columns=["model", "values"])
-    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'variance', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
+    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'variance', 'prob', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
     print(df3)
     df3.to_csv(args.out, index=True, header=True)
