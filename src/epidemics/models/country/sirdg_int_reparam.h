@@ -52,13 +52,13 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         T r0 = intervention(p.R0, t, p.kbeta, p.tact, p.dtact);
         
         auto A = invN * r0 * invD * x.I() * x.S();
-        auto B = invD * x.I();
-        auto C = invF * x.I();
+        auto B = (1.0 - p.eps) * invD * x.I();
+        auto C = p.eps * invF * x.I();
 
         dxdt.S() = -A;
-        dxdt.I() = A - (1.0-p.eps)*B - p.eps*C;
-        dxdt.R() = (1.0-p.eps)*B;
-        dxdt.D() = p.eps*C;
+        dxdt.I() = A - B - C;
+        dxdt.R() = B;
+        dxdt.D() = C;
     }
 };
 

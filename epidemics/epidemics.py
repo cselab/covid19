@@ -30,7 +30,8 @@ class EpidemicsBase:
     self.silentPlot  = kwargs.pop('silentPlot', False)
     self.noSave      = kwargs.pop('noSave', False)
     self.dataFolder  = kwargs.pop('dataFolder', './data/')
-    self.sampler     = kwargs.pop('sampler','TMCMC')
+    self.sampler     = kwargs.pop('sampler','TMCMC')        # TMCMC, mTMCMC, HMC
+    self.version     = kwargs.pop('version','Euclidean')    # for HMC
     self.synthetic   = kwargs.pop('synthetic', False)
     self.display     = os.environ['HOME']
     observations     = set(kwargs.pop('observations'))
@@ -251,11 +252,10 @@ class EpidemicsBase:
     self.e['Problem']['Computational Model'] = self.computational_model
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
-    self.e["Solver"]["Version"] = "Euclidean"
+    self.e["Solver"]["Version"] = self.version
     self.e["Solver"]["Use Adaptive Step Size"] = True
     self.e["Solver"]["Use NUTS"] = True
-    self.e["Solver"]["Max Depth"] = 10
-    # self.e["Solver"]["Initial Mean"] = 1.0
+    self.e["Solver"]["Max Depth"] = 10 # ??
 
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
@@ -407,8 +407,6 @@ class EpidemicsBase:
     if self.e['Problem']['Type']=='Bayesian/Reference' :
       for k in range(nP):
 
-        self.e['Variables'][k]['Initial Mean'] = 5.0
-        self.e['Variables'][k]['Initial Standard Deviation'] = 1.0
 
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
         if (js['Variables'][k]['Name'] == 'D' and self.useInformedPriors):
@@ -417,11 +415,12 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
             self.e['Distributions'][k]['Shape'] = self.informed_priors['D_shape']
             self.e['Distributions'][k]['Scale'] = self.informed_priors['D_scale']
-#            self.e['Distributions'][k]['Type'] = 'Univariate/Normal'
-#            self.e['Distributions'][k]['Mean'] = 5.2
-#            self.e['Distributions'][k]['Standard Deviation'] = 2.8
-            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
-            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+            vmin = js['Distributions'][k]['Minimum']
+            vmax = js['Distributions'][k]['Maximum']
+            self.e['Variables'][k]['Lower Bound'] = vmin
+            self.e['Variables'][k]['Upper Bound'] = vmax
+            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
         elif (js['Variables'][k]['Name'] == 'Z' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Z'
@@ -429,8 +428,12 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
             self.e['Distributions'][k]['Shape'] = self.informed_priors['Z_shape']
             self.e['Distributions'][k]['Scale'] = self.informed_priors['Z_scale']
-            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
-            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+            vmin = js['Distributions'][k]['Minimum']
+            vmax = js['Distributions'][k]['Maximum']
+            self.e['Variables'][k]['Lower Bound'] = vmin
+            self.e['Variables'][k]['Upper Bound'] = vmax
+            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
   
         elif (js['Variables'][k]['Name'] == 'Zl' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Zl'
@@ -438,8 +441,12 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Type'] = 'Univariate/Gamma'
             self.e['Distributions'][k]['Shape'] = self.informed_priors['Zl_shape']
             self.e['Distributions'][k]['Scale'] = self.informed_priors['Zl_scale']
-            self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
-            self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
+            vmin = js['Distributions'][k]['Minimum']
+            vmax = js['Distributions'][k]['Maximum']
+            self.e['Variables'][k]['Lower Bound'] = vmin
+            self.e['Variables'][k]['Upper Bound'] = vmax
+            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
         elif (js['Variables'][k]['Name'] == 'Y' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Y'
@@ -449,14 +456,24 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Scale'] = self.informed_priors['Y_scale']
             self.e['Variables'][k]['Lower Bound'] = js['Distributions'][k]['Minimum']
             self.e['Variables'][k]['Upper Bound'] = js['Distributions'][k]['Maximum']
-
+            vmin = js['Distributions'][k]['Minimum']
+            vmax = js['Distributions'][k]['Maximum']
+            self.e['Variables'][k]['Lower Bound'] = vmin
+            self.e['Variables'][k]['Upper Bound'] = vmax
+            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+ 
         else:
             self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
             self.e['Distributions'][k]['Name'] = js['Distributions'][k]['Name']
             self.e['Distributions'][k]['Type'] = js['Distributions'][k]['Type']
-            self.e['Distributions'][k]['Minimum'] = js['Distributions'][k]['Minimum']
-            self.e['Distributions'][k]['Maximum'] = js['Distributions'][k]['Maximum']
-
+            vmin = js['Distributions'][k]['Minimum']
+            vmax = js['Distributions'][k]['Maximum']
+            self.e['Distributions'][k]['Minimum'] = vmin
+            self.e['Distributions'][k]['Maximum'] = vmax
+            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+ 
     else:
       for k in range(nP):
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']

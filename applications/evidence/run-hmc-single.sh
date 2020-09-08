@@ -15,15 +15,16 @@ declare -a countries=(
 #"us"
 )
 
-base="./data/test_delay/"
+base="./data/test_hmc/"
 
+model="country.reparam.sird_int.nbin"
 #model="country.reparam.seird_int_init.nbin"
 #model="country.reparam.seiird2_int_init.nbin"
 #model="country.reparam.saphire_int_init.nbin"
 
 #model="country.reparam.sirdelay_int.nbin"
 #model="country.reparam.seirdelay_int.nbin"
-model="country.reparam.sir_int_nogamma.tnrm"
+#model="country.reparam.sir_int_nogamma.tnrm"
 #model="country.reparam.seird_int.nbin"
 #model="country.reparam.saphired_int.nbin"
 #model="country.reparam.saphiredelay_int.nbin"

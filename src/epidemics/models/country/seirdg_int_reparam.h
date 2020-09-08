@@ -59,14 +59,14 @@ struct Solver : SolverBase<Solver, State, Parameters> {
 
         auto A = invN * r0 * invD * x.I() * x.S();
         auto B = invZ * x.E();
-        auto C = invD * x.I();
-        auto D = invF * x.I();
+        auto C = (1 - p.eps) * invD * x.I();
+        auto D = p.eps * invF * x.I();
 
         dxdt.S() = -A;
         dxdt.E() = +A-B;
-        dxdt.I() = +B-(1.0-p.eps)*C-p.eps*D;
-        dxdt.R() = (1.0-p.eps)*C;
-        dxdt.D() = p.eps*D;
+        dxdt.I() = +B-C-D;
+        dxdt.R() = C;
+        dxdt.D() = D;
 
     }
 };

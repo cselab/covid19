@@ -181,24 +181,38 @@ class EpidemicsCountry( EpidemicsBase ):
     # get deaths
     if hasattr(sol, 'd'):
         deaths = np.diff(sol.d)
-        deaths[np.isnan(infected-infected)] = eps
+        deaths[np.isnan(deaths-deaths)] = eps
         deaths[deaths < eps] = eps
     else:
         deaths = []
 
     # Transform gradients
     if(self.sampler == 'mTMCMC' or self.sampler=='HMC'):
-        s["Gradient Mean"] = sol.gradmu
-        s["Gradient Standard Deviation"] = sol.gradSig
-        print("[Epidemics] mTMCMC not anymore available, fix needed")
-        sys.exit(0)
+        gradMuCum = sol.gradMu
+        gradSigCum = sol.gradSig
+        gradMu  = []
+        gradSig = []
+        for idx in range(len(gradMuCum)-1):
+            gradMu.append((gradMuCum[idx+1]-gradMuCum[idx]).tolist())
+            gradSig.append((gradSigCum[idx+1]-gradSigCum[idx]).tolist())
+        
+        gradMu  = self.getCases(gradMu, self.data['Model']['x-infected'])
+        gradSig = self.getCases(gradSig, self.data['Model']['x-infected'])
+        s["Gradient Mean"] = gradMu
+        if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
+            s["Gradient Standard Deviation"] = gradSig
+        elif self.likelihoodModel == 'Negative Binomial':
+            s["Gradient Dispersion"] = gradSig
+        else:
+            print('Gradients not implemented for other likelihood models', flush=True)
+            sys.exit(0)
 
     y = np.array([])
     if self.useInfections:
-        y = np.concatenate( (y, self.getCases( infected, self.data['Model']['x-infected'])) )
+        y = np.concatenate( (y, self.getCases(infected, self.data['Model']['x-infected'])) )
 
     if self.useDeaths:
-        y = np.concatenate( (y, self.getCases( deaths, self.data['Model']['x-deaths'])) )
+        y = np.concatenate( (y, self.getCases(deaths, self.data['Model']['x-deaths'])) )
  
     s['Reference Evaluations'] = list(y)
     

@@ -26,6 +26,8 @@ parser.add_argument('--useIntervention', '-uint', action='store_true', help='Use
 parser.add_argument('--useInfections', '-ui', action='store_true', help='Use infections to fit data.')
 parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths to fit data.')
 parser.add_argument('--test', action='store_true', help="Test run. Not everything is tested.")
+parser.add_argument('--sampler', type=str, default='HMC')
+parser.add_argument('--version', type=str, default='Euclidean')
 
 args = parser.parse_args()
 obs = []
