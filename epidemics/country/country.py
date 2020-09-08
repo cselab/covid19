@@ -187,7 +187,9 @@ class EpidemicsCountry( EpidemicsBase ):
         deaths = []
 
     # Transform gradients
-    if(self.sampler == 'mTMCMC'):
+    if(self.sampler == 'mTMCMC' or self.sampler=='HMC'):
+        s["Gradient Mean"] = sol.gradMu
+        s["Gradient Standard Deviation"] = sol.gradSig
         print("[Epidemics] mTMCMC not anymore available, fix needed")
         sys.exit(0)
 
