@@ -189,9 +189,13 @@ class EpidemicsCountry( EpidemicsBase ):
     # Transform gradients
     if(self.sampler == 'mTMCMC' or self.sampler=='HMC'):
         s["Gradient Mean"] = sol.gradMu
-        s["Gradient Standard Deviation"] = sol.gradSig
-        print("[Epidemics] mTMCMC not anymore available, fix needed")
-        sys.exit(0)
+        if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
+            s["Gradient Standard Deviation"] = sol.gradSig
+        elif self.likelihoodModel == 'Negative Binomial':
+            s["Gradient Dispersion"] = sol.gradSig
+        else:
+            print('Gradients not implemented for other likelihood models', Flush=True)
+            sys.exit(0)
 
     y = np.array([])
     if self.useInfections:
