@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="test initialization"
+msg="vergleich mit hmc sampling"
 
 declare -a countries=(
 #"canada"
@@ -15,15 +15,16 @@ declare -a countries=(
 #"us"
 )
 
-base="./data/test_delay/"
+base="./data/test/"
 
+model="country.reparam.sird_int.nbin"
 #model="country.reparam.seird_int_init.nbin"
 #model="country.reparam.seiird2_int_init.nbin"
 #model="country.reparam.saphire_int_init.nbin"
 
 #model="country.reparam.sirdelay_int.nbin"
 #model="country.reparam.seirdelay_int.nbin"
-model="country.reparam.sird_int.nbin"
+#model="country.reparam.sird_int.nbin"
 #model="country.reparam.seird_int.nbin"
 #model="country.reparam.saphired_int.nbin"
 #model="country.reparam.saphiredelay_int.nbin"
@@ -42,10 +43,11 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 -ui -ud -uint -uip -df "$base" -m "${msg}" \
+        --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "${c}" -bs 8 -nt 8 \
+        -ui -ud -uint -uip -df "$base" -m "${msg}" \
         2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
-#    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
+    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
 done
 

@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="test initialization"
+msg="test hmc"
 
 declare -a countries=(
 #"canada"
@@ -43,10 +43,11 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_hmc.py \
-        --silentPlot -cm ${model} -c "${c}" -ui -uint -df "$base" \
+        --silentPlot -cm ${model} -c "${c}" -ns 10000 -ui -uint -df "$base" \
         2>&1 | tee "${outfile}"
 
     python3 -m korali.plotter --dir "${folder}/_korali_samples"  --output "${folder}/figures/samples.png"
-#    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
+    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
+
 done
 

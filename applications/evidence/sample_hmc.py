@@ -29,6 +29,7 @@ parser.add_argument('--useDeaths', '-ud', action='store_true', help='Use deaths 
 parser.add_argument('--test', action='store_true', help="Test run. Not everything is tested.")
 parser.add_argument('--sampler', type=str, default='HMC')
 parser.add_argument('--version', type=str, default='Euclidean')
+parser.add_argument('--nSamples', '-ns', type=int, default=5000, help='Max iterations.')
 
 args = parser.parse_args()
 obs = []
@@ -45,13 +46,14 @@ del x.nPropagation
 del x.useInfections
 del x.useDeaths
 del x.test
+del x.nSamples
 
 
 model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 
 a = model_class( **vars(x) )
 
-a.sample_hmc()
+a.sample_hmc( args.nSamples )
 a.propagate( args.nPropagation )
 
 a.plot_intervals()

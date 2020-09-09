@@ -253,12 +253,12 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = self.version
-    self.e["Solver"]["Use Diagonal Metric"] = True
-    self.e["Solver"]["Use Adaptive Step Size"] = True
+    self.e["Solver"]["Use Diagonal Metric"] = False
+    self.e["Solver"]["Use Adaptive Step Size"] = False
     self.e["Solver"]["Use NUTS"] = True
     self.e["Solver"]["Max Depth"] = 10 # ??
     self.e["Solver"]["Num Integration Steps"] = 20
-    self.e["Solver"]["Step Size"] = 0.1
+    self.e["Solver"]["Step Size"] = 1e-6
     self.e["Solver"]["Target Integration Time"] = 0.5
     self.e["Solver"]["Desired Average Acceptance Rate"] = 0.80
 
@@ -269,7 +269,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 100
+    self.e["Console Output"]["Frequency"] = 500
     
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
@@ -412,7 +412,6 @@ class EpidemicsBase:
     if self.e['Problem']['Type']=='Bayesian/Reference' :
       for k in range(nP):
 
-
         self.e['Variables'][k]['Name'] = js['Variables'][k]['Name']
         if (js['Variables'][k]['Name'] == 'D' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for D'
@@ -424,8 +423,9 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+            if self.sampler == "HMC":
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
         elif (js['Variables'][k]['Name'] == 'Z' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Z'
@@ -437,8 +437,9 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+            if self.sampler == "HMC":
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
   
         elif (js['Variables'][k]['Name'] == 'Zl' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Zl'
@@ -450,8 +451,9 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+            if self.sampler == "HMC":
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
         elif (js['Variables'][k]['Name'] == 'Y' and self.useInformedPriors):
             self.e['Variables'][k]['Prior Distribution'] = 'Prior for Y'
@@ -465,8 +467,9 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+            if self.sampler == "HMC":
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
         else:
             self.e['Variables'][k]['Prior Distribution'] = js['Variables'][k]['Prior Distribution']
@@ -476,8 +479,9 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Distributions'][k]['Minimum'] = vmin
             self.e['Distributions'][k]['Maximum'] = vmax
-            self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-            self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+            if self.sampler == "HMC":
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
     else:
       for k in range(nP):
