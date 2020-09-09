@@ -15,6 +15,7 @@ sys.path.append('../../build')
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.reparam.sir_int.tnrm', help='The computational model.')
 parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
+parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--lastDay', '-ld', default='2020-06-15', help='Last day of data sequence in format %Y-%m-%d./')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
@@ -39,6 +40,7 @@ if args.useDeaths:
 x = copy.deepcopy(args)
 x.observations=obs
 del x.compModel
+del x.nPropagation
 # add something for num samples
 del x.useInfections
 del x.useDeaths
@@ -50,3 +52,6 @@ model_class = import_from( 'epidemics.' + args.compModel, 'Model')
 a = model_class( **vars(x) )
 
 a.sample_hmc()
+a.propagate( args.nPropagation )
+
+a.plot_intervals()

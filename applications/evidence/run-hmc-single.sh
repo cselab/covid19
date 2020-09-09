@@ -38,7 +38,7 @@ mkdir ${base} -p
 
 for c in "${countries[@]}"
 do
-    folder=$base/${c}/$model
+    folder=$base/${c}/${model}
     mkdir -p "${folder}"
 
     outfile=${folder}/knested.out
@@ -46,7 +46,7 @@ do
         --silentPlot -cm ${model} -c "${c}" -ui -uint -df "$base" \
         2>&1 | tee "${outfile}"
 
-    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+    python3 -m korali.plotter --dir "${folder}/_korali_samples"  --output "${folder}/figures/samples.png"
 #    rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
 done
 
