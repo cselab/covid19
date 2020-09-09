@@ -253,14 +253,14 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = self.version
-    self.e["Solver"]["Use Diagonal Metric"] = False
-    self.e["Solver"]["Use Adaptive Step Size"] = False
+    self.e["Solver"]["Use Diagonal Metric"] = True
     self.e["Solver"]["Use NUTS"] = True
     self.e["Solver"]["Max Depth"] = 10 # ??
-    self.e["Solver"]["Num Integration Steps"] = 20
-    self.e["Solver"]["Step Size"] = 1e-6
+    self.e["Solver"]["Num Integration Steps"] = 5
     self.e["Solver"]["Target Integration Time"] = 0.5
-    self.e["Solver"]["Desired Average Acceptance Rate"] = 0.80
+    self.e["Solver"]["Step Size"] = 1e-3
+    self.e["Solver"]["Use Adaptive Step Size"] = False
+    self.e["Solver"]["Desired Average Acceptance Rate"] = 0.75
 
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
