@@ -43,7 +43,7 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_hmc.py \
-        --silentPlot -cm ${model} -c "${c}" -v "Hamiltonnian" -ns 10000 \
+        --silentPlot -cm ${model} -c "${c}" -v "Euclidean" -ns 10000 \
         -ui -uint -df "$base" \
         2>&1 | tee "${outfile}"
 
