@@ -1,9 +1,10 @@
  #!/bin/bash
 
-msg="1 ppm, informed priors"
+msg="1 ppm, informed priors, delay, no uint"
 pushd ..
 
 source countries.sh
+#countries=("uk")
 
 name=`whoami`
 base="/scratch/${name}/covid19/data/delay"
@@ -23,7 +24,7 @@ do
 
         outfile=${folder}/knested.out
         time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -uint -bs 8 -nt 8 -df $base -m "${msg}" \
+            --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -bs 8 -nt 8 -df $base -m "${msg}" \
             2>&1 | tee "${outfile}"
 
         python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"

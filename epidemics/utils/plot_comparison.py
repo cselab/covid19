@@ -43,6 +43,7 @@ vdict = {   'R0':       'Basic Reproduction Number',
             'kbeta':    'Intervention Reduction Factor',
             'tact':     'Intervention Time',
             'dtact':    'Intervention Duration',
+            'delay':    'Isolation Period'
         }
 
 # Plotting Options
