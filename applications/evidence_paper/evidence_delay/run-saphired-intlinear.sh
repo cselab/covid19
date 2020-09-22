@@ -11,7 +11,7 @@ declare -a models=(
 "country.reparam.saphiredelay_int.nbin"
 )
 
-for i in {1 .. 5}
+for i in {1..5}
 do
 
     base="/scratch/${name}/covid19/data/delay_${i}"

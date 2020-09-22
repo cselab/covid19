@@ -2,8 +2,8 @@
 
 python3 ../../../epidemics/utils/plot_propagation.py \
     --folder "/scratch/wadaniel/covid19/data/delay" \
-    --models "country.reparam.sirdelay_int.nbin" "country.reparam.seiirdelay_int.nbin" "country.reparam.saphiredelay_int.nbin" \
-    --countries "canada" \
+    --models "country.reparam.sirdelay_int.nbin" "country.reparam.seiirdelay_int.nbin" "country.reparam.seirudelay_int.nbin" \
+    --countries "russia" \
     -sd "./result"
 
 exit
