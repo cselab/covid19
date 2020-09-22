@@ -43,7 +43,8 @@ vdict = {   'R0':       'Basic Reproduction Number',
             'kbeta':    'Intervention Reduction Factor',
             'tact':     'Intervention Time',
             'dtact':    'Intervention Duration',
-            'delay':    'Isolation Period'
+            'delay':    'Isolation Period',
+            'R0_after': 'Basic Reproduction Number After Intervention'
         }
 
 model_names = {
@@ -160,7 +161,7 @@ def get_prior_info(ref_data,variable):
     
     return distrib
 
-def get_data(folder,models,countries,variable):
+def get_data(folder,models,countries,variable,get_prior_data=True):
 
     # Get data
     samples = {}
@@ -174,9 +175,15 @@ def get_data(folder,models,countries,variable):
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
         print('Variables: {}'.format(variables))
-        var_idx = variables.index(variable)
+
+        if variable == 'R0_after':
+            R0_idx = variables.index('R0')
+            kbeta_idx = variables.index('kbeta')
+        else:
+            var_idx = variables.index(variable)
         
-        prior_info[model] = get_prior_info(ref_data,variable)
+        if get_prior_data:
+            prior_info[model] = get_prior_info(ref_data,variable)
 
         data_to_plot = []
 
@@ -191,14 +198,23 @@ def get_data(folder,models,countries,variable):
             numentries = len(country_samples)
             samplesTmp = np.reshape(country_samples,(numentries,numdim))
 
-            data_to_plot.append(samplesTmp[:,var_idx])
+            if variable == 'R0_after':
+                R0_idx = variables.index('R0')
+                kbeta_idx = variables.index('kbeta')
+                data_to_plot.append(np.multiply(samplesTmp[:,R0_idx],samplesTmp[:,kbeta_idx]))
+            else:
+                data_to_plot.append(samplesTmp[:,var_idx])
+            
 
         samples[model] = data_to_plot
 
     # Check that the priors for each model are the same
-    val = list(prior_info.values())
-    assert(all(x==val[0] for x in val))
-    prior_info = val[0]
+    if get_prior_data:
+        val = list(prior_info.values())
+        assert(all(x==val[0] for x in val))
+        prior_info = val[0]
+    else:
+        prior_info = {'Type':None}
 
     return {'samples':samples,'prior_info':prior_info,'countries':countries,'variable':variable,'models':models}
         
@@ -320,7 +336,7 @@ def plot_violin_style(data,save_dir):
 
 
 
-def plot_ridge_style(data,save_dir):
+def plot_ridge_style(data,save_dir,plot_prior=True):
 
     models = data['models']
     variable = data['variable']
@@ -377,18 +393,19 @@ def plot_ridge_style(data,save_dir):
                 n_lines = len(p.get_lines())                    
         l_idx += n_lines
 
-    x_prior, y_prior, prior_median = get_prior(data,scale=False)
-    ax[0].plot(x_prior,y_prior,color=line_color)
-    ax[0].fill_between(x_prior,y_prior,color=line_color,alpha=alpha)
-    ax[0].set_xticks([])
-    ax[0].plot([prior_median[0],prior_median[0]],[0,prior_median[1]],color=line_color,alpha=0.9)
+    if plot_prior:
+        x_prior, y_prior, prior_median = get_prior(data,scale=False)
+        ax[0].plot(x_prior,y_prior,color=line_color)
+        ax[0].fill_between(x_prior,y_prior,color=line_color,alpha=alpha)
+        ax[0].set_xticks([])
+        ax[0].plot([prior_median[0],prior_median[0]],[0,prior_median[1]],color=line_color,alpha=0.9)
+        start_idx = 0
+    else:
+        start_idx = 1
+        ax[0].set_xticks([])
 
-    
-    for i in range(N):
-        print(ax[i].get_xlim())
-
-    x_min = np.min([ax[i].get_xlim()[0] for i in range(N)])
-    x_max = np.max([ax[i].get_xlim()[1] for i in range(N)])
+    x_min = np.min([ax[i].get_xlim()[0] for i in range(start_idx,N)])
+    x_max = np.max([ax[i].get_xlim()[1] for i in range(start_idx,N)])
     print(x_min,x_max)
 
     if data['prior_info']['Type'] == 'Univariate/Uniform':
@@ -396,7 +413,7 @@ def plot_ridge_style(data,save_dir):
         x_min = x_range[0]
         x_max = x_range[1]
 
-    for j in range(N):
+    for j in range(0,N):
         ax[j].set_yticks([])
         
         ax[j].spines['left'].set_visible(False)
@@ -407,10 +424,11 @@ def plot_ridge_style(data,save_dir):
         ax[j].set_ylim([0,ax[j].get_ylim()[1]])
 
         ax[j].set_xlim([x_min,x_max])
-        # ax[j].set_xlim([0,8])
+        ax[j].set_xlim([0,4])
 
         if j == 0:
-            ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
+            if plot_prior:
+                ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
         else:
             ax[j].text(0.02, 0.05, countries[j-1].capitalize(), fontsize=17,transform = ax[j].transAxes) 
 
@@ -440,9 +458,13 @@ if __name__ == "__main__":
 
     for variable in args.variables:
 
-        data = get_data(args.folder,args.models,args.countries,variable)
+        if variable == 'R0_after':
+            plot_prior = False
+        else:
+            plot_prior = True
+        data = get_data(args.folder,args.models,args.countries,variable,plot_prior)
 
         # plot_violin_style(data,args.save_dir)
-        plot_ridge_style(data,args.save_dir)
+        plot_ridge_style(data,args.save_dir,plot_prior)
 
 
