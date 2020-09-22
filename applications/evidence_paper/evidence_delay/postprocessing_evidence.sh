@@ -2,8 +2,8 @@
 
 source ../countries.sh
 
-base='/scratch/wadaniel/covid19/intervention/data/g9_new'
-outdir='./result_g9_new'
+base='/scratch/wadaniel/covid19/data/delay'
+outdir='./result/delay'
 
 mkdir -p $outdir
 for c in "${countries[@]}"

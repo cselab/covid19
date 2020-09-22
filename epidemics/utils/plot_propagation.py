@@ -67,13 +67,16 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
    
     fig = plt.figure(figsize=(12, 8))
 
-    ax  = fig.subplots(2,2)
+    ax  = fig.subplots(2,3)
 
     ax_daily_incidence = ax[0][0]
     ax_cumul_incidence = ax[1][0]
+ 
+    ax_daily_unreported = ax[0][1]
+    ax_cumul_unreported = ax[1][1]
 
-    ax_daily_deaths = ax[0][1]
-    ax_cumul_deaths = ax[1][1]
+    ax_daily_deaths = ax[0][2]
+    ax_cumul_deaths = ax[1][2]
  
     incidences = []
     incidences_cum = []
@@ -81,9 +84,12 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     deaths_cum = []
  
     ax_daily_incidence.set_title('Daily reported infections')
-    ax_cumul_incidence.set_title('Total infections')
+    ax_cumul_incidence.set_title('Total reported infections')
+  
+    ax_daily_unreported.set_title('Daily unreported infections')
+    ax_cumul_unreported.set_title('Total unreported infections')
  
-    ax_daily_deaths.set_title('Daily reported deaths')
+    ax_daily_deaths.set_title('Daily deaths')
     ax_cumul_deaths.set_title('Total deaths')
 
     with open(samplespath) as f: 
@@ -112,36 +118,47 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             ns = len(results)
             nt = results[0]["Saved Results"]["Length of Variables"]
 
-            all_incidence = np.zeros((ns*ndraws,nt))
-            all_deaths    = np.zeros((ns*ndraws,nt))
+            all_incidence  = np.zeros((ns*ndraws,nt))
+            all_unreported = np.zeros((ns*ndraws,nt))
+            all_deaths     = np.zeros((ns*ndraws,nt))
 
+            plotUnreported = False
             for k in range(ns):
                 nv = results[k]["Saved Results"]["Number of Variables"]
                 dispI = np.array(results[k]["Saved Results"]["Dispersion Daily Incidence"])
                 dispD = np.array(results[k]["Saved Results"]["Dispersion Daily Deaths"])
                 
-                death     = None
-                incidence = None
+                death      = None
+                incidence  = None
+                unreported = None
                 for variable in results[k]["Saved Results"]["Variables"]:
                     if variable["Name"] == "Daily Incidence":
                         incidence = np.array(variable["Values"])
                     if variable["Name"] == "Daily Deaths":
                         death     = np.array(variable["Values"])
+                    if variable["Name"] == "Daily Unreported":
+                        plotUnreported = True
+                        unreported = np.array(variable["Values"])
 
                 pi = incidence/(incidence+dispI)
                 pd = death/(death+dispD)
                 xi = np.asarray([ np.random.negative_binomial(dispI,1-pi) for _ in range(ndraws) ])
                 xd = np.asarray([ np.random.negative_binomial(dispD,1-pd) for _ in range(ndraws) ])
                 
-                all_incidence[k*ndraws:(k+1)*ndraws,:] = xi
-                all_deaths[k*ndraws:(k+1)*ndraws,:]    = xd
+                all_incidence[k*ndraws:(k+1)*ndraws,:]  = xi
+                all_deaths[k*ndraws:(k+1)*ndraws,:]     = xd
   
-            all_incidence_cum = np.cumsum(all_incidence, axis=1)
-            all_deaths_cum    = np.cumsum(all_deaths, axis=1)
+                if plotUnreported:
+                    pu = unreported/(unreported+dispI)
+                    xu = np.asarray([ np.random.negative_binomial(dispI,1-pu) for _ in range(ndraws) ])
+                    all_unreported[k*ndraws:(k+1)*ndraws,:] = xu
 
-            meani, mediani, quanti = get_stat(all_incidence, nt, pct)
+            all_incidence_cum  = np.cumsum(all_incidence, axis=1)
+            all_deaths_cum     = np.cumsum(all_deaths, axis=1)
+
+            meani, mediani, quanti    = get_stat(all_incidence, nt, pct)
             meanic, medianic, quantic = get_stat(all_incidence_cum, nt, pct)
-            meand, mediand, quantd = get_stat(all_deaths, nt, pct)
+            meand, mediand, quantd    = get_stat(all_deaths, nt, pct)
             meandc, mediandc, quantdc = get_stat(all_deaths_cum, nt, pct)
 
             ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, color=face_colors[idx], label=models[idx])
@@ -149,13 +166,25 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             
             ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[idx])
             ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[idx])
-            
+  
+            if plotUnreported:
+                all_unreported_cum        = np.cumsum(all_unreported, axis=1)
+                meanu, medianu, quantu    = get_stat(all_unreported, nt, pct)
+                meanuc, medianuc, quantuc = get_stat(all_unreported_cum, nt, pct)
+               
+                ax_daily_unreported.fill_between( range(nt), quantu[0,:], quantu[1,:],  alpha=alpha, color=face_colors[idx], label=models[idx])
+                ax_cumul_unreported.fill_between( range(nt), quantuc[0,:], quantuc[1,:],  alpha=alpha, color=face_colors[idx])
+
             if plot_medians:
                 ax_daily_incidence.plot( range(nt), mediani, '-', lw=1, color=line_color)
                 ax_cumul_incidence.plot( range(nt), medianic, '-', lw=1, color=line_color)
                 
                 ax_daily_deaths.plot( range(nt), mediand, '-', lw=1, color=line_color)
                 ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=1, color=line_color)
+
+                if plotUnreported:
+                    ax_daily_unreported.plot( range(nt), medianu, '-', lw=1, color=line_color)
+                    ax_cumul_unreported.plot( range(nt), medianuc, '-', lw=1, color=line_color)
   
             if plot_mean:
                 ax_daily_incidence.plot( range(nt), meani, '--', lw=1, color=line_color)
@@ -163,7 +192,25 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
  
                 ax_daily_deaths.plot( range(nt), meand, '--', lw=1, color=line_color)
                 ax_cumul_deaths.plot( range(nt), meandc, '--', lw=1, color=line_color)
-     
+
+                if plotUnreported:
+                   ax_daily_unreported.plot( range(nt), meanu, '--', lw=1, color=line_color)
+                   ax_cumul_unreported.plot( range(nt), meanuc, '--', lw=1, color=line_color)
+
+            _, imax = ax_daily_incidence.get_ylim()
+            _, umax = ax_daily_unreported.get_ylim()
+            iumax = max(imax, umax)
+ 
+            _, icmax = ax_cumul_incidence.get_ylim()
+            _, ucmax = ax_cumul_unreported.get_ylim()
+            iucmax = max(icmax, ucmax)
+
+            ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
+            ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
+            
+            ax_cumul_incidence.set_ylim(ymin=0.0, ymax=iucmax)
+            ax_cumul_unreported.set_ylim(ymin=0.0, ymax=iucmax)
+ 
             ax_daily_incidence.legend(loc="upper right")
             
     output = output+'/_figures/'
@@ -172,14 +219,6 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     plot = output+"/propagation_{}_{}.pdf".format(country, model_str)
     print("Creating output {}".format(plot))
     plt.savefig(plot)
-
-def set_axis_style(ax, labels):
-    ax.get_xaxis().set_tick_params(direction='out')
-    ax.xaxis.set_ticks_position('bottom')
-    ax.set_xticks(np.arange(1, len(labels) + 1))
-    ax.set_xticklabels(labels)
-    ax.set_xlim(0.25, len(labels) + 0.75)
-    # ax.set_xlabel('Sample name')
 
 def plot_propagation(folder,models,countries,save_dir):
 
@@ -201,4 +240,4 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 
     args = parser.parse_args()
-    plot_propagation(args.folder,args.models,args.countries, args.save_dir)
+    plot_propagation(args.folder, args.models, args.countries, args.save_dir)

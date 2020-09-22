@@ -70,6 +70,7 @@ class ModelBase( EpidemicsCountry ):
     # Create Solution Object
     sol = Object()
     sol.y = infected
+    sol.iu = infectedu
     sol.p = preasymptomatic
     sol.e = exposed
     sol.r = recovered

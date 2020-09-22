@@ -65,16 +65,16 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         auto C2 = invN * r0 * invD * x.S() * (p.mu * x.Iu());
         auto C3 = p.alpha * (invZ * x.E());
         auto C4 = (1 - p.alpha) * (invZ * x.E());
-        auto C5 = invD * x.Ir();
+        auto C5 = (1.0 - p.eps) * invD * x.Ir();
         auto C6 = invD * x.Iu();
-        auto C7 = invF * x.Ir();
+        auto C7 = p.eps * invF * x.Ir();
             
         dxdt.S()  = -(C1 + C2);
         dxdt.E()  = C1 + C2 - C3 - C4;
-        dxdt.Ir() = C3 - (1.0-p.eps)*C5 - p.eps*C7;
+        dxdt.Ir() = C3 - C5 - C7;
         dxdt.Iu() = C4 - C6;
-        dxdt.R()  = (1.0-p.eps)*C5 + C6;
-        dxdt.D()  = p.eps*C7;
+        dxdt.R()  = C5 + C6;
+        dxdt.D()  = C7;
     }
 };
 
