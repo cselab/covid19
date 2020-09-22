@@ -4,7 +4,7 @@ msg="1 ppm, informed priors, delay, no uint"
 pushd ..
 
 source countries.sh
-#countries=("uk")
+countries=("russia")
 
 name=`whoami`
 
@@ -12,7 +12,7 @@ declare -a models=(
 "country.reparam.seirudelay_int.nbin"
 )
 
-for i in {1..5}
+for i in {1}
 do
 
     base="/scratch/${name}/covid19/data/delay/run_${i}"
