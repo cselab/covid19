@@ -1,21 +1,20 @@
  #!/bin/bash
 
-msg="1 ppm, informed priors, delay, no uint"
+msg="1 ppm, informed priors, delay, no uint, adjusted alpha prior"
 pushd ..
 
 source countries.sh
-countries=("russia")
 name=`whoami`
 
 declare -a models=(
-"country.reparam.seirudelay_int.nbin"
+"country.reparam.seiirdelay_dint.nbin"
 )
 
 for i in {1..1}
 do
 
-    base="/scratch/${name}/covid19/data/adjusted/"
-    
+    base="/scratch/${name}/covid19/data/delay/run_${i}"
+
     for model in "${models[@]}"
     do
         for c in "${countries[@]}"
@@ -30,10 +29,11 @@ do
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
             
-            #rm -r "$folder/_korali_propagation"
-
+            rm -r "$folder/_korali_propagation"
+            
             done
     done
 
 done
+
 popd

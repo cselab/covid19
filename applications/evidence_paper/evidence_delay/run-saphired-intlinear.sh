@@ -14,7 +14,7 @@ declare -a models=(
 for i in {1..5}
 do
 
-    base="/scratch/${name}/covid19/data/delay_${i}"
+    base="/scratch/${name}/covid19/data/delay/run_${i}"
 
     for model in "${models[@]}"
     do
@@ -28,9 +28,9 @@ do
                 --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -bs 8 -nt 8 -df $base -m "${msg}" \
                 2>&1 | tee "${outfile}"
 
-            #python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
+            python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
             
-            rm -r "$folder/_korali_propagation"
+            #rm -r "$folder/_korali_propagation"
             
             done
     done

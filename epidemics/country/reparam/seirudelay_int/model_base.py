@@ -53,8 +53,8 @@ class ModelBase( EpidemicsCountry ):
     for idx,entry in enumerate(cpp_res):
         exposed[idx]         = N-entry.S()
         preasymptomatic[idx] = N-entry.S()-entry.E()
-        infected[idx]        = N-entry.S()-entry.E()-entry.P()-entry.Iu()
-        infectedu[idx]       = N-entry.S()-entry.E()-entry.P()-entry.Ir()
+        infected[idx]        = (N-entry.S()-entry.E()-entry.P())*p[4]
+        infectedu[idx]       = (N-entry.S()-entry.E()-entry.P())*(1-p[4])
         recovered[idx]       = entry.R()
         
         if math.floor(idx+dt) < len(deaths):

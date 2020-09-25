@@ -23,7 +23,7 @@ struct Parameters {
     T kbeta;  /// Multiplicator beta after intervention.
 };
 
-/// SEIIR state has 6 elements: S, P, Ir, Iu, R, D.
+/// SAPHIRE state has 7 elements: S, E, P, Ir, Iu, R, D.
 template <typename T>
 struct State : StateBase<T, 7> {
     using StateBase<T, 7>::StateBase;

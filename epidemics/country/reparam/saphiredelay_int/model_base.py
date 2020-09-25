@@ -31,7 +31,7 @@ class ModelBase( EpidemicsCountry ):
     
     p0 = beta*p[3]*i0
     e0 = beta*p[2]*p0
-    s0 = s0 - e0 - p0 - iu0
+    s0 = s0 - e0 - p0 - i0
 
     y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
     
@@ -54,8 +54,8 @@ class ModelBase( EpidemicsCountry ):
     for idx,entry in enumerate(cpp_res):
         exposed[idx]         = N-entry.S()
         preasymptomatic[idx] = N-entry.S()-entry.E()
-        infected[idx]        = N-entry.S()-entry.E()-entry.P()-entry.Iu()
-        infectedu[idx]       = N-entry.S()-entry.E()-entry.P()-entry.Ir()
+        infected[idx]        = (N-entry.S()-entry.E()-entry.P())*p[5]
+        infectedu[idx]       = (N-entry.S()-entry.E()-entry.P())*(1-p[5])
         recovered[idx]       = entry.R()
         
         if math.floor(idx+dt) < len(deaths):
