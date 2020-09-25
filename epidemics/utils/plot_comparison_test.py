@@ -33,7 +33,7 @@ tags = {'australia':   'AU',
         }
 
 vdict = {   'R0':       'Basic Reproduction Number',
-            'D':        'Symptomatic Infectious Period',
+            'D':        'Sumptomatic Infectious Period',
             'Y':        'Presymptomatic Infectious Period',
             'Z':        'Latency Period',
             'Zl':       'Latency Period (before Presymptomatic)',
@@ -43,32 +43,12 @@ vdict = {   'R0':       'Basic Reproduction Number',
             'kbeta':    'Intervention Reduction Factor',
             'tact':     'Intervention Time',
             'dtact':    'Intervention Duration',
-            'delay':    'Isolation Period',
-            'R0_after': 'Basic Reproduction Number After Intervention'
-        }
-
-model_names = {
-        'country.reparam.sirdelay_int.nbin':'SIRD',
-        'country.reparam.seirdelay_int.nbin':'SEIRD',
-        'country.reparam.seiirdelay_int.nbin':'SEIIRD',
-        'country.reparam.saphiredelay_int.nbin':'SAPHIRE',
-        'country.reparam.seirudelay_int.nbin':'SEIRUD',
         }
 
 # Plotting Options
 line_color = 'gray'
-# face_colors = ['#d53e4f','#99d594','#3288bd']
-# face_colors = ['#d53e4f','#1a9850','#3288bd']
-#face_colors = ['#fbb4ae','#b3cde3','#ccebc5','#decbe4','#fed9a6']
-face_colors = ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854']
-
-face_colors = { 'SIRD': '#66c2a5',
-                'SEIRD':'#fc8d62' ,
-                'SEIIRD': '#8da0cb',
-                'SAPHIRE':'#e78ac3',
-                'SEIRUD': '#a6d854'
-              }
-
+face_colors = ['#d53e4f','#99d594','#3288bd']
+face_colors = ['#d53e4f','#1a9850','#3288bd']
 alpha = 0.7
 med_width_factor = 2
 
@@ -161,7 +141,7 @@ def get_prior_info(ref_data,variable):
     
     return distrib
 
-def get_data(folder,models,countries,variable,get_prior_data=True):
+def get_data(folder,models,countries,variable):
 
     # Get data
     samples = {}
@@ -175,15 +155,9 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
         print('Variables: {}'.format(variables))
-
-        if variable == 'R0_after':
-            R0_idx = variables.index('R0')
-            kbeta_idx = variables.index('kbeta')
-        else:
-            var_idx = variables.index(variable)
+        var_idx = variables.index(variable)
         
-        if get_prior_data:
-            prior_info[model] = get_prior_info(ref_data,variable)
+        prior_info[model] = get_prior_info(ref_data,variable)
 
         data_to_plot = []
 
@@ -198,23 +172,14 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
             numentries = len(country_samples)
             samplesTmp = np.reshape(country_samples,(numentries,numdim))
 
-            if variable == 'R0_after':
-                R0_idx = variables.index('R0')
-                kbeta_idx = variables.index('kbeta')
-                data_to_plot.append(np.multiply(samplesTmp[:,R0_idx],samplesTmp[:,kbeta_idx]))
-            else:
-                data_to_plot.append(samplesTmp[:,var_idx])
-            
+            data_to_plot.append(samplesTmp[:,var_idx])
 
         samples[model] = data_to_plot
 
     # Check that the priors for each model are the same
-    if get_prior_data:
-        val = list(prior_info.values())
-        assert(all(x==val[0] for x in val))
-        prior_info = val[0]
-    else:
-        prior_info = {'Type':None}
+    val = list(prior_info.values())
+    assert(all(x==val[0] for x in val))
+    prior_info = val[0]
 
     return {'samples':samples,'prior_info':prior_info,'countries':countries,'variable':variable,'models':models}
         
@@ -336,7 +301,7 @@ def plot_violin_style(data,save_dir):
 
 
 
-def plot_ridge_style(data,save_dir,plot_prior=True):
+def plot_ridge_style(data,save_dir):
 
     models = data['models']
     variable = data['variable']
@@ -345,7 +310,7 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
 
     # Legends
     common = os.path.commonprefix(models)
-    unique = [model_names[model] for model in models]
+    unique = [model.replace('country.reparam.','') for model in models]
 
     print('Plotting {}'.format(variable))
     fig, ax = plt.subplots(nrows = N, ncols = 1,figsize =(9, 18),constrained_layout=False)
@@ -353,7 +318,7 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
     labels = []
     l_idx = 0
     for i, model in enumerate(models):
-        labels.append((mpatches.Patch(color=face_colors[model_names[model]],alpha=alpha), unique[i]))
+        labels.append((mpatches.Patch(color=face_colors[i],alpha=alpha), unique[i]))
 
         # Get posterior samples and plot violins
         samples = data['samples'][model]
@@ -362,16 +327,10 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
             if data['prior_info']['Type'] == 'Univariate/Uniform':
                 clip = [data['prior_info']['Minimum'],data['prior_info']['Maximum']]
             else:
-                clip = [0,100]
-            bw=1
-
-            if model == 'country.reparam.saphired_int.nbin':
-                if j == 2 and variable == 'eps':
-                    bw = 0.1
-
+                clip = None
             p = sns.kdeplot(data=samples[j-1], ax=ax[j], 
                 clip = clip,
-                shade=True, color=face_colors[model_names[model]],gridsize=1000,  bw=bw, legend=False)
+                shade=True, color=face_colors[i],gridsize=1000,  bw=1, legend=False)
             x,y = p.get_lines()[l_idx].get_data()
 
             median = np.median(samples[j-1])
@@ -382,7 +341,7 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
             y_q10 = get_median_y(x,y,q10)
             y_q90 = get_median_y(x,y,q90)
 
-            ax[j].plot([median,median],[0,y_median],color=face_colors[model_names[model]],alpha=0.9)
+            ax[j].plot([median,median],[0,y_median],color=face_colors[i],alpha=0.9)
             # ax[j].plot([q10,q10],[0,y_q10],color=face_colors[i],linestyle='--')
             # ax[j].plot([q5,q5],[0,y_q5],color=face_colors[i],linestyle='--')
 
@@ -393,27 +352,21 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
                 n_lines = len(p.get_lines())                    
         l_idx += n_lines
 
-    if plot_prior:
-        x_prior, y_prior, prior_median = get_prior(data,scale=False)
-        ax[0].plot(x_prior,y_prior,color=line_color)
-        ax[0].fill_between(x_prior,y_prior,color=line_color,alpha=alpha)
-        ax[0].set_xticks([])
-        ax[0].plot([prior_median[0],prior_median[0]],[0,prior_median[1]],color=line_color,alpha=0.9)
-        start_idx = 0
-    else:
-        start_idx = 1
-        ax[0].set_xticks([])
+    x_prior, y_prior, prior_median = get_prior(data,scale=False)
+    ax[0].plot(x_prior,y_prior,color=line_color)
+    ax[0].fill_between(x_prior,y_prior,color=line_color,alpha=alpha)
+    ax[0].set_xticks([])
+    ax[0].plot([prior_median[0],prior_median[0]],[0,prior_median[1]],color=line_color,alpha=0.9)
 
-    x_min = np.min([ax[i].get_xlim()[0] for i in range(start_idx,N)])
-    x_max = np.max([ax[i].get_xlim()[1] for i in range(start_idx,N)])
-    print(x_min,x_max)
+    x_min = np.min([ax[i].get_xlim()[0] for i in range(N)])
+    x_max = np.max([ax[i].get_xlim()[1] for i in range(N)])
 
     if data['prior_info']['Type'] == 'Univariate/Uniform':
         x_range = ax[0].get_xlim()
         x_min = x_range[0]
         x_max = x_range[1]
 
-    for j in range(0,N):
+    for j in range(N):
         ax[j].set_yticks([])
         
         ax[j].spines['left'].set_visible(False)
@@ -424,18 +377,16 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
         ax[j].set_ylim([0,ax[j].get_ylim()[1]])
 
         ax[j].set_xlim([x_min,x_max])
-        ax[j].set_xlim([0,4])
 
         if j == 0:
-            if plot_prior:
-                ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
+            ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
         else:
             ax[j].text(0.02, 0.05, countries[j-1].capitalize(), fontsize=17,transform = ax[j].transAxes) 
 
     # plt.legend(*zip(*labels), loc=2)
-    ax[0].set_title('{}'.format(vdict[variable]),fontsize=17,fontweight='bold',pad=10)
+    ax[0].set_title('Model comparison for {}'.format(vdict[variable]),fontsize=17,fontweight='bold',pad=10)
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(0.5, -0.15),
-          fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
+          fancybox=False, shadow=False, ncol=len(models),frameon=False,fontsize='x-large')
 
     create_folder(save_dir+'/_figures/')
     print("Creating output {}".format(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'))
@@ -447,24 +398,29 @@ if __name__ == "__main__":
 
     # python3 plot_comparison.py -df /scratch/wadaniel/covid19/intervention/data/g9/ -m country.reparam.sird_int.nbin country.reparam.seirud_int.nbin country.reparam.seird_int.geo -v R0 -c canada china france germany italy japan russia switzerland uk us 
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--models', '-m', default='country.reparam.sir_int.nbin', type=str, nargs='+', help='Model type')
-    parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
-    parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
-    parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
+    folder = '/scratch/mboden/covid19_results/g9/'
+    models = ['country.reparam.sird_int.nbin','country.reparam.seird_int.nbin','country.reparam.saphired_int.nbin']
+    countries = ['canada','china','france','germany','italy','japan','russia','switzerland','uk','us']
+    save_dir = './test/'
+    variable = 'eps'
 
-    args = parser.parse_args()
+    data = get_data(folder,models,countries,variable)
 
-    for variable in args.variables:
+    samples = data['samples'][models[2]]
 
-        if variable == 'R0_after':
-            plot_prior = False
-        else:
-            plot_prior = True
-        data = get_data(args.folder,args.models,args.countries,variable,plot_prior)
+    fig = plt.plot()
+    plt.hist(samples[j-1]*10,bins=100,density=True)
 
-        # plot_violin_style(data,args.save_dir)
-        plot_ridge_style(data,args.save_dir,plot_prior)
+    j = 2
 
+    clip = [0,10]
+    p = sns.kdeplot(data=samples[j-1]*10, clip = clip,
+        shade=True, color='blue',gridsize=1000,  bw=1, legend=False)
 
+    # p = sns.kdeplot(data=samples[j-1], clip = None,
+    #     shade=True, color='red',gridsize=1000,  bw=1, legend=False)
+
+    plt.savefig('test.png')
+    plt.close()
+
+    plot_ridge_style(data,save_dir)
