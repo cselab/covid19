@@ -50,7 +50,7 @@ model_names = {
         'country.reparam.sirdelay_int.nbin':'SIRD',
         'country.reparam.seirdelay_int.nbin':'SEIRD',
         'country.reparam.seiirdelay_int.nbin':'SEIIRD',
-        'country.reparam.saphiredelay_int.nbin':'SAPHIRE',
+        'country.reparam.saphiredelay_int.nbin':'SAPHIRED',
         'country.reparam.seirudelay_int.nbin':'SEIRUD',
         }
 
@@ -61,7 +61,7 @@ lw_cumul = 3
 face_colors = { 'SIRD': '#66c2a5',
                 'SEIRD':'#fc8d62' ,
                 'SEIIRD': '#8da0cb',
-                'SAPHIRE':'#e78ac3',
+                'SAPHIRED':'#e78ac3',
                 'SEIRUD': '#a6d854'
               }
 alpha = 0.4

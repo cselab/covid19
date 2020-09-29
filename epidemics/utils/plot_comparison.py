@@ -53,7 +53,7 @@ model_names = {
         'country.reparam.sirdelay_int.nbin':'SIRD',
         'country.reparam.seirdelay_int.nbin':'SEIRD',
         'country.reparam.seiirdelay_int.nbin':'SEIIRD',
-        'country.reparam.saphiredelay_int.nbin':'SAPHIRE',
+        'country.reparam.saphiredelay_int.nbin':'SAPHIRED',
         'country.reparam.seirudelay_int.nbin':'SEIRUD',
         }
 
@@ -67,7 +67,7 @@ face_colors = ['#66c2a5','#fc8d62','#8da0cb','#e78ac3','#a6d854']
 face_colors = { 'SIRD': '#66c2a5',
                 'SEIRD':'#fc8d62' ,
                 'SEIIRD': '#8da0cb',
-                'SAPHIRE':'#e78ac3',
+                'SAPHIRED':'#e78ac3',
                 'SEIRUD': '#a6d854'
               }
 
@@ -216,7 +216,7 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
                     alpha = samplesTmp[:,variables.index('alpha')]
                     data_to_plot.append(R0*alpha+R0*(1-alpha)*mu)
 
-                elif model_names[model] == 'SAPHIRE':
+                elif model_names[model] == 'SAPHIRED':
                     R0 = samplesTmp[:,variables.index('R0')]
                     mu = samplesTmp[:,variables.index('mu')]
                     alpha = samplesTmp[:,variables.index('alpha')]
