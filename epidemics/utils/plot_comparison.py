@@ -502,5 +502,3 @@ if __name__ == "__main__":
 
         # plot_violin_style(data,args.save_dir)
         plot_ridge_style(data,args.save_dir,plot_prior)
-
-

@@ -144,7 +144,10 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
         genJs   = json.load(f)
         refdata = np.array(genJs["Problem"]["Reference Data"])
         ndata = len(refdata)
-        mid   = int(ndata/2)
+        if country == "us": # hack for wrong data alignment
+            mid = int(ndata/2)+1
+        else:
+            mid   = int(ndata/2)
         incidences = refdata[:mid] 
         incidences_cum = np.cumsum(incidences)
         deaths = refdata[mid:] 
@@ -282,7 +285,12 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
       fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
     plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1)
-    plt.suptitle('{}'.format(country.capitalize()),fontsize=fontsize,fontweight='bold')
+
+    if len(country) > 2:
+        suptitle = '{}'.format(country.capitalize())
+    else:
+        suptitle = '{}'.format(country.upper())
+    plt.suptitle(suptitle,fontsize=fontsize,fontweight='bold')
 
     output = output+'/_figures/'
     create_folder(output)
