@@ -70,7 +70,7 @@ def preprocess_field(dat,field):
                 dat[interval] = interpolate_missing_data(a,b,len(interval))
         length = len(dat)
         print('     {} days of data available for {}'.format(length,field))
-
+ 
     return dat, length
 
 def interpolate_missing_data(a,b,n):

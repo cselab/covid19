@@ -56,7 +56,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'e0'    : (0.0, 10.0),  # multiplicator e0 init
             'p0'    : (0.0, 10.0),  # multiplicator p0 init
             'iu0'   : (0.0, 10.0),  # multiplicator iu0 init
-            'delay' : (0.0, 14.0)   # delay for deaths
+            'delay' : (0.0, 21.0)   # delay for deaths
         }
 
     self.constants = {
@@ -69,9 +69,6 @@ class EpidemicsCountry( EpidemicsBase ):
     }
 
     self.informed_priors = {
-        'D_mean'    : 1.0/(np.log(2)/14.0), # median at 14 days, 87.5 pct at 6w (exponential dist.)
-#        'D_shape'   : 4.337,  # median at 14 days, 99pct < 6w (gamma dist.)
-#        'D_scale'   : 3.970,  # median at 14 days, 99pct < 6w
         'D_shape'   : 3.448979591836735,   # test (taken from Z, TODO: calibrate)
         'D_scale'   : 1.5076923076923074,  # test (taken from Z, TODO: calibrate)
         'Y_shape'   : 32.62105263157895,   # preasymptomatic period started from 2.3 days (0.8, 3.0 95%-CI)
@@ -127,14 +124,16 @@ class EpidemicsCountry( EpidemicsBase ):
     self.data['Model']['Intervention Day']  = self.regionalData.tact
        
     if self.useInfections:
+        infected, t_infected = self.filter_cumulative_data('cum infected', infected, t)
         incidences = np.diff( infected )
-        incidences, t_incidences = self.filter_daily_data('daily incidences', incidences, t)
+        incidences, t_incidences = self.filter_daily_data('daily incidences', incidences, t_infected)
     else:
         incidences, t_incidences = [], []
 
     if self.useDeaths:
+        deaths, t_deaths = self.filter_cumulative_data('cum deaths', deaths, t)
         deaths = np.diff( deaths )
-        deaths, t_deaths = self.filter_daily_data('daily deaths', deaths, t)
+        deaths, t_deaths = self.filter_daily_data('daily deaths', deaths, t_deaths)
     else:
         deaths, t_deaths = [], []
     
@@ -142,7 +141,6 @@ class EpidemicsCountry( EpidemicsBase ):
         self.intday  = self.data["Model"]["Intervention Day"]
     else:
         self.intday  = 0
-
     tx = list(set(np.concatenate([t_incidences, t_deaths])))
     tx.sort()
 
@@ -457,4 +455,17 @@ class EpidemicsCountry( EpidemicsBase ):
         field = field[valid]
         t = t[valid]
 
+    return field, t
+ 
+  def filter_cumulative_data(self,field_name,field,t):
+    """ helper to remove and filter invalid data """
+    
+    daily = np.diff(field)
+    if ((daily < 0).any()):
+        print("[Epidemics] Warning, removing negative values from {}!!!".format(field_name))
+        valid = daily >= 0
+        t     = t[valid]
+        valid = np.append(valid, True)
+        field = field[valid]
+    
     return field, t

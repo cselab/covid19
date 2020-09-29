@@ -94,7 +94,10 @@ class RegionalDataBase:  # Base class, not database.
         self.infected  = cut(cases.confirmed) # confirmed
         self.recovered = cut(cases.recovered)
         self.deaths    = cut(cases.deaths)
-
+        print("Infected")
+        print(self.infected)
+        print("Deaths")
+        print(self.deaths)
         self.hospitalized = cut(cases.hospitalized)
         self.icu = cut(cases.icu)
         self.ventilated = cut(cases.ventilated)

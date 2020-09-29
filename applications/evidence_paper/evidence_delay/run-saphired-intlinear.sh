@@ -1,6 +1,6 @@
  #!/bin/bash
 
-msg="1 ppm, informed priors, delay, no uint"
+msg="1 ppm, informed priors, delay, preprocess"
 pushd ..
 
 source countries.sh
@@ -11,10 +11,10 @@ declare -a models=(
 "country.reparam.saphiredelay_int.nbin"
 )
 
-for i in {1..5}
+for i in {1..1}
 do
 
-    base="/scratch/${name}/covid19/data/delay/run_${i}"
+    base="/scratch/${name}/covid19/data/preprocess"
 
     for model in "${models[@]}"
     do
