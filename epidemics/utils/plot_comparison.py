@@ -32,19 +32,21 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
-vdict = {   'R0':       'Basic Reproduction Number',
-            'D':        'Symptomatic Infectious Period',
-            'Y':        'Presymptomatic Infectious Period',
-            'Z':        'Latency Period',
-            'Zl':       'Latency Period (before Presymptomatic)',
-            'alpha':    'Reporting Rate',
-            'eps':      'Mortality Rate',
-            'mu':       'Reduction Factor',
+vdict = {   'R0':       'Basic Reproduction Number (R0)',
+            'D':        'Symptomatic Infectious Period (D)',
+            'Y':        'Presymptomatic Infectious Period (Y)',
+            'Z':        'Latency Period (Z)',
+            'Zl':       'Latency Period \n (before Presymptomatic) (Z)',
+            'alpha':    r'Reporting Rate ($\alpha$)',
+            'eps':      'Mortality Rate (f)',
+            'mu':       'Reduction Factor ($\mu$)',
             'kbeta':    'Intervention Reduction Factor',
             'tact':     'Intervention Time',
             'dtact':    'Intervention Duration',
             'delay':    'Isolation Period',
-            'R0_after': 'Basic Reproduction Number After Intervention'
+            'R0_after': 'Basic Reproduction Number \n After Intervention',
+            'Re':       'Effective Reproduction Number (Re)'
+
         }
 
 model_names = {
@@ -177,13 +179,13 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
         print('Variables: {}'.format(variables))
 
         if variable == 'R0_after':
-            R0_idx = variables.index('R0')
-            kbeta_idx = variables.index('kbeta')
+            get_prior_data = False
+        elif variable == 'Re':
+            get_prior_data = False
         else:
             var_idx = variables.index(variable)
-        
-        if get_prior_data:
-            prior_info[model] = get_prior_info(ref_data,variable)
+            if get_prior_data:
+                prior_info[model] = get_prior_info(ref_data,variable)
 
         data_to_plot = []
 
@@ -202,6 +204,32 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
                 R0_idx = variables.index('R0')
                 kbeta_idx = variables.index('kbeta')
                 data_to_plot.append(np.multiply(samplesTmp[:,R0_idx],samplesTmp[:,kbeta_idx]))
+            
+            elif variable == 'Re':
+
+                if model_names[model] == 'SIRD' or model_names[model] == 'SEIRD':
+                    R0 = samplesTmp[:,variables.index('R0')]
+                    data_to_plot.append(R0)
+                elif model_names[model] == 'SEIIRD':
+                    R0 = samplesTmp[:,variables.index('R0')]
+                    mu = samplesTmp[:,variables.index('mu')]
+                    alpha = samplesTmp[:,variables.index('alpha')]
+                    data_to_plot.append(R0*alpha+R0*(1-alpha)*mu)
+
+                elif model_names[model] == 'SAPHIRE':
+                    R0 = samplesTmp[:,variables.index('R0')]
+                    mu = samplesTmp[:,variables.index('mu')]
+                    alpha = samplesTmp[:,variables.index('alpha')]
+                    Y = samplesTmp[:,variables.index('Y')]
+                    D = samplesTmp[:,variables.index('D')]
+
+                    data_to_plot.append(mu*R0*Y/D+R0*(1-alpha)*mu+alpha*R0)
+                elif model_names[model] == 'SEIRUD':
+                    R0 = samplesTmp[:,variables.index('R0')]
+                    Y = samplesTmp[:,variables.index('Y')]
+                    D = samplesTmp[:,variables.index('D')]
+                    alpha = samplesTmp[:,variables.index('alpha')]
+                    data_to_plot.append(R0*Y/D+R0*(1-alpha))
             else:
                 data_to_plot.append(samplesTmp[:,var_idx])
             
@@ -348,7 +376,7 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
     unique = [model_names[model] for model in models]
 
     print('Plotting {}'.format(variable))
-    fig, ax = plt.subplots(nrows = N, ncols = 1,figsize =(9, 18),constrained_layout=False)
+    fig, ax = plt.subplots(nrows = N, ncols = 1,figsize =(6, 18),constrained_layout=False)
 
     labels = []
     l_idx = 0
@@ -363,7 +391,7 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
                 clip = [data['prior_info']['Minimum'],data['prior_info']['Maximum']]
             else:
                 clip = [0,100]
-            bw=1
+            bw=0.1
 
             if model == 'country.reparam.saphired_int.nbin':
                 if j == 2 and variable == 'eps':
@@ -424,23 +452,29 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
         ax[j].set_ylim([0,ax[j].get_ylim()[1]])
 
         ax[j].set_xlim([x_min,x_max])
-        ax[j].set_xlim([0,4])
+        
+        if variable == 'Y':
+            ax[j].set_xlim([0,8])
+        elif variable == 'R0_after':
+            ax[j].set_xlim([0,3])
+        # elif variable == 'Re':
+        #     ax[j].set_xlim([0,20])
 
         if j == 0:
             if plot_prior:
                 ax[j].text(0.02, 0.05, 'Prior', fontsize=17, transform = ax[j].transAxes) 
         else:
-            ax[j].text(0.02, 0.05, countries[j-1].capitalize(), fontsize=17,transform = ax[j].transAxes) 
+            ax[j].text(0.02, 0.05, tags[countries[j-1]], fontsize=17,transform = ax[j].transAxes) 
 
     # plt.legend(*zip(*labels), loc=2)
     ax[0].set_title('{}'.format(vdict[variable]),fontsize=17,fontweight='bold',pad=10)
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(0.5, -0.15),
           fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.08)
 
     create_folder(save_dir+'/_figures/')
     print("Creating output {}".format(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'))
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.08)
-    plt.savefig(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'_ridge.pdf')
+    plt.savefig(save_dir+'/posteriors/'+variable+'_'+'-'.join(unique)+'_ridge.pdf')
 
 
 if __name__ == "__main__":  
@@ -459,6 +493,8 @@ if __name__ == "__main__":
     for variable in args.variables:
 
         if variable == 'R0_after':
+            plot_prior = False
+        elif variable == 'Re':
             plot_prior = False
         else:
             plot_prior = True

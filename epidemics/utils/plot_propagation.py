@@ -14,7 +14,6 @@ import numpy as np
 import seaborn as sns
 import matplotlib.patches as mpatches
 
-
 tags = {'australia':   'AU',
         'canada':      'CA',
         'china':       'CN',
@@ -29,6 +28,44 @@ tags = {'australia':   'AU',
         'uk':          'UK',
         'us':          'US'
         }
+
+vdict = {   'R0':       'Basic Reproduction Number (R0)',
+            'D':        'Symptomatic Infectious Period (D)',
+            'Y':        'Presymptomatic Infectious Period (Y)',
+            'Z':        'Latency Period (Z)',
+            'Zl':       'Latency Period \n (before Presymptomatic) (Z)',
+            'alpha':    r'Reporting Rate ($\alpha$)',
+            'eps':      'Mortality Rate (f)',
+            'mu':       'Reduction Factor ($\mu$)',
+            'kbeta':    'Intervention Reduction Factor',
+            'tact':     'Intervention Time',
+            'dtact':    'Intervention Duration',
+            'delay':    'Isolation Period',
+            'R0_after': 'Basic Reproduction Number \n After Intervention',
+            'Re':       'Effective Reproduction Number (Re)'
+
+        }
+
+model_names = {
+        'country.reparam.sirdelay_int.nbin':'SIRD',
+        'country.reparam.seirdelay_int.nbin':'SEIRD',
+        'country.reparam.seiirdelay_int.nbin':'SEIIRD',
+        'country.reparam.saphiredelay_int.nbin':'SAPHIRE',
+        'country.reparam.seirudelay_int.nbin':'SEIRUD',
+        }
+
+# Plotting Options
+line_color = 'gray'
+lw_daily = 3
+lw_cumul = 3
+face_colors = { 'SIRD': '#66c2a5',
+                'SEIRD':'#fc8d62' ,
+                'SEIIRD': '#8da0cb',
+                'SAPHIRE':'#e78ac3',
+                'SEIRUD': '#a6d854'
+              }
+alpha = 0.4
+fontsize=14
 
 def create_folder(name):
     if not os.path.exists(name):
@@ -46,51 +83,62 @@ def get_stat(data, nt, pct):
 
     return mean, median, quant
 
+def setup_axis(ax):
+    ax.spines['left'].set_visible(True)
+    ax.spines['left'].set_edgecolor('#444444')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_edgecolor('#444444')
+    ax.spines['bottom'].set_linewidth(1)
 
 
 def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndraws=5):
-    models = [model.replace('country.reparam.','') for model in models]
-    models = [model.replace('_int','') for model in models]
+    # models = [model.replace('country.reparam.','') for model in models]
+    # models = [model.replace('_int','') for model in models]
   
-    line_color = 'gray'
-    face_colors = ['#d53e4f','#1a9850','#3288bd']
-    if (len(paths) > len(face_colors)):
-        print("Too many models, not enough colors defined in script. Exit..")
-        sys.exit()
 
-    alpha = 0.4
     med_width_factor = 2
 
     plot_mean    = False
     plot_medians = True
 
-   
-    fig = plt.figure(figsize=(12, 8))
 
-    ax  = fig.subplots(2,3)
+    fig = plt.figure(figsize=(8, 12))
+
+    ax  = fig.subplots(3,2)
 
     ax_daily_incidence = ax[0][0]
-    ax_cumul_incidence = ax[1][0]
+    ax_cumul_incidence = ax[0][1]
  
-    ax_daily_unreported = ax[0][1]
+    ax_daily_unreported = ax[1][0]
     ax_cumul_unreported = ax[1][1]
 
-    ax_daily_deaths = ax[0][2]
-    ax_cumul_deaths = ax[1][2]
+    ax_daily_deaths = ax[2][0]
+    ax_cumul_deaths = ax[2][1]
  
     incidences = []
     incidences_cum = []
     deaths = []
     deaths_cum = []
  
-    ax_daily_incidence.set_title('Daily reported infections')
-    ax_cumul_incidence.set_title('Total reported infections')
-  
-    ax_daily_unreported.set_title('Daily unreported infections')
-    ax_cumul_unreported.set_title('Total unreported infections')
- 
-    ax_daily_deaths.set_title('Daily deaths')
-    ax_cumul_deaths.set_title('Total deaths')
+    ax_daily_incidence.set_title('Daily reported infections',fontsize=fontsize)
+    setup_axis(ax_daily_incidence)
+
+    ax_cumul_incidence.set_title('Cumulative reported infections',fontsize=fontsize)
+    setup_axis(ax_cumul_incidence)
+
+    ax_daily_unreported.set_title('Daily unreported infections',fontsize=fontsize)
+    setup_axis(ax_daily_unreported)
+
+    ax_cumul_unreported.set_title('Cumulative unreported infections',fontsize=fontsize)
+    setup_axis(ax_cumul_unreported)
+
+    ax_daily_deaths.set_title('Daily deaths',fontsize=fontsize)
+    setup_axis(ax_daily_deaths)
+
+    ax_cumul_deaths.set_title('Cumulative deaths',fontsize=fontsize)
+    setup_axis(ax_cumul_deaths)
 
     with open(samplespath) as f: 
         genJs   = json.load(f)
@@ -108,9 +156,16 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
         ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
             
 
-
+    labels = []
+    tags = [model_names[model] for model in models]
     for idx, path in enumerate(paths) :
         print("Reading {} ..".format(path))
+
+        model = models[idx]
+        model_tag = model_names[model]
+        # labels.append(model_tag)
+        labels.append((mpatches.Patch(color=face_colors[model_tag],alpha=alpha), model_tag))
+
         with open(path) as f: 
             genJs = json.load(f)
             results = genJs["Samples"]
@@ -161,41 +216,52 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             meand, mediand, quantd    = get_stat(all_deaths, nt, pct)
             meandc, mediandc, quantdc = get_stat(all_deaths_cum, nt, pct)
 
-            ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, color=face_colors[idx], label=models[idx])
-            ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, color=face_colors[idx])
+            fill_medians = True
+            if fill_medians:
+                ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
+                ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+                
+                ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+                ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+            else:
+                ax_daily_incidence.plot( range(nt), quanti[1,:],  color=face_colors[model_tag], label=model_tag)
+                ax_daily_incidence.plot( range(nt), quanti[1,:],  color=face_colors[model_tag], label=model_tag)
+
+                ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, color=face_colors[model_tag])
+                
+                ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[model_tag])
+                ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[model_tag])
             
-            ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[idx])
-            ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[idx])
-  
+
             if plotUnreported:
                 all_unreported_cum        = np.cumsum(all_unreported, axis=1)
                 meanu, medianu, quantu    = get_stat(all_unreported, nt, pct)
                 meanuc, medianuc, quantuc = get_stat(all_unreported_cum, nt, pct)
                
-                ax_daily_unreported.fill_between( range(nt), quantu[0,:], quantu[1,:],  alpha=alpha, color=face_colors[idx], label=models[idx])
-                ax_cumul_unreported.fill_between( range(nt), quantuc[0,:], quantuc[1,:],  alpha=alpha, color=face_colors[idx])
+                ax_daily_unreported.fill_between( range(nt), quantu[0,:], quantu[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
+                ax_cumul_unreported.fill_between( range(nt), quantuc[0,:], quantuc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
 
             if plot_medians:
-                ax_daily_incidence.plot( range(nt), mediani, '-', lw=1, color=line_color)
-                ax_cumul_incidence.plot( range(nt), medianic, '-', lw=1, color=line_color)
+                ax_daily_incidence.plot( range(nt), mediani, '-', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_incidence.plot( range(nt), medianic, '-', lw=lw_cumul, color=face_colors[model_tag])
                 
-                ax_daily_deaths.plot( range(nt), mediand, '-', lw=1, color=line_color)
-                ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=1, color=line_color)
+                ax_daily_deaths.plot( range(nt), mediand, '-', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=lw_cumul, color=face_colors[model_tag])
 
                 if plotUnreported:
-                    ax_daily_unreported.plot( range(nt), medianu, '-', lw=1, color=line_color)
-                    ax_cumul_unreported.plot( range(nt), medianuc, '-', lw=1, color=line_color)
+                    ax_daily_unreported.plot( range(nt), medianu, '-', lw=lw_daily, color=face_colors[model_tag])
+                    ax_cumul_unreported.plot( range(nt), medianuc, '-', lw=lw_cumul, color=face_colors[model_tag])
   
             if plot_mean:
-                ax_daily_incidence.plot( range(nt), meani, '--', lw=1, color=line_color)
-                ax_cumul_incidence.plot( range(nt), meanic, '--', lw=1, color=line_color)
+                ax_daily_incidence.plot( range(nt), meani, '--', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_incidence.plot( range(nt), meanic, '--', lw=lw_cumul, color=face_colors[model_tag])
  
-                ax_daily_deaths.plot( range(nt), meand, '--', lw=1, color=line_color)
-                ax_cumul_deaths.plot( range(nt), meandc, '--', lw=1, color=line_color)
+                ax_daily_deaths.plot( range(nt), meand, '--', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_deaths.plot( range(nt), meandc, '--', lw=lw_cumul, color=face_colors[model_tag])
 
                 if plotUnreported:
-                   ax_daily_unreported.plot( range(nt), meanu, '--', lw=1, color=line_color)
-                   ax_cumul_unreported.plot( range(nt), meanuc, '--', lw=1, color=line_color)
+                   ax_daily_unreported.plot( range(nt), meanu, '--', lw=lw_daily, color=face_colors[model_tag])
+                   ax_cumul_unreported.plot( range(nt), meanuc, '--', lw=lw_cumul, color=face_colors[model_tag])
 
             _, imax = ax_daily_incidence.get_ylim()
             _, umax = ax_daily_unreported.get_ylim()
@@ -205,17 +271,22 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             _, ucmax = ax_cumul_unreported.get_ylim()
             iucmax = max(icmax, ucmax)
 
-            ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
-            ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
+            # ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
+            # #ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
             
-            ax_cumul_incidence.set_ylim(ymin=0.0, ymax=iucmax)
-            ax_cumul_unreported.set_ylim(ymin=0.0, ymax=iucmax)
+            # ax_cumul_incidence.set_ylim(ymin=0.0, ymax=iucmax)
+            # #ax_cumul_unreported.set_ylim(ymin=0.0, ymax=iucmax)
  
-            ax_daily_incidence.legend(loc="upper right")
-            
+            # ax_daily_incidence.legend(loc="upper right")
+    
+    plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
+      fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1)
+    plt.suptitle('{}'.format(country.capitalize()),fontsize=fontsize,fontweight='bold')
+
     output = output+'/_figures/'
     create_folder(output)
-    model_str = '-'.join(models)
+    model_str = '-'.join(tags)
     plot = output+"/propagation_{}_{}.pdf".format(country, model_str)
     print("Creating output {}".format(plot))
     plt.savefig(plot)
