@@ -145,7 +145,7 @@ def main():
     generate_country_model('seirdg_int_reparam', 'S E I R D', 'R0 D F Z eps tact dtact kbeta')
 
     generate_country_model('seiird_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
-    generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
+    generate_country_model('seiird2_int_reparam', 'S E Ir Iu R D Cir Ciu', 'R0 D Z mu alpha eps tact dtact kbeta')
     generate_country_model('seiird2_intexp_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact k')
     generate_country_model('seiird2_ints_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact kbeta')
     generate_country_model('seiird2_intsmooth_reparam', 'S E Ir Iu R D', 'R0 D Z mu alpha eps tact dtact kbeta')
@@ -165,7 +165,7 @@ def main():
     generate_country_model('seirudg_int_reparam', 'S E P Ir Iu R D', 'R0 Z Y D F alpha eps tact dtact kbeta')
     
     # SAPHIRE
-    generate_country_model('saphire_int_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact dtact kbeta')
+    generate_country_model('saphire_int_reparam', 'S E P Ir Iu R D Cir Ciu', 'R0 Z Y D mu alpha eps tact dtact kbeta')
     generate_country_model('saphire_ints_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact kbeta')
     generate_country_model('saphire_intexp_reparam', 'S E P Ir Iu R D', 'R0 Z Y D mu alpha eps tact k')
     generate_country_model('saphireg_int_reparam', 'S E P Ir Iu R D', 'R0 Z Y D F mu alpha eps tact dtact kbeta')

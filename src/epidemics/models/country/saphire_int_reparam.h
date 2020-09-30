@@ -23,10 +23,10 @@ struct Parameters {
     T kbeta;  /// Multiplicator beta after intervention.
 };
 
-/// SAPHIRE state has 7 elements: S, E, P, Ir, Iu, R, D.
+/// SAPHIRE state has 9 elements: S, E, P, Ir, Iu, R, D, Cir, Ciu.
 template <typename T>
-struct State : StateBase<T, 7> {
-    using StateBase<T, 7>::StateBase;
+struct State : StateBase<T, 9> {
+    using StateBase<T, 9>::StateBase;
 
     T &S()  { return this->v_[0]; }
     T &E()  { return this->v_[1]; }
@@ -35,6 +35,8 @@ struct State : StateBase<T, 7> {
     T &Iu() { return this->v_[4]; }
     T &R()  { return this->v_[5]; }
     T &D()  { return this->v_[6]; }
+    T &Cir() { return this->v_[7]; }
+    T &Ciu() { return this->v_[8]; }
 
     const T &S()  const { return this->v_[0]; }
     const T &E()  const { return this->v_[1]; }
@@ -43,6 +45,8 @@ struct State : StateBase<T, 7> {
     const T &Iu() const { return this->v_[4]; }
     const T &R()  const { return this->v_[5]; }
     const T &D()  const { return this->v_[6]; }
+    const T &Cir()  const { return this->v_[7]; }
+    const T &Ciu()  const { return this->v_[8]; }
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
@@ -76,6 +80,9 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         dxdt.Iu() = (1.0-p.alpha) * C3 - C5;
         dxdt.R()  = (1.0-p.eps) * C4 + C5;
         dxdt.D()  = p.eps * C4;
+
+        dxdt.Ciu()  = invN * r0 * invD * x.S() * (p.mu * x.Iu() + x.P());
+        dxdt.Cir()  = invN * r0 * invD * x.S() * x.Ir();
     }
 };
 

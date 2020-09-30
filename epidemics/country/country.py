@@ -239,6 +239,8 @@ class EpidemicsCountry( EpidemicsBase ):
     exposed    = np.array([])
     unreported = np.array([])
     deaths     = np.array([])
+    cir        = np.array([])
+    ciu        = np.array([])
 
     if hasattr(sol, 'r'):
         recovered = np.diff(sol.r)
@@ -260,6 +262,12 @@ class EpidemicsCountry( EpidemicsBase ):
         deaths = np.diff(sol.d)
         deaths = np.append(0, deaths)
         deaths[deaths < eps] = eps
+ 
+    if hasattr(sol, 'cir'):
+        cir = sol.cir
+ 
+    if hasattr(sol, 'ciu'):
+        ciu = sol.ciu
 
     k = 0
     js = {}
@@ -292,6 +300,18 @@ class EpidemicsCountry( EpidemicsBase ):
         js['Variables'].append({})
         js['Variables'][k]['Name'] = 'Daily Deaths'
         js['Variables'][k]['Values'] = list(deaths)
+        k += 1
+
+    if ciu.size is not 0:
+        js['Variables'].append({})
+        js['Variables'][k]['Name'] = 'Cumulative Infected by Unreported'
+        js['Variables'][k]['Values'] = list(ciu)
+        k += 1
+ 
+    if cir.size is not 0:
+        js['Variables'].append({})
+        js['Variables'][k]['Name'] = 'Cumulative Infected by Reported'
+        js['Variables'][k]['Values'] = list(cir)
         k += 1
 
     js['Number of Variables'] = len(js['Variables'])

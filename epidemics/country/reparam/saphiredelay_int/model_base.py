@@ -33,7 +33,7 @@ class ModelBase( EpidemicsCountry ):
     e0 = beta*p[2]*p0
     s0 = s0 - e0 - p0 - i0
 
-    y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0) # S E P Ir Iu R D
+    y0cpp   = (s0, e0, p0, ir0, iu0, 0.0, 0.0, 0.0, 0.0) # S E P Ir Iu R D Cir Ciu
     
     initial = saphire_int.State(y0cpp)
     
@@ -45,6 +45,9 @@ class ModelBase( EpidemicsCountry ):
     recovered       = np.zeros(len(cpp_res))
     preasymptomatic = np.zeros(len(cpp_res))
     deaths          = np.zeros(len(cpp_res))
+    
+    cir = np.zeros(len(cpp_res))
+    ciu = np.zeros(len(cpp_res))
 
     dt = p[10]
     w1 = math.ceil(dt)-dt
@@ -57,6 +60,9 @@ class ModelBase( EpidemicsCountry ):
         infected[idx]        = (N-entry.S()-entry.E()-entry.P())*p[5]
         infectedu[idx]       = (N-entry.S()-entry.E()-entry.P())*(1-p[5])
         recovered[idx]       = entry.R()
+        
+        cir[idx] = entry.Cir()
+        ciu[idx] = entry.Ciu()
         
         if math.floor(idx+dt) < len(deaths):
             deaths[math.floor(idx+dt)] += w1 * entry.D()
@@ -75,5 +81,7 @@ class ModelBase( EpidemicsCountry ):
     sol.e = exposed
     sol.r = recovered
     sol.d = deaths
+    sol.cir = cir
+    sol.ciu = ciu
  
     return sol
