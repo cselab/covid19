@@ -49,6 +49,19 @@ vdict = {   'R0':       'Basic Reproduction Number ($R_0$)',
             'r':        'Dispersion'
         }
 
+population = {
+        'canada':      37057765,
+        'china':       1392730000,
+        'france':      66977107,
+        'germany':     82905782,
+        'italy':       60421760,
+        'japan':       126529100,
+        'russia':      144478050,
+        'switzerland': 8513227,
+        'uk':          66460344,
+        'us':          326687501
+        }
+
 model_names = {
         'country.reparam.sirdelay_int.nbin':'SIRD',
         'country.reparam.seirdelay_int.nbin':'SEIRD',

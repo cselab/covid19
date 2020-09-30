@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-d="./data_0.7_10_1_delay"
+d="./data_0.5_10_1_delay"
 
 outdir="${d}/result/"
 mkdir -p $outdir

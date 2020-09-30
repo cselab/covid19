@@ -63,56 +63,6 @@ def getSamples(resfiles, par):
   return parsamples
 
 
-def getEvidence(resfiles):
-  evidence = []
-  for m, file in resfiles:
-    with open(file) as f:
-      r = json.load(f)
-    
-      e = r['Solver']['LogEvidence']
-      evidence.append( (m, e) )
-
-  return evidence
-
-def getVariance(resfiles):
-  variance = []
-  for m, file in resfiles:
-    with open(file) as f:
-      r = json.load(f)
-    
-      e = r['Solver']['LogEvidence Var']
-      variance.append( (m, e) )
-
-  return variance
-
-
-def computeProbabilities(evidence):
-    maxlogevidence = -999999999999
-    for m, e in evidence:
-        if e > maxlogevidence:
-            maxlogevidence = e
-
-    evidence = [(m, np.exp(e - maxlogevidence)) for m, e in evidence]
- 
-    sumevidence = 0.0
-    for m, e in evidence:
-        sumevidence += e
-
-    ps = [(m, e/sumevidence) for m, e in evidence]
-    return ps
-
-
-def getBestLLk(resfiles):
-  best = []
-  for m, file in resfiles:
-    with open(file) as f:
-      r = json.load(f)
-    
-      e = r['Solver']['Max Evaluation']
-      best.append( (m, e) )
-
-  return best
-
 
 def getStats(samples, pct):
     mean = np.mean(samples)
@@ -121,15 +71,13 @@ def getStats(samples, pct):
     lo = np.quantile(samples,0.5-0.5*pct)
     return (mean, median, hi, lo)
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--src', type=str, help='Directory to traverse and look for result files.', required=True)
     parser.add_argument('--res', type=str, default='_korali_samples', help='Name of sample folders.', required=False)
     parser.add_argument('--par', type=str, help='Name of parameter to analyse.', required=True)
+    parser.add_argument('--out', type=str, default='nested_post.csv', help='Output file.')
     parser.add_argument('--pct', type=float, default=0.95, help='Confidence interval.')
-    parser.add_argument('--out', type=str, default='params.csv', help='Output file.')
     args = parser.parse_args()
 
     dirs = findResults(args.src, args.res)
@@ -137,16 +85,8 @@ if __name__ == '__main__':
     print("{0} results found.".format(len(dirs)))
 
     samples = getSamples(dirs, args.par)
-    stats = [ (m,getStats(s, args.pct)) for m,s in samples]
-
-    evidence = getEvidence(dirs)
-    probs = computeProbabilities(evidence)
-    variance = getVariance(dirs)
-    best = getBestLLk(dirs)
-
-    out = joinres(evidence, best, stats, probs, variance)
-    
-    df = pd.DataFrame(out,columns=["model", "values"])
-    df3 = pd.DataFrame(df["values"].tolist(), columns=['evidence', 'variance', 'prob', 'best', 'mean', 'median', 'high', 'low'], index=df.model)
-    print(df3)
-    df3.to_csv(args.out, index=True, header=True)
+    stats = [ (m,getStats(s, 0.95)) for m,s in samples ]
+    print(stats)
+    df = pd.DataFrame(stats,columns=["mean", "median", "high", "low"])
+    print(df)
+    df.to_csv(args.out, index=True, header=True)
