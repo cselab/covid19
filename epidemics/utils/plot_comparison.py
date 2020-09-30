@@ -32,12 +32,12 @@ tags = {'australia':   'AU',
         'us':          'US'
         }
 
-vdict = {   'R0':       'Basic Reproduction Number (R0)',
+vdict = {   'R0':       'Basic Reproduction Number ($R_0$)',
             'D':        'Symptomatic Infectious Period (D)',
             'Y':        'Presymptomatic Infectious Period (Y)',
             'Z':        'Latency Period (Z)',
-            'Zl':       'Latency Period \n (before Presymptomatic) (Z)',
-            'alpha':    r'Reporting Rate ($\alpha$)',
+            'Zl':       'Latency Period \n (before Presymptomatic) ($Z_P$)',
+            'alpha':    'Reporting Rate ($\alpha$)',
             'eps':      'Mortality Rate (f)',
             'mu':       'Reduction Factor ($\mu$)',
             'kbeta':    'Intervention Reduction Factor',
@@ -45,8 +45,8 @@ vdict = {   'R0':       'Basic Reproduction Number (R0)',
             'dtact':    'Intervention Duration',
             'delay':    'Isolation Period',
             'R0_after': 'Basic Reproduction Number \n After Intervention',
-            'Re':       'Effective Reproduction Number (Re)'
-
+            'Re':       'Effective Reproduction Number ($R_e$)',
+            'r':        'Dispersion'
         }
 
 model_names = {

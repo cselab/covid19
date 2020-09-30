@@ -1,15 +1,15 @@
 #!/bin/bash
 
-base='/scratch/wadaniel/covid19/data/delay'
+base='/scratch/wadaniel/covid19/data/preprocess'
 outdir='./plots/'
 
-mkdir -p $outdir
+mkdir -p ${outdir}/posteriors
 
 
 python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
     -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
     -m "country.reparam.sirdelay_int.nbin" "country.reparam.seirdelay_int.nbin" "country.reparam.seiirdelay_int.nbin" \
-    -v "delay" "tact" "dtact"
+    -v "r" "delay" "tact" "dtact"
 
 exit
 

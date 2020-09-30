@@ -3,10 +3,10 @@
 source ../countries.sh
 
 
-for i in {3..3}
+for i in {1..1}
 do
-    base="/scratch/wadaniel/covid19/data/delay/run_${i}"
-    outdir="./result/evidence"
+    base="/scratch/wadaniel/covid19/data/stat/run_${i}"
+    outdir="./result/stat/evidence"
 
     mkdir -p $outdir
     for c in "${countries[@]}"

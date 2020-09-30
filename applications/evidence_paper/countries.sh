@@ -20,5 +20,3 @@ declare -a countries=(
 "uk"
 "us"
 )
-
-

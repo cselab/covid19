@@ -12,8 +12,7 @@ declare -a models=(
 
 for i in {1..1}
 do
-
-    base="/scratch/${name}/covid19/data/preprocess"
+    base="/scratch/${name}/covid19/data/test/run_${i}/"
 
     for model in "${models[@]}"
     do
