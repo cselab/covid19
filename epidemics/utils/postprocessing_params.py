@@ -69,7 +69,7 @@ def getStats(model, samples, pct):
     median = np.quantile(samples,0.5)
     hi = np.quantile(samples,0.5+0.5*pct)
     lo = np.quantile(samples,0.5-0.5*pct)
-    return (model, mean, median, hi, lo)
+    return (model, mean, median, lo, hi)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -91,6 +91,6 @@ if __name__ == '__main__':
 
         samples = getSamples(dirs, p)
         stats = [ getStats(m, s, args.pct) for m,s in samples ]
-        df = pd.DataFrame(stats,columns=["model", "mean", "median", "high", "low"])
+        df = pd.DataFrame(stats,columns=["model", "mean", "median", "low", "high"])
         print(df)
         df.to_csv(outfile, index=True, header=True)

@@ -5,7 +5,7 @@ python3 ../../../epidemics/utils/plot_propagation.py \
     --models "country.reparam.sirdelay_int.nbin" "country.reparam.saphiredelay_int.nbin" "country.reparam.seirdelay_int.nbin" \
       "country.reparam.seirudelay_int.nbin" "country.reparam.seiirdelay_int.nbin"  \
     --countries "us" \
-    -sd "./result"
+    -sd "./propagate_plots"
 
 
 # python3 ../../../epidemics/utils/plot_propagation.py \

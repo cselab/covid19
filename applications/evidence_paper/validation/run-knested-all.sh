@@ -1,7 +1,7 @@
  #!/bin/bash
 
 declare -a arr=(
-#"seirdelay_int"
+"seirdelay_int"
 "seiirdelay_int"
 "saphiredelay_int"
 "seirudelay_int"
@@ -22,11 +22,12 @@ for i0 in "${ic[@]}"
 do
 
 
-base="./data_${a}_${i0}_${d}_delay/"
+base="./data_${a}_${i0}_${d}_3.7_delay/"
 mkdir -p ${base}
 
 #PYTHONPATH=../../../build:$PYTHONPATH python3 make_synthetic_with_deaths.py \
-#    -D 3.7 -Z 3.7 -Zl 0.423 -Y 2.2 -mu 0.4 -I0 ${i0} -alpha ${a} \
+#    -D 3.7 -Z 3.7 -Zl 0.423 -Y 2.2 -mu 0.4 -I0 ${i0} -alpha ${a} -delay 14 \
+#    -r0sir 2.25 -r0seir 4.0 -r0seiir 7.0 -r0saphire 1.25 -r0seiru 2.25 -delay 14 \ #defaults?
 #    -dispersion ${d}
 
 PYTHONPATH=../../../build:$PYTHONPATH python3 make_synthetic_with_deaths.py \

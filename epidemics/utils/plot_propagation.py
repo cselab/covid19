@@ -14,7 +14,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.patches as mpatches
 
-tags = {'australia':   'AU',
+tags = {
         'canada':      'CA',
         'china':       'CN',
         'france':      'FR',
@@ -22,11 +22,22 @@ tags = {'australia':   'AU',
         'italy':       'IT',
         'japan':       'JP',
         'russia':      'RU',
-        'south korea': 'KR',
-        'spain':       'ES',
         'switzerland': 'CH',
         'uk':          'UK',
         'us':          'US'
+        }
+
+population = {
+        'canada':      37057765,
+        'china':       1392730000,
+        'france':      66977107,
+        'germany':     82905782,
+        'italy':       60421760,
+        'japan':       126529100,
+        'russia':      144478050,
+        'switzerland': 8513227,
+        'uk':          66460344,
+        'us':          326687501
         }
 
 vdict = {   'R0':       'Basic Reproduction Number (R0)',
@@ -96,13 +107,12 @@ def setup_axis(ax):
 def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndraws=5):
     # models = [model.replace('country.reparam.','') for model in models]
     # models = [model.replace('_int','') for model in models]
-  
 
     med_width_factor = 2
 
     plot_mean    = False
     plot_medians = True
-
+    cumulative_pct = True
 
     fig = plt.figure(figsize=(8, 12))
 
@@ -150,6 +160,9 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             mid   = int(ndata/2)
         incidences = refdata[:mid] 
         incidences_cum = np.cumsum(incidences)
+        if cumulative_pct:
+            incidences_cum = incidences_cum/population[country]
+            
         deaths = refdata[mid:] 
         deaths_cum = np.cumsum(deaths)
 
@@ -214,6 +227,10 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             all_incidence_cum  = np.cumsum(all_incidence, axis=1)
             all_deaths_cum     = np.cumsum(all_deaths, axis=1)
 
+
+            if cumulative_pct:
+                all_incidence_cum = all_incidence_cum/population[country]
+
             meani, mediani, quanti    = get_stat(all_incidence, nt, pct)
             meanic, medianic, quantic = get_stat(all_incidence_cum, nt, pct)
             meand, mediand, quantd    = get_stat(all_deaths, nt, pct)
@@ -238,6 +255,10 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
 
             if plotUnreported:
                 all_unreported_cum        = np.cumsum(all_unreported, axis=1)
+ 
+                if cumulative_pct:
+                    all_unreported_cum = all_unreported_cum/population[country]
+
                 meanu, medianu, quantu    = get_stat(all_unreported, nt, pct)
                 meanuc, medianuc, quantuc = get_stat(all_unreported_cum, nt, pct)
                
@@ -284,7 +305,8 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
       fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1)
+    #plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1)
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1, hspace=0.25)
 
     if len(country) > 2:
         suptitle = '{}'.format(country.capitalize())
@@ -292,7 +314,6 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
         suptitle = '{}'.format(country.upper())
     plt.suptitle(suptitle,fontsize=fontsize,fontweight='bold')
 
-    output = output+'/_figures/'
     create_folder(output)
     model_str = '-'.join(tags)
     plot = output+"/propagation_{}_{}.pdf".format(country, model_str)

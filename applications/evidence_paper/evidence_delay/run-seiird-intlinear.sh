@@ -4,7 +4,7 @@ msg="0.01 ppm, informed priors, delay, preprocess, propagate ciu cir"
 pushd ..
 
 #source countries.sh
-countries=("uk" "switzerland")
+countries=("us")
 name=`whoami`
 
 declare -a models=(
