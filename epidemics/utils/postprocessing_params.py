@@ -87,10 +87,10 @@ if __name__ == '__main__':
     params = args.pars
     for p in params:
         outfile="{0}/param_{1}.csv".format(args.out, p)
-        print("\n\tAnalyzing param {0}..".format(p))
+        print("\n\tAnalyzing param {0}.. ({1}%-CI)".format(p, args.pct))
 
         samples = getSamples(dirs, p)
-        stats = [ getStats(m, s, 0.95) for m,s in samples ]
+        stats = [ getStats(m, s, args.pct) for m,s in samples ]
         df = pd.DataFrame(stats,columns=["model", "mean", "median", "high", "low"])
         print(df)
         df.to_csv(outfile, index=True, header=True)
