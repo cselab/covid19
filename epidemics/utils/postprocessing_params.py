@@ -64,29 +64,33 @@ def getSamples(resfiles, par):
 
 
 
-def getStats(samples, pct):
+def getStats(model, samples, pct):
     mean = np.mean(samples)
     median = np.quantile(samples,0.5)
     hi = np.quantile(samples,0.5+0.5*pct)
     lo = np.quantile(samples,0.5-0.5*pct)
-    return (mean, median, hi, lo)
+    return (model, mean, median, hi, lo)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--src', type=str, help='Directory to traverse and look for result files.', required=True)
+    parser.add_argument('--out', type=str, help='Output directory.', required=True)
     parser.add_argument('--res', type=str, default='_korali_samples', help='Name of sample folders.', required=False)
-    parser.add_argument('--par', type=str, help='Name of parameter to analyse.', required=True)
-    parser.add_argument('--out', type=str, default='nested_post.csv', help='Output file.')
-    parser.add_argument('--pct', type=float, default=0.95, help='Confidence interval.')
+    parser.add_argument('--pars', type=str, default=["R0"] , nargs='+', help='List of parameter to analyse.', required=False)
+    parser.add_argument('--pct', type=float, default=0.95, help='Hi/Lo Confidence interval.')
     args = parser.parse_args()
 
     dirs = findResults(args.src, args.res)
     print("Processing {0}..".format(args.src))
     print("{0} results found.".format(len(dirs)))
 
-    samples = getSamples(dirs, args.par)
-    stats = [ (m,getStats(s, 0.95)) for m,s in samples ]
-    print(stats)
-    df = pd.DataFrame(stats,columns=["mean", "median", "high", "low"])
-    print(df)
-    df.to_csv(args.out, index=True, header=True)
+    params = args.pars
+    for p in params:
+        outfile="{0}/param_{1}.csv".format(args.out, p)
+        print("\n\tAnalyzing param {0}..".format(p))
+
+        samples = getSamples(dirs, p)
+        stats = [ getStats(m, s, 0.95) for m,s in samples ]
+        df = pd.DataFrame(stats,columns=["model", "mean", "median", "high", "low"])
+        print(df)
+        df.to_csv(outfile, index=True, header=True)

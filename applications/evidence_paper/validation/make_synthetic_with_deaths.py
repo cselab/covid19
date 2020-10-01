@@ -346,7 +346,7 @@ if __name__ == "__main__":
     makefile("seirdelay_int_rnd.txt", "Synthetic SEIRD Rnd", N, seird_infected_rnd)
     
     # SEIIRD
-    seiird_res = seiird2_int((S0_seiir, E0_seiir, Ir0, Iu0, R0, D0), teval, N, p_seiird)
+    seiird_res = seiird2_int((S0_seiir, E0_seiir, Ir0, Iu0, R0, D0, 0., 0.), teval, N, p_seiird)
     plot(seiird_res, "SEIIRD_raw")
     makefile("seiirdelay_int_raw.txt", "Synthetic SEIIRD Raw", N, seiird_res)
 
@@ -355,7 +355,7 @@ if __name__ == "__main__":
     makefile("seiirdelay_int_rnd.txt", "Synthetic SEIIRD Rnd", N, seiird_res_rnd)
 
     # SAPHIRE 
-    saphire_res = saphire_int((S0_saphire, E0_saphire, P0_saphire, Ir0, Iu0, R0, D0), teval, N, p_saphire)
+    saphire_res = saphire_int((S0_saphire, E0_saphire, P0_saphire, Ir0, Iu0, R0, D0, 0., 0.), teval, N, p_saphire)
     plot(saphire_res, "SAPHIRE_raw")
     makefile("saphiredelay_int_raw.txt", "Synthetic SAPHIRE Raw", N, saphire_res)
 

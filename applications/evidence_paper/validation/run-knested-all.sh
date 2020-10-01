@@ -35,6 +35,7 @@ PYTHONPATH=../../../build:$PYTHONPATH python3 make_synthetic_with_deaths.py \
     -dispersion ${d}
 
 cp ./data/*.txt ${base}
+cp ./figures/*.png ${base}
 for model in "${arr[@]}"
 do
 
