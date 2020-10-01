@@ -104,32 +104,11 @@ def create_folder(name):
 
 def get_samples_data(path):
 
-    configFile = path + '/gen00000000.json'
+    configFile = path + '/latest'
 
-    with open(configFile) as f: js = json.load(f)
-    configRunId = js['Run ID']
-
-    resultFiles = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.startswith('gen')]
-    resultFiles = sorted(resultFiles)
-
-    genList = { } 
-
-    for file in resultFiles:
-        with open(path + '/' + file) as f:
-            genJs = json.load(f)
-            solverRunId = genJs['Run ID']
-
-        if (configRunId == solverRunId):
-            curGen = genJs['Current Generation']
-            genList[curGen] = genJs
-    del genList[0]
-
-    lastGen = 0
-    for i in genList: 
-     if genList[i]['Current Generation'] > lastGen:
-      lastGen = genList[i]['Current Generation']
-
-    return genList[lastGen]
+    with open(configFile) as f: 
+        js = json.load(f)
+        return js
 
 def plot_histogram(ax,ax_i,ax_j,theta,var_idx):
     dim = theta.shape[1]
@@ -184,12 +163,12 @@ def get_data(folder,models,countries,variable,get_prior_data=True):
     for model in models:
 
         print(model)
-        countries_folders = [folder+'/'+country+'/'+model+ '/_korali_samples' for country in countries]
+        countries_folders = [folder+'/'+country+'/'+model+'/_korali_samples' for country in countries]
         n_countries = len(countries)
 
         ref_data = get_samples_data(countries_folders[0])
         variables = [ref_data['Variables'][i]['Name'] for i in range(len(ref_data['Variables']))]
-        print('Variables: {}'.format(variables))
+        print('Variables found in results: {}'.format(variables))
 
         if variable == 'R0_after':
             get_prior_data = False
@@ -371,9 +350,9 @@ def plot_violin_style(data,save_dir):
     set_axis_style(ax, x_labels)
     plt.ylabel(variable)
 
-    create_folder(save_dir+'/_figures/')
-    print("Creating output {}".format(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'))
-    plt.savefig(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'_violin.pdf')
+    create_folder(save_dir)
+    print("Creating output {}".format(save_dir+'/'+variable+'_'+'-'.join(unique)+'.pdf'))
+    plt.savefig(save_dir+'/'+variable+'_'+'-'.join(unique)+'_violin.pdf')
 
 
 
@@ -485,9 +464,9 @@ def plot_ridge_style(data,save_dir,plot_prior=True):
           fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
     plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.08)
 
-    create_folder(save_dir+'/_figures/')
-    print("Creating output {}".format(save_dir+'/_figures/'+variable+'_'+'-'.join(unique)+'.pdf'))
-    plt.savefig(save_dir+'/posteriors/'+variable+'_'+'-'.join(unique)+'_ridge.pdf')
+    create_folder(save_dir)
+    print("Creating output {}".format(save_dir+'/'+variable+'_'+'-'.join(unique)+'.pdf'))
+    plt.savefig(save_dir+'/'+variable+'_'+'-'.join(unique)+'_ridge.pdf')
 
 
 if __name__ == "__main__":  
@@ -496,8 +475,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--folder', '-df', default='./data', help='Main results folder')
-    parser.add_argument('--models', '-m', default='country.reparam.sir_int.nbin', type=str, nargs='+', help='Model type')
-    parser.add_argument('--variables', '-v', default='R0', type=str, nargs='+', help='Model type')
+    parser.add_argument('--models', '-m', default=['country.reparam.sirdelay_int.nbin'], type=str, nargs='+', help='Model type')
+    parser.add_argument('--variables', '-v', default=['R0'], type=str, nargs='+', help='Model type')
     parser.add_argument('--countries', '-c', default=['canada'], type=str, nargs='+', help='Model type')
     parser.add_argument('--save_dir', '-sd', default='./', help='Model type')
 

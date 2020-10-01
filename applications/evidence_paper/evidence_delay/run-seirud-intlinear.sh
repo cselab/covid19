@@ -4,6 +4,7 @@ msg="0.01 ppm, informed priors, delay, preprocess"
 pushd ..
 
 source countries.sh
+countries=("russia")
 name=`whoami`
 
 declare -a models=(
@@ -12,7 +13,7 @@ declare -a models=(
 
 for i in {1..1}
 do
-    base="/scratch/${name}/covid19/data/test2/run_${i}/"
+    base="/scratch/${name}/covid19/data/preprocess/"
     
     for model in "${models[@]}"
     do
