@@ -40,23 +40,6 @@ population = {
         'us':          326687501
         }
 
-vdict = {   'R0':       'Basic Reproduction Number (R0)',
-            'D':        'Symptomatic Infectious Period (D)',
-            'Y':        'Presymptomatic Infectious Period (Y)',
-            'Z':        'Latency Period (Z)',
-            'Zl':       'Latency Period \n (before Presymptomatic) (Z)',
-            'alpha':    r'Reporting Rate ($\alpha$)',
-            'eps':      'Mortality Rate (f)',
-            'mu':       'Reduction Factor ($\mu$)',
-            'kbeta':    'Intervention Reduction Factor',
-            'tact':     'Intervention Time',
-            'dtact':    'Intervention Duration',
-            'delay':    'Isolation Period',
-            'R0_after': 'Basic Reproduction Number \n After Intervention',
-            'Re':       'Effective Reproduction Number (Re)'
-
-        }
-
 model_names = {
         'country.reparam.sirdelay_int.nbin':'SIRD',
         'country.reparam.seirdelay_int.nbin':'SEIRD',
@@ -112,7 +95,7 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
 
     plot_mean    = False
     plot_medians = True
-    cumulative_pct = True
+    cumulative_pct = False
 
     fig = plt.figure(figsize=(8, 12))
 

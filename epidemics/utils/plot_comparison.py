@@ -40,13 +40,13 @@ vdict = {   'R0':       r'Basic Reproduction Number ($R_0$)',
             'alpha':    r'Reporting Rate ($\alpha$)',
             'eps':      'Mortality Rate (f)',
             'mu':       r'Reduction Factor ($\mu$)',
-            'kbeta':    'Intervention Reduction Factor',
-            'tact':     'Intervention Time',
-            'dtact':    'Intervention Duration',
-            'delay':    'Isolation Period',
-            'R0_after': 'Basic Reproduction Number \n After Intervention',
+            'kbeta':    'Intervention Reduction Factor ($k_{int}$)',
+            'tact':     'Intervention Time ($t_{int}$)',
+            'dtact':    'Intervention Duration ($\delta_{int}$)',
+            'delay':    'Delayed Death ($\Delta$T)',
+            'R0_after': 'Reproduction Number \n After Intervention',
             'Re':       r'Effective Reproduction Number ($R_e$)',
-            'r':        'Dispersion'
+            'r':        'Dispersion (r)'
         }
 
 model_names = {
