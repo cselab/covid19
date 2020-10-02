@@ -305,7 +305,6 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
       fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
-    #plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1)
     plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1, hspace=0.25)
 
     if len(country) > 2:

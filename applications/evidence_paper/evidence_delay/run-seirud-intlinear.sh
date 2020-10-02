@@ -1,9 +1,9 @@
  #!/bin/bash
 
-msg="0.01 ppm, informed priors, delay, preprocess"
+msg="0.01 ppm, informed priors, delay, preprocess, use interventions"
 pushd ..
 
-source countries.sh
+#source countries.sh
 countries=("russia")
 name=`whoami`
 
@@ -13,7 +13,7 @@ declare -a models=(
 
 for i in {1..1}
 do
-    base="/scratch/${name}/covid19/data/preprocess/"
+    base="/scratch/${name}/covid19/data/uint/run_${i}/"
     
     for model in "${models[@]}"
     do
@@ -24,7 +24,7 @@ do
 
             outfile=${folder}/knested.out
             time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_knested.py \
-                --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -ui -ud -uip -bs 8 -nt 8 -df $base -m "${msg}" \
+                --silentPlot -ns 1500 -dlz 0.1 -cm ${model} -c "$c" -uint -ui -ud -uip -bs 8 -nt 8 -df $base -m "${msg}" \
                 2>&1 | tee "${outfile}"
 
             python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
@@ -35,4 +35,5 @@ do
     done
 
 done
+
 popd
