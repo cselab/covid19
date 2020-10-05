@@ -115,22 +115,22 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     deaths = []
     deaths_cum = []
  
-    ax_daily_incidence.set_title('Daily reported infections',fontsize=fontsize)
+    ax_daily_incidence.set_title('Daily reported infections',fontsize=fontsize, pad=15)
     setup_axis(ax_daily_incidence)
 
-    ax_cumul_incidence.set_title('Cumulative reported infections',fontsize=fontsize)
+    ax_cumul_incidence.set_title('Cumulative reported infections',fontsize=fontsize, pad=15)
     setup_axis(ax_cumul_incidence)
 
-    ax_daily_unreported.set_title('Daily unreported infections',fontsize=fontsize)
+    ax_daily_unreported.set_title('Daily unreported infections',fontsize=fontsize, pad=15)
     setup_axis(ax_daily_unreported)
 
-    ax_cumul_unreported.set_title('Cumulative unreported infections',fontsize=fontsize)
+    ax_cumul_unreported.set_title('Cumulative unreported infections',fontsize=fontsize,pad=15)
     setup_axis(ax_cumul_unreported)
 
-    ax_daily_deaths.set_title('Daily deaths',fontsize=fontsize)
+    ax_daily_deaths.set_title('Daily deaths',fontsize=fontsize,pad=15)
     setup_axis(ax_daily_deaths)
 
-    ax_cumul_deaths.set_title('Cumulative deaths',fontsize=fontsize)
+    ax_cumul_deaths.set_title('Cumulative deaths',fontsize=fontsize, pad=15)
     setup_axis(ax_cumul_deaths)
 
     mid = 0 # last entry for incidence (mid of ref data)
@@ -288,7 +288,7 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             
             ax_cumul_unreported.set_xticks([0, 30, 60, 90, 120])
             ax_cumul_unreported.set_xlim(xmin=0.0, xmax=mid)
-            
+ 
             ax_daily_deaths.set_xticks([0, 30, 60, 90, 120])
             ax_daily_deaths.set_xlim(xmin=0.0, xmax=mid)
             
@@ -305,13 +305,14 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
       fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1, wspace=0.25, hspace=0.25)
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.90, bottom=0.1, wspace=0.27, hspace=0.25)
 
     if len(country) > 2:
         suptitle = '{}'.format(country.capitalize())
     else:
         suptitle = '{}'.format(country.upper())
     plt.suptitle(suptitle,fontsize=fontsize,fontweight='bold')
+ 
 
     create_folder(output)
     model_str = '-'.join(tags)
