@@ -5,8 +5,8 @@ source ../countries.sh
 
 for i in {1..1}
 do
-    base="/scratch/wadaniel/covid19/data/stat/run_${i}"
-    outdir="./result/stat/evidence"
+    base="/scratch/wadaniel/covid19/data/preprocess"
+    outdir="./evidence_preprocess"
 
     mkdir -p $outdir
     for c in "${countries[@]}"

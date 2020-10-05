@@ -133,6 +133,7 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     ax_cumul_deaths.set_title('Cumulative deaths',fontsize=fontsize)
     setup_axis(ax_cumul_deaths)
 
+    mid = 0 # last entry for incidence (mid of ref data)
     with open(samplespath) as f: 
         genJs   = json.load(f)
         refdata = np.array(genJs["Problem"]["Reference Data"])
@@ -148,12 +149,7 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             
         deaths = refdata[mid:] 
         deaths_cum = np.cumsum(deaths)
-
-        ax_daily_incidence.plot( range(len(incidences)), incidences, 'o', markersize=2, color='black')
-        ax_cumul_incidence.plot( range(len(incidences_cum)), incidences_cum, 'o', markersize=2, color='black')
-        ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, color='black')
-        ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
-            
+           
 
     labels = []
     tags = [model_names[model] for model in models]
@@ -234,7 +230,6 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
                 
                 ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[model_tag])
                 ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[model_tag])
-            
 
             if plotUnreported:
                 all_unreported_cum        = np.cumsum(all_unreported, axis=1)
@@ -277,7 +272,21 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             _, icmax = ax_cumul_incidence.get_ylim()
             _, ucmax = ax_cumul_unreported.get_ylim()
             iucmax = max(icmax, ucmax)
+ 
+            ax_daily_incidence.plot( range(len(incidences)), incidences, 'o', markersize=2, color='black')
+            ax_cumul_incidence.plot( range(len(incidences_cum)), incidences_cum, 'o', markersize=2, color='black')
+            ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, color='black')
+            ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
+ 
+            ax_daily_incidence.set_xlim(xmin=0.0, xmax=mid)
+            ax_daily_unreported.set_xlim(xmin=0.0, xmax=mid)
 
+            ax_cumul_incidence.set_xlim(xmin=0.0, xmax=mid)
+            ax_cumul_unreported.set_xlim(xmin=0.0, xmax=mid)
+            
+            ax_daily_deaths.set_xlim(xmin=0.0, xmax=mid)
+            ax_cumul_deaths.set_xlim(xmin=0.0, xmax=mid)
+            
             # ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
             # #ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
             
