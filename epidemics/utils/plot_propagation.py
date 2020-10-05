@@ -149,7 +149,6 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             
         deaths = refdata[mid:] 
         deaths_cum = np.cumsum(deaths)
-           
 
     labels = []
     tags = [model_names[model] for model in models]
@@ -278,13 +277,22 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, color='black')
             ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
  
+            ax_daily_incidence.set_xticks([0, 30, 60, 90, 120])
             ax_daily_incidence.set_xlim(xmin=0.0, xmax=mid)
+            
+            ax_daily_unreported.set_xticks([0, 30, 60, 90, 120])
             ax_daily_unreported.set_xlim(xmin=0.0, xmax=mid)
 
+            ax_cumul_incidence.set_xticks([0, 30, 60, 90, 120])
             ax_cumul_incidence.set_xlim(xmin=0.0, xmax=mid)
+            
+            ax_cumul_unreported.set_xticks([0, 30, 60, 90, 120])
             ax_cumul_unreported.set_xlim(xmin=0.0, xmax=mid)
             
+            ax_daily_deaths.set_xticks([0, 30, 60, 90, 120])
             ax_daily_deaths.set_xlim(xmin=0.0, xmax=mid)
+            
+            ax_cumul_deaths.set_xticks([0, 30, 60, 90, 120])
             ax_cumul_deaths.set_xlim(xmin=0.0, xmax=mid)
             
             # ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
@@ -297,7 +305,7 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
     
     plt.legend(*zip(*labels),loc='upper center', bbox_to_anchor=(-0.1, -0.15),
       fancybox=False, shadow=False, ncol=3,frameon=False,fontsize='x-large')
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1, hspace=0.25)
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.92, bottom=0.1, wspace=0.25, hspace=0.25)
 
     if len(country) > 2:
         suptitle = '{}'.format(country.capitalize())
