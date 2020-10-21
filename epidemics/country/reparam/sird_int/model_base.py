@@ -35,15 +35,17 @@ class ModelBase( EpidemicsCountry ):
     infected   = np.zeros(len(cpp_res))
     recovered  = np.zeros(len(cpp_res))
     deaths     = np.zeros(len(cpp_res))
-    gradmu   = []
-    gradsig  = []
+    gradinfected = []
+    graddeaths = []
+    gradsig    = []
 
     for idx,entry in enumerate(cpp_res):
         if(self.sampler == 'mTMCMC' or self.sampler=='HMC'):
             infected[idx]  = N-entry.S().val()
             recovered[idx] = entry.R().val()
             deaths[idx]    = entry.D().val()
-            gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), 0.0 ])) 
+            gradinfected.append(np.array([ -entry.S().d(0), -entry.S().d(1), 0.0 ])) 
+            graddeaths.append(np.array([ entry.D().d(0), entry.D().d(1), 0.0 ])) 
             gradsig.append(np.array([ 0.0, 0.0, 1.0 ]))
 
         else:
@@ -60,7 +62,7 @@ class ModelBase( EpidemicsCountry ):
     sol.y = infected
     sol.r = recovered
     sol.d = deaths
-    sol.gradMu  = gradmu
+    sol.gradMu  = gradinfected
     sol.gradSig = gradsig
  
     return sol
