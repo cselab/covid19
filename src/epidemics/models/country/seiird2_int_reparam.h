@@ -22,10 +22,10 @@ struct Parameters {
     T kbeta;  /// Multiplicator beta after intervention.
 };
 
-/// SEIIR state has 6 elements: S, E, Ir, Iu, R, D.
+/// SEIIR state has 6+2 elements: S, E, Ir, Iu, R, D, Cir and Cur.
 template <typename T>
-struct State : StateBase<T, 6> {
-    using StateBase<T, 6>::StateBase;
+struct State : StateBase<T, 8> {
+    using StateBase<T, 8>::StateBase;
 
     T &S()  { return this->v_[0]; }
     T &E()  { return this->v_[1]; }
@@ -33,6 +33,8 @@ struct State : StateBase<T, 6> {
     T &Iu() { return this->v_[3]; }
     T &R()  { return this->v_[4]; }
     T &D()  { return this->v_[5]; }
+    T &Cir()  { return this->v_[6]; }
+    T &Ciu()  { return this->v_[7]; }
 
     const T &S()  const { return this->v_[0]; }
     const T &E()  const { return this->v_[1]; }
@@ -40,6 +42,8 @@ struct State : StateBase<T, 6> {
     const T &Iu() const { return this->v_[3]; }
     const T &R()  const { return this->v_[4]; }
     const T &D()  const { return this->v_[5]; }
+    const T &Cir() const { return this->v_[6]; }
+    const T &Ciu() const { return this->v_[7]; }
 };
 
 struct Solver : SolverBase<Solver, State, Parameters> {
@@ -72,6 +76,9 @@ struct Solver : SolverBase<Solver, State, Parameters> {
         dxdt.Iu() = C4 - C6;
         dxdt.R()  = (1.0-p.eps)*C5 + C6;
         dxdt.D()  = p.eps*C5;
+        
+        dxdt.Cir() = C1;
+        dxdt.Ciu() = C2;
     }
 };
 

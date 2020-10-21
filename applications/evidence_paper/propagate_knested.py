@@ -19,7 +19,7 @@ parser.add_argument('--country', '-c', default='switzerland', help='Country from
 parser.add_argument('--nSamples', '-ns', type=int, default=1000, help='Number of Live Samples.')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--nGenerations', '-ng', type=int, default=20, help='Maximum number of generations.')
-parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate that many days in future, after the time of observation of the last data.')
+parser.add_argument('--futureDays', '-fd', type=int, default=0, help='Propagate that many days in future, after the time of observation of the last data.')
 parser.add_argument('--nValidation', '-nv', type=int, default=0, help='Use that many data from the end of the data list to validate the prediction.')
 parser.add_argument('--percentages', '-p', nargs='+', type=float, default=[0.5, 0.95, 0.99], help='Percentages for confidence intervals.')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')

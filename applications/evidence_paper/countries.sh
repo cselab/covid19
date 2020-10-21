@@ -1,6 +1,13 @@
 #!/bin/bash
 
 # g7 + russia + china + switzerland
+#declare -a countries=(
+#"france"
+#"switzerland"
+#"uk"
+#"us"
+#)
+
 declare -a countries=(
 "canada"
 "china"
@@ -13,5 +20,3 @@ declare -a countries=(
 "uk"
 "us"
 )
-
-

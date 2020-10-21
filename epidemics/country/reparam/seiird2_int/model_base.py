@@ -42,12 +42,17 @@ class ModelBase( EpidemicsCountry ):
     recovered = np.zeros(len(cpp_res))
     deaths    = np.zeros(len(cpp_res))
 
+    cir = np.zeros(len(cpp_res))
+    ciu = np.zeros(len(cpp_res))
+
     for idx,entry in enumerate(cpp_res):
         exposed[idx]   = N-entry.S()
         infected[idx]  = N-entry.S()-entry.E()-entry.Iu()
         infectedu[idx] = N-entry.S()-entry.E()-entry.Ir()
         recovered[idx] = entry.R()
         deaths[idx]    = entry.D()
+        cir[idx] = entry.Cir()
+        ciu[idx] = entry.iu()
         
  
     infected[np.isnan(infected)] = 0
@@ -60,5 +65,7 @@ class ModelBase( EpidemicsCountry ):
     sol.e  = exposed
     sol.r  = recovered
     sol.d  = deaths
+    sol.cir = cir
+    sol.ciu = ciu
  
     return sol

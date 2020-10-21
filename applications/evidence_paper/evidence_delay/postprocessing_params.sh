@@ -1,41 +1,13 @@
 #!/bin/bash
 
-base='/scratch/wadaniel/covid19/data/delay'
-outdir='./plots/'
+#base='/scratch/wadaniel/covid19/data/uint/run_1'
+base='/scratch/wadaniel/covid19/data/preprocess'
 
-mkdir -p $outdir
+source ../countries.sh
 
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.sirdelay_int.nbin" "country.reparam.seirdelay_int.nbin" "country.reparam.seiirdelay_int.nbin" \
-    -v "R0" "D" "eps" "delay"
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.sirdelay_int.nbin" "country.reparam.saphiredelay_int.nbin" "country.reparam.seirudelay_int.nbin" \
-    -v "R0" "D" "eps" "delay"
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.seirdelay_int.nbin" "country.reparam.seiirdelay_int.nbin" \
-    -v "Z"
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.seirudelay_int.nbin" "country.reparam.saphiredelay_int.nbin" \
-    -v "Zl"
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.seirudelay_int.nbin" "country.reparam.saphiredelay_int.nbin" \
-    -v "Y" 
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.seiirdelay_int.nbin" "country.reparam.seirudelay_int.nbin" "country.reparam.saphiredelay_int.nbin" \
-    -v "alpha" 
-
-python  ../../../epidemics/utils/plot_comparison.py -df "$base" -sd $outdir \
-    -c "canada" "china" "france" "germany" "italy" "japan" "russia" "switzerland" "uk" "us" \
-    -m "country.reparam.seiirdelay_int.nbin" "country.reparam.saphiredelay_int.nbin" \
-    -v "mu" 
+for c in "${countries[@]}"
+do  
+    outdir="./params_preprocess/${c}"
+    mkdir -p ${outdir}
+    python3 ./../../../epidemics/utils/postprocessing_params.py --src "${base}/${c}/" --par R0 D Z Zl Y alpha mu --out "${outdir}"
+done

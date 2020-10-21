@@ -31,7 +31,7 @@ class ModelBase( EpidemicsCountry ):
     e0 = beta*p[2]*i0
     s0 = s0 - e0 - iu0
  
-    y0cpp  = (s0, e0, ir0, iu0, 0.0, 0.0) # S E Ir Iu  R D
+    y0cpp  = (s0, e0, ir0, iu0, 0.0, 0.0, 0.0, 0.0) # S E Ir Iu  R D ciu cir
     
     initial = seiird2_int.State(y0cpp)
  
@@ -42,6 +42,9 @@ class ModelBase( EpidemicsCountry ):
     infectedu = np.zeros(len(cpp_res))
     recovered = np.zeros(len(cpp_res))
     deaths    = np.zeros(len(cpp_res))
+    
+    cir = np.zeros(len(cpp_res))
+    ciu = np.zeros(len(cpp_res))
 
     dt = p[9]
     w1 = math.ceil(dt)-dt
@@ -49,14 +52,17 @@ class ModelBase( EpidemicsCountry ):
 
     for idx,entry in enumerate(cpp_res):
         exposed[idx]   = N-entry.S()
-        infected[idx]  = N-entry.S()-entry.E()-entry.Iu()
-        infectedu[idx] = N-entry.S()-entry.E()-entry.Ir()
+        infected[idx]  = (N-entry.S()-entry.E())*p[4]
+        infectedu[idx] = (N-entry.S()-entry.E())*(1-p[4])
         recovered[idx] = entry.R()
-        
+       
         if math.floor(idx+dt) < len(deaths):
             deaths[math.floor(idx+dt)] += w1 * entry.D()
         if math.ceil(idx+dt) < len(deaths):
             deaths[math.ceil(idx+dt)]  += w2 * entry.D()
+  
+        cir[idx] = entry.Cir()
+        ciu[idx] = entry.Ciu()
  
     infected[np.isnan(infected)] = 0
     deaths[np.isnan(deaths)]     = 0
@@ -68,5 +74,8 @@ class ModelBase( EpidemicsCountry ):
     sol.e  = exposed
     sol.r  = recovered
     sol.d  = deaths
+    
+    sol.cir = cir
+    sol.ciu = ciu
  
     return sol
