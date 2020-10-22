@@ -1,10 +1,11 @@
  #!/bin/bash
 
 declare -a arr=(
+"sird_int"
 #"sird_int"
 #"saphired_int"
 #"seiird2_int"
-"seirud_int"
+#"seirud_int"
 )
 
 base="./data/"
@@ -20,6 +21,6 @@ do
   
    folder="${base}/country.reparam.${model}.nbin"
    python3 -m korali.plotter --dir "$folder/_korali_samples"  --output "$folder/figures/samples.png"
-   rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
+   rm -rf "$folder/switzerland/_korali_samples" "$folder/_korali_propagation"
   
 done

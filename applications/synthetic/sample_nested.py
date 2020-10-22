@@ -9,9 +9,9 @@ from epidemics.utils.misc import import_from
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--compModel', '-cm', default='country.sir.tnrm', help='The computational mode.')
-parser.add_argument('--dataFolder', '-df', default='data/', help='Save all results in the folder \'data\\dataFolder\' ')
+parser.add_argument('--dataFolder', '-df', default='data/test', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
-parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for TMCMC.')
+parser.add_argument('--nSamples', '-ns', type=int, default=2000, help='Number of samples for HMC.')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
 parser.add_argument('--nGenerations', '-ng', type=int, default=20, help='Maximum number of generations for CMA-ES.')
 parser.add_argument('--futureDays', '-fd', type=int, default=2, help='Propagate that many days in future, after the time of observation of the last data.')

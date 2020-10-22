@@ -197,6 +197,8 @@ class EpidemicsCountry( EpidemicsBase ):
         gradMu  = self.getCases(gradMu, self.data['Model']['x-infected'])
         gradSig = self.getCases(gradSig, self.data['Model']['x-infected'])
         s["Gradient Mean"] = gradMu
+        #print(gradMu, flush=True)
+        #print(gradSig, flush=True)
         if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
             s["Gradient Standard Deviation"] = gradSig
         elif self.likelihoodModel == 'Negative Binomial':
