@@ -187,22 +187,29 @@ class EpidemicsCountry( EpidemicsBase ):
     # Transform gradients
     if(self.sampler == 'mTMCMC' or self.sampler=='HMC'):
         gradMuCum = sol.gradMu
-        gradSigCum = sol.gradSig
         gradMu  = []
         gradSig = []
+        gradDisp = []
         for idx in range(len(gradMuCum)-1):
             gradMu.append((gradMuCum[idx+1]-gradMuCum[idx]).tolist())
-            gradSig.append((gradSigCum[idx+1]-gradSigCum[idx]).tolist())
+            if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
+                gradSig.append((sol.gradSig[idx+1]-sol.gradSig[idx]).tolist())
+            elif self.likelihoodModel == 'Negative Binomial':
+                dr = [0 for i in range(self.nParameters)]
+                dr[-1] = 1.0
+                gradDisp.append(dr)
         
         gradMu  = self.getCases(gradMu, self.data['Model']['x-infected'])
-        gradSig = self.getCases(gradSig, self.data['Model']['x-infected'])
         s["Gradient Mean"] = gradMu
-        #print(gradMu, flush=True)
-        #print(gradSig, flush=True)
+        #print(gradMu)
         if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
+            gradSig = self.getCases(gradSig, self.data['Model']['x-infected'])
+            #print(gradSig, flush=True)
             s["Gradient Standard Deviation"] = gradSig
         elif self.likelihoodModel == 'Negative Binomial':
-            s["Gradient Dispersion"] = gradSig
+            gradDisp = self.getCases(gradDisp, self.data['Model']['x-infected'])
+            #print(gradDisp, flush=True)
+            s["Gradient Dispersion"] = gradDisp
         else:
             print('Gradients not implemented for other likelihood models', flush=True)
             sys.exit(0)

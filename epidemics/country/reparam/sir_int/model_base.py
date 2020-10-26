@@ -32,21 +32,24 @@ class ModelBase( EpidemicsCountry ):
     recovered  = np.zeros(len(cpp_res))
     gradmu  = []
     gradsig = []
+    graddisp = []
 
     for idx,entry in enumerate(cpp_res):
         infected[idx]  = N-entry.S().val()
         recovered[idx] = entry.R().val()
         gradmu.append(np.array([ -entry.S().d(0), -entry.S().d(1), -entry.S().d(2), -entry.S().d(3), -entry.S().d(4), 0.0 ])) 
-        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
+        gradsig.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, infected[idx] ]))
+        graddisp.append(np.array([ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 ]))
 
     # Fix bad values
     infected[np.isnan(infected)] = 0
     
     # Create Solution Object
     sol = Object()
-    sol.y       = infected
-    sol.r       = recovered
-    sol.gradMu  = gradmu
-    sol.gradSig = gradsig
+    sol.y        = infected
+    sol.r        = recovered
+    sol.gradMu   = gradmu
+    sol.gradSig  = gradsig
+    sol.gradDisp = graddisp
  
     return sol
