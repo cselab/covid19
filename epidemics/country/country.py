@@ -162,6 +162,7 @@ class EpidemicsCountry( EpidemicsBase ):
   def computational_model( self, s ):
 
     p  = s['Parameters']
+    print(p, flush=True)
     t  = self.data['Model']['x-data']
     y0 = self.data['Model']['Initial Condition']
     N  = self.data['Model']['Population Size']

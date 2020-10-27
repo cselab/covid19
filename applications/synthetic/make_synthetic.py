@@ -216,15 +216,6 @@ if __name__ == "__main__":
     p_seiir     = [beta, mu, alpha, Z, D]
     p_seiir_int = [beta, mu, alpha, Z, D, tact, dtact, kbeta]
 
-    # SIR 
-    sir_infected = sir_beta((S0, Ir0, R0), teval, N, p_sir)
-    plot(sir_infected, "SIR")
-    makefile("sir_raw.txt", "Synthetic SIR Raw", N, sir_infected)
-
-    sir_infected_rnd = make_data_with_mul_nrm_noise(sir_infected, noise)
-    plot(sir_infected_rnd, "SIR_rnd")
-    makefile("sir_rnd.txt", "Synthetic SIR Rnd", N, sir_infected_rnd)
- 
     # SIR with interventions
     sir_infected_int = sir_int_r0((S0, Ir0, R0), teval, N, p_sir_int)
     plot(sir_infected_int, "SIR_int")
