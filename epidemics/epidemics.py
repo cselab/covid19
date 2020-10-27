@@ -255,15 +255,16 @@ class EpidemicsBase:
     self.e["Solver"]["Version"] = self.version
     self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     self.e["Solver"]["Max Num Fixed Point Iteration"] = 5
-    self.e["Solver"]["Burn In"] = 500
+    self.e["Solver"]["Burn In"] = 100
     self.e["Solver"]["Use NUTS"] = False
     self.e["Solver"]["Use Diagonal Metric"] = True
     self.e["Solver"]["Max Depth"] = 10
-    self.e["Solver"]["Target Integration Time"] = 0.5
-    self.e["Solver"]["Step Size"] = 0.1
-    self.e["Solver"]["Use Adaptive Step Size"] = False
+    self.e["Solver"]["Target Integration Time"] = 0.1
+    self.e["Solver"]["Step Size"] = 0.01
+    self.e["Solver"]["Step Size Jitter"] = 0.1
+    self.e["Solver"]["Use Adaptive Step Size"] = True
     self.e["Solver"]["Desired Average Acceptance Rate"] = 0.75
-    #self.e["Solver"]["Num Integration Steps"] = 20
+    self.e["Solver"]["Num Integration Steps"] = 20
     self.e["Solver"]["Integrator Verbosity"] = False
     self.e["Solver"]["Hamiltonian Verbosity"] = False
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
@@ -273,7 +274,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 500
+    self.e["Console Output"]["Frequency"] = 1000
     
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'

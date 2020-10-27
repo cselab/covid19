@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     # 'global' params
     np.random.seed(1337)
-    noise = 0.1
+    noise = 5
 
     T     = 90
     N     = 10000000
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     plot(seir_infected, "SEIR_raw")
     makefile("seir_raw.txt", "Synthetic SEIR Raw", N, seir_infected)
  
-    seir_infected_rnd = make_data_with_mul_nrm_noise(sir_infected, noise)
+    seir_infected_rnd = make_data_with_mul_nrm_noise(seir_infected, noise)
     plot(seir_infected_rnd,"SEIR_rnd")
     makefile("seir_rnd.txt", "Synthetic SEIR with Interventions Rnd", N, seir_infected_rnd)
 
