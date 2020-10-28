@@ -143,6 +143,21 @@ def make_data_with_mul_nrm_noise(infected, sig = 1.0):
     Sstar = np.cumsum(cstar)
     return Sstar
 
+def make_data_with_nbin_noise(infected, r = 1.0):
+    
+    cases = np.diff(infected)
+    
+    pi = cases/(cases+r)
+    xi = np.random.negative_binomial(r,1-pi)
+    
+    cinfected   = np.cumsum(xi)
+    
+    if(cinfected[0] == 0): 
+        cinfected[0] = 3 # cant be 0, used to initialize infections
+    
+    return cinfected
+
+
  
 def plot(total, description):
     cases = np.diff(total)
@@ -181,7 +196,7 @@ if __name__ == "__main__":
 
     # 'global' params
     np.random.seed(1337)
-    noise = 5
+    noise = 5 # var or dispersion
 
     T     = 90
     N     = 10000000
@@ -218,11 +233,11 @@ if __name__ == "__main__":
 
     # SIR with interventions
     sir_infected_int = sir_int_r0((S0, Ir0, R0), teval, N, p_sir_int)
-    plot(sir_infected_int, "SIR_int")
+    plot(sir_infected_int, "SIR_int_raw")
     makefile("sir_int_raw.txt", "Synthetic SIR with Interventions Raw", N, sir_infected_int)
     
-    sir_infected_int_rnd = make_data_with_mul_nrm_noise(sir_infected_int, noise)
-    plot(sir_infected_int_rnd,"SIR_rnd")
+    sir_infected_int_rnd = make_data_with_nbin_noise(sir_infected_int, noise)
+    plot(sir_infected_int_rnd,"SIR_int_rnd")
     makefile("sir_int_rnd.txt", "Synthetic SIR with Interventions Rnd", N, sir_infected_int_rnd)
 
     # SEIR
@@ -230,7 +245,7 @@ if __name__ == "__main__":
     plot(seir_infected, "SEIR_raw")
     makefile("seir_raw.txt", "Synthetic SEIR Raw", N, seir_infected)
  
-    seir_infected_rnd = make_data_with_mul_nrm_noise(seir_infected, noise)
+    seir_infected_rnd = make_data_with_nbin_noise(seir_infected, noise)
     plot(seir_infected_rnd,"SEIR_rnd")
     makefile("seir_rnd.txt", "Synthetic SEIR with Interventions Rnd", N, seir_infected_rnd)
 
@@ -239,7 +254,7 @@ if __name__ == "__main__":
     plot(seir_infected_int, "SEIR_int_raw")
     makefile("seir_int_raw.txt", "Synthetic SEIR with Interventions Raw", N, seir_infected_int)
 
-    seir_infected_int_rnd = make_data_with_mul_nrm_noise(seir_infected_int, noise)
+    seir_infected_int_rnd = make_data_with_nbin_noise(seir_infected_int, noise)
     plot(seir_infected_int_rnd,"SEIR_int_rnd")
     makefile("seir_int_rnd.txt", "Synthetic SEIR with Interventions Rnd", N, seir_infected_int_rnd)
 
@@ -248,7 +263,7 @@ if __name__ == "__main__":
     plot(seiir_infected, "SEIIR_raw")
     makefile("seiir_raw.txt", "Synthetic SEIIR Raw", N, seiir_infected)
  
-    seiir_infected_rnd = make_data_with_mul_nrm_noise(seiir_infected, noise)
+    seiir_infected_rnd = make_data_with_nbin_noise(seiir_infected, noise)
     plot(seiir_infected_rnd,"SEIIR_rnd")
     makefile("seiir_rnd.txt", "Synthetic SEIR Rnd", N, seiir_infected_rnd)
 
@@ -261,6 +276,6 @@ if __name__ == "__main__":
 #    plot(r, "SEIIRr_int_raw")
     makefile("seiir_int_raw.txt", "Synthetic SEIIR with Interventions Raw", N, seiir_infected_int)
 
-    seiir_infected_int_rnd = make_data_with_mul_nrm_noise(seiir_infected_int, noise)
+    seiir_infected_int_rnd = make_data_with_nbin_noise(seiir_infected_int, noise)
     plot(seiir_infected_int_rnd,"SEIIR_int_rnd")
     makefile("seiir_int_rnd.txt", "Synthetic SEIIR with Interventions Rnd", N, seiir_infected_int_rnd)

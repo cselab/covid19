@@ -18,7 +18,7 @@ mkdir -p ${base}
 for model in "${arr[@]}"
 do
     PYTHONPATH=../..:../../build:$PYTHONPATH python sample_hmc.py \
-        --silentPlot -cm ${model} -cm "country.reparam.${model}.nbin" -v "Euclidean" -ns 30000 \
+        --silentPlot -cm ${model} -cm "country.reparam.${model}.nbin" -v "Euclidean" -ns 10000 \
         -ui \
         -df "$base" --synthetic -dat "./data/${model}_rnd.txt"
    
