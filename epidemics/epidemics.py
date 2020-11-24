@@ -255,9 +255,9 @@ class EpidemicsBase:
     self.e["Solver"]["Version"] = self.version
     self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     self.e["Solver"]["Max Num Fixed Point Iteration"] = 5
-    self.e["Solver"]["Burn In"] = 2500
+    self.e["Solver"]["Burn In"] = 5000
     self.e["Solver"]["Use NUTS"] = False
-    self.e["Solver"]["Use Diagonal Metric"] = True
+    self.e["Solver"]["Use Diagonal Metric"] = False
     self.e["Solver"]["Max Depth"] = 10
     self.e["Solver"]["Target Integration Time"] = 0.1
     self.e["Solver"]["Step Size"] = 0.001
