@@ -32,7 +32,7 @@ class EpidemicsCountry( EpidemicsBase ):
     self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
-            'R0'    : (1.0, 25.0),
+            'R0'    : (1.0, 4.0),
             'beta'  : (0.01, 30.0),
             'D'     : (1.0, 25.0),  # recovery period
             'F'     : (1.0, 50.0),  # removal period
@@ -50,7 +50,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'Sigma' : (0.0, 100.0), # sdev Normal
             'dof'   : (2.0, 100.0), # DoF StudentT
             'cdof'  : (0.0, 100.0), # multiplicator variance StudentT
-            'r'     : (0.0, 50.0), # dispersion NB 
+            'r'     : (0.0, 5.0), # dispersion NB 
             'eps3'  : (0.0, 1.0),   # CZ model, death outside of ICU
             'eps4'  : (0.0, 1.0),   # CZ model, death rate in ICU
             'e0'    : (0.0, 10.0),  # multiplicator e0 init

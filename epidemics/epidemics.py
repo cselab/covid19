@@ -255,19 +255,23 @@ class EpidemicsBase:
     self.e["Solver"]["Version"] = self.version
     self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     self.e["Solver"]["Max Num Fixed Point Iteration"] = 5
-    self.e["Solver"]["Burn In"] = 5000
+    self.e["Solver"]["Burn In"] = 1000
     self.e["Solver"]["Use NUTS"] = False
     self.e["Solver"]["Use Diagonal Metric"] = False
     self.e["Solver"]["Max Depth"] = 10
-    self.e["Solver"]["Target Integration Time"] = 0.1
-    self.e["Solver"]["Step Size"] = 0.001
+    #self.e["Solver"]["Target Integration Time"] = 0.1
+    self.e["Solver"]["Step Size"] = 0.1
     self.e["Solver"]["Step Size Jitter"] = 0.2
     self.e["Solver"]["Use Adaptive Step Size"] = True
-    self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.2 #hbar = t^(-C)
-    self.e["Solver"]["Target Acceptance Rate"] = 0.65
+    self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.9 #hbar = t^(-C)
+    self.e["Solver"]["Target Acceptance Rate"] = 0.6
     self.e["Solver"]["Num Integration Steps"] = 10
     self.e["Solver"]["Integrator Verbosity"] = False
     self.e["Solver"]["Hamiltonian Verbosity"] = False
+    self.e["Solver"]["Initial Fast Adaption Interval"] = 75
+    self.e["Solver"]["Final Fast Adaption Interval"] = 50
+    self.e["Solver"]["Initial Slow Adaption Interval"] = 25
+    self.e["Solver"]["Max Integration Steps"] = 1000
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
     js = self.get_variables_and_distributions()
@@ -275,7 +279,7 @@ class EpidemicsBase:
 
     self.set_korali_output_files( self.saveInfo['korali samples'], maxiter )
     self.e['Console Output']['Verbosity'] = 'Detailed'
-    self.e["Console Output"]["Frequency"] = 100
+    self.e["Console Output"]["Frequency"] = 1
     
     k = korali.Engine()
     k['Conduit']['Type'] = 'Concurrent'
@@ -486,8 +490,8 @@ class EpidemicsBase:
             self.e['Distributions'][k]['Minimum'] = vmin
             self.e['Distributions'][k]['Maximum'] = vmax
             if self.sampler == "HMC":
-                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
-                self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
+                self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax+vmin)
+                self.e['Variables'][k]['Initial Standard Deviation'] = 0.3*(vmax-vmin)
  
     else:
       for k in range(nP):

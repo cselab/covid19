@@ -230,7 +230,8 @@ if __name__ == "__main__":
     p_seir_int  = [beta, gamma, 1./Z, tact, dtact, kbeta]
     p_seiir     = [beta, mu, alpha, Z, D]
     p_seiir_int = [beta, mu, alpha, Z, D, tact, dtact, kbeta]
-
+ 
+    
     # SIR with interventions
     sir_infected_int = sir_int_r0((S0, Ir0, R0), teval, N, p_sir_int)
     plot(sir_infected_int, "SIR_int_raw")
@@ -239,6 +240,10 @@ if __name__ == "__main__":
     sir_infected_int_rnd = make_data_with_nbin_noise(sir_infected_int, noise)
     plot(sir_infected_int_rnd,"SIR_int_rnd")
     makefile("sir_int_rnd.txt", "Synthetic SIR with Interventions Rnd", N, sir_infected_int_rnd)
+ 
+    sir_infected_int_nrmrnd = make_data_with_mul_nrm_noise(sir_infected_int, noise)
+    plot(sir_infected_int_nrmrnd,"SIR_int_rnd")
+    makefile("sir_int_nrmrnd.txt", "Synthetic SIR with Interventions Rnd", N, sir_infected_int_nrmrnd)
 
     # SEIR
     seir_infected = seir((S0, E0, Ir0, R0), teval, N, p_seir)
