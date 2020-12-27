@@ -254,24 +254,22 @@ class EpidemicsBase:
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = self.version
     self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
-    self.e["Solver"]["Max Num Fixed Point Iteration"] = 5
-    self.e["Solver"]["Burn In"] = 1000
-    self.e["Solver"]["Use NUTS"] = False
-    self.e["Solver"]["Use Diagonal Metric"] = False
+    self.e["Solver"]["Burn In"] = 100
+    self.e["Solver"]["Use NUTS"] = True
+    self.e["Solver"]["Use Diagonal Metric"] = True
     self.e["Solver"]["Max Depth"] = 10
-    #self.e["Solver"]["Target Integration Time"] = 0.1
-    self.e["Solver"]["Step Size"] = 0.1
-    self.e["Solver"]["Step Size Jitter"] = 0.2
+    self.e["Solver"]["Num Integration Steps"] = 20
+    self.e["Solver"]["Step Size"] = 1.0
     self.e["Solver"]["Use Adaptive Step Size"] = True
-    self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.9 #hbar = t^(-C)
-    self.e["Solver"]["Target Acceptance Rate"] = 0.6
-    self.e["Solver"]["Num Integration Steps"] = 10
-    self.e["Solver"]["Integrator Verbosity"] = False
-    self.e["Solver"]["Hamiltonian Verbosity"] = False
-    self.e["Solver"]["Initial Fast Adaption Interval"] = 75
-    self.e["Solver"]["Final Fast Adaption Interval"] = 50
-    self.e["Solver"]["Initial Slow Adaption Interval"] = 25
     self.e["Solver"]["Max Integration Steps"] = 1000
+    
+    self.e["Solver"]["Target Integration Time"] = 1
+    #self.e["Solver"]["Step Size Jitter"] = 0.2
+    #self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.9 #hbar = t^(-C)
+    #self.e["Solver"]["Target Acceptance Rate"] = 0.6
+    #self.e["Solver"]["Initial Fast Adaption Interval"] = 75
+    #self.e["Solver"]["Initial Slow Adaption Interval"] = 25
+    #self.e["Solver"]["Final Fast Adaption Interval"] = 50
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
     js = self.get_variables_and_distributions()
@@ -282,8 +280,7 @@ class EpidemicsBase:
     self.e["Console Output"]["Frequency"] = 1
     
     k = korali.Engine()
-    k['Conduit']['Type'] = 'Concurrent'
-    k['Conduit']['Concurrent Jobs'] = self.nThreads
+    k['Conduit']['Type'] = 'Sequential'
     
     printlog('Copy variables from Korali to Epidemics...')
     

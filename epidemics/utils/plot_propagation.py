@@ -11,8 +11,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import json
 import numpy as np
+import datetime as dt
+from datetime import date
 import seaborn as sns
 import matplotlib.patches as mpatches
+import matplotlib.dates as mdates
 
 tags = {
         'canada':      'CA',
@@ -170,6 +173,8 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             all_incidence  = np.zeros((ns*ndraws,nt))
             all_unreported = np.zeros((ns*ndraws,nt))
             all_deaths     = np.zeros((ns*ndraws,nt))
+ 
+            latest = date.fromisoformat('2020-07-16')
 
             plotUnreported = False
             for k in range(ns):
@@ -215,23 +220,35 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             meandc, mediandc, quantdc = get_stat(all_deaths_cum, nt, pct)
 
             fill_medians = True
-            if fill_medians:
-                ax_daily_incidence.fill_between( range(nt), quanti[0,:], quanti[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
-                ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
-                
-                ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
-                ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
-            else:
-                ax_daily_incidence.plot( range(nt), quanti[1,:],  color=face_colors[model_tag], label=model_tag)
-                ax_daily_incidence.plot( range(nt), quanti[1,:],  color=face_colors[model_tag], label=model_tag)
+            start = latest - dt.timedelta(days=nt)
+            days = mdates.drange(start,latest,dt.timedelta(days=1))
+  
+            if plotUnreported:
+                ax_daily_unreported.xaxis_date()
+                ax_daily_unreported.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+                ax_daily_unreported.xaxis.set_major_locator(mdates.DayLocator(interval=30))
+     
+                ax_cumul_unreported.xaxis_date()
+                ax_cumul_unreported.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+                ax_cumul_unreported.xaxis.set_major_locator(mdates.DayLocator(interval=30))
 
-                ax_cumul_incidence.fill_between( range(nt), quantic[0,:], quantic[1,:],  alpha=alpha, color=face_colors[model_tag])
+            if fill_medians:
+                ax_daily_incidence.fill_between( days, quanti[0,:], quanti[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
+                ax_cumul_incidence.fill_between( days, quantic[0,:], quantic[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
                 
-                ax_daily_deaths.fill_between( range(nt), quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[model_tag])
-                ax_cumul_deaths.fill_between( range(nt), quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[model_tag])
+                ax_daily_deaths.fill_between( days, quantd[0,:], quantd[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+                ax_cumul_deaths.fill_between( days, quantdc[0,:], quantdc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+            else:
+                ax_daily_incidence.plot( days, quanti[1,:],  color=face_colors[model_tag], label=model_tag)
+                ax_daily_incidence.plot( days, quanti[1,:],  color=face_colors[model_tag], label=model_tag)
+
+                ax_cumul_incidence.fill_between( days, quantic[0,:], quantic[1,:],  alpha=alpha, color=face_colors[model_tag])
+                
+                ax_daily_deaths.fill_between( days, quantd[0,:], quantd[1,:],  alpha=alpha, color=face_colors[model_tag])
+                ax_cumul_deaths.fill_between( days, quantdc[0,:], quantdc[1,:],  alpha=alpha, color=face_colors[model_tag])
 
             if plotUnreported:
-                all_unreported_cum        = np.cumsum(all_unreported, axis=1)
+                all_unreported_cum = np.cumsum(all_unreported, axis=1)
  
                 if cumulative_pct:
                     all_unreported_cum = all_unreported_cum/population[country]
@@ -239,30 +256,30 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
                 meanu, medianu, quantu    = get_stat(all_unreported, nt, pct)
                 meanuc, medianuc, quantuc = get_stat(all_unreported_cum, nt, pct)
                
-                ax_daily_unreported.fill_between( range(nt), quantu[0,:], quantu[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
-                ax_cumul_unreported.fill_between( range(nt), quantuc[0,:], quantuc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
+                ax_daily_unreported.fill_between( days, quantu[0,:], quantu[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None, label=model_tag)
+                ax_cumul_unreported.fill_between( days, quantuc[0,:], quantuc[1,:],  alpha=alpha, facecolor=face_colors[model_tag],edgecolor=None)
 
             if plot_medians:
-                ax_daily_incidence.plot( range(nt), mediani, '-', lw=lw_daily, color=face_colors[model_tag])
-                ax_cumul_incidence.plot( range(nt), medianic, '-', lw=lw_cumul, color=face_colors[model_tag])
+                ax_daily_incidence.plot( days, mediani, '-', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_incidence.plot( days, medianic, '-', lw=lw_cumul, color=face_colors[model_tag])
                 
-                ax_daily_deaths.plot( range(nt), mediand, '-', lw=lw_daily, color=face_colors[model_tag])
-                ax_cumul_deaths.plot( range(nt), mediandc, '-', lw=lw_cumul, color=face_colors[model_tag])
+                ax_daily_deaths.plot( days, mediand, '-', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_deaths.plot( days, mediandc, '-', lw=lw_cumul, color=face_colors[model_tag])
 
                 if plotUnreported:
-                    ax_daily_unreported.plot( range(nt), medianu, '-', lw=lw_daily, color=face_colors[model_tag])
-                    ax_cumul_unreported.plot( range(nt), medianuc, '-', lw=lw_cumul, color=face_colors[model_tag])
+                    ax_daily_unreported.plot( days, medianu, '-', lw=lw_daily, color=face_colors[model_tag])
+                    ax_cumul_unreported.plot( days, medianuc, '-', lw=lw_cumul, color=face_colors[model_tag])
   
             if plot_mean:
-                ax_daily_incidence.plot( range(nt), meani, '--', lw=lw_daily, color=face_colors[model_tag])
-                ax_cumul_incidence.plot( range(nt), meanic, '--', lw=lw_cumul, color=face_colors[model_tag])
+                ax_daily_incidence.plot( days, meani, '--', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_incidence.plot( days, meanic, '--', lw=lw_cumul, color=face_colors[model_tag])
  
-                ax_daily_deaths.plot( range(nt), meand, '--', lw=lw_daily, color=face_colors[model_tag])
-                ax_cumul_deaths.plot( range(nt), meandc, '--', lw=lw_cumul, color=face_colors[model_tag])
+                ax_daily_deaths.plot( days, meand, '--', lw=lw_daily, color=face_colors[model_tag])
+                ax_cumul_deaths.plot( days, meandc, '--', lw=lw_cumul, color=face_colors[model_tag])
 
                 if plotUnreported:
-                   ax_daily_unreported.plot( range(nt), meanu, '--', lw=lw_daily, color=face_colors[model_tag])
-                   ax_cumul_unreported.plot( range(nt), meanuc, '--', lw=lw_cumul, color=face_colors[model_tag])
+                   ax_daily_unreported.plot( days, meanu, '--', lw=lw_daily, color=face_colors[model_tag])
+                   ax_cumul_unreported.plot( days, meanuc, '--', lw=lw_cumul, color=face_colors[model_tag])
 
             _, imax = ax_daily_incidence.get_ylim()
             _, umax = ax_daily_unreported.get_ylim()
@@ -271,35 +288,59 @@ def plot_samples_data(paths, models, samplespath, country, output, pct=0.90, ndr
             _, icmax = ax_cumul_incidence.get_ylim()
             _, ucmax = ax_cumul_unreported.get_ylim()
             iucmax = max(icmax, ucmax)
+  
+            latest = start + dt.timedelta(days=len(incidences))
+            days = mdates.drange(start,latest,dt.timedelta(days=1))
  
-            ax_daily_incidence.plot( range(len(incidences)), incidences, 'o', markersize=2, color='black')
-            ax_cumul_incidence.plot( range(len(incidences_cum)), incidences_cum, 'o', markersize=2, color='black')
-            ax_daily_deaths.plot( range(len(deaths)), deaths, 'o', markersize=2, color='black')
-            ax_cumul_deaths.plot( range(len(deaths_cum)), deaths_cum, 'o', markersize=2, color='black')
+            ax_daily_incidence.plot( days, incidences, 'o', markersize=2, color='black')
+            ax_cumul_incidence.plot( days, incidences_cum, 'o', markersize=2, color='black')
  
-            ax_daily_incidence.set_xticks([0, 30, 60, 90, 120])
-            ax_daily_incidence.set_xlim(xmin=0.0, xmax=mid)
+            ax_daily_incidence.xaxis_date()
+            ax_daily_incidence.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+            ax_daily_incidence.xaxis.set_major_locator(mdates.DayLocator(interval=30))
+ 
+            ax_cumul_incidence.xaxis_date()
+            ax_cumul_incidence.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+            ax_cumul_incidence.xaxis.set_major_locator(mdates.DayLocator(interval=30))
             
-            ax_daily_unreported.set_xticks([0, 30, 60, 90, 120])
-            ax_daily_unreported.set_xlim(xmin=0.0, xmax=mid)
+            latest = start + dt.timedelta(days=len(deaths))
+            days = mdates.drange(start,latest,dt.timedelta(days=1))
+ 
+            ax_daily_deaths.plot( days, deaths, 'o', markersize=2, color='black')
+            ax_cumul_deaths.plot( days, deaths_cum, 'o', markersize=2, color='black')
+  
+            ax_daily_deaths.xaxis_date()
+            ax_daily_deaths.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+            ax_daily_deaths.xaxis.set_major_locator(mdates.DayLocator(interval=30))
+ 
+            ax_cumul_deaths.xaxis_date()
+            ax_cumul_deaths.xaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+            ax_cumul_deaths.xaxis.set_major_locator(mdates.DayLocator(interval=30))
 
-            ax_cumul_incidence.set_xticks([0, 30, 60, 90, 120])
-            ax_cumul_incidence.set_xlim(xmin=0.0, xmax=mid)
+            dmid = start + dt.timedelta(days=mid)
+            #ax_daily_incidence.set_xticks([0, 30, 60, 90, 120])
+            ax_daily_incidence.set_xlim(xmin=start, xmax=dmid)
             
-            ax_cumul_unreported.set_xticks([0, 30, 60, 90, 120])
-            ax_cumul_unreported.set_xlim(xmin=0.0, xmax=mid)
+            #ax_daily_unreported.set_xticks([0, 30, 60, 90, 120])
+            ax_daily_unreported.set_xlim(xmin=start, xmax=dmid)
+
+            #ax_cumul_incidence.set_xticks([0, 30, 60, 90, 120])
+            ax_cumul_incidence.set_xlim(xmin=start, xmax=dmid)
+            
+            #ax_cumul_unreported.set_xticks([0, 30, 60, 90, 120])
+            ax_cumul_unreported.set_xlim(xmin=start, xmax=dmid)
  
-            ax_daily_deaths.set_xticks([0, 30, 60, 90, 120])
-            ax_daily_deaths.set_xlim(xmin=0.0, xmax=mid)
+            #ax_daily_deaths.set_xticks([0, 30, 60, 90, 120])
+            ax_daily_deaths.set_xlim(xmin=start, xmax=dmid)
             
-            ax_cumul_deaths.set_xticks([0, 30, 60, 90, 120])
-            ax_cumul_deaths.set_xlim(xmin=0.0, xmax=mid)
+            #ax_cumul_deaths.set_xticks([0, 30, 60, 90, 120])
+            ax_cumul_deaths.set_xlim(xmin=start, xmax=dmid)
             
-            # ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
-            # #ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
+            #ax_daily_incidence.set_ylim(ymin=0.0, ymax=iumax)
+            #ax_daily_unreported.set_ylim(ymin=0.0, ymax=iumax)
             
-            # ax_cumul_incidence.set_ylim(ymin=0.0, ymax=iucmax)
-            # #ax_cumul_unreported.set_ylim(ymin=0.0, ymax=iucmax)
+            #ax_cumul_incidence.set_ylim(ymin=0.0, ymax=iucmax)
+            #ax_cumul_unreported.set_ylim(ymin=0.0, ymax=iucmax)
  
             # ax_daily_incidence.legend(loc="upper right")
     
