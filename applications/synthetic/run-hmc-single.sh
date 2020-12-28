@@ -3,8 +3,8 @@
 msg="test hmc with synthetic data"
 
 declare -a arr=(
-"sir_int"
-#"sir_dummy"
+#"sir_int"
+"sir_dummy"
 )
 
 base="./data/"
