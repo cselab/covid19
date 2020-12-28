@@ -239,10 +239,6 @@ class EpidemicsBase:
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
 
-# ///////////////////////////////////////////////////////////
-# 	//TODO: define sample_hmc with parameters scpecifit to sampler
-# ////////////////////////////////////////////////////////////////////////////////
-
   def sample_hmc(self, maxiter=1000):
     self.e = korali.Experiment()
 
@@ -253,23 +249,64 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = self.version
-    self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     self.e["Solver"]["Burn In"] = 100
     self.e["Solver"]["Use NUTS"] = True
     self.e["Solver"]["Use Diagonal Metric"] = True
     self.e["Solver"]["Max Depth"] = 10
-    self.e["Solver"]["Num Integration Steps"] = 20
     self.e["Solver"]["Step Size"] = 1.0
     self.e["Solver"]["Use Adaptive Step Size"] = True
-    self.e["Solver"]["Max Integration Steps"] = 1000
+    self.e["Solver"]["Target Acceptance Rate"] = 0.6
     
-    self.e["Solver"]["Target Integration Time"] = 1
+    #self.e["Solver"]["Max Integration Steps"] = 1000
+    #self.e["Solver"]["Num Integration Steps"] = 20
+    #self.e["Solver"]["Target Integration Time"] = 1
     #self.e["Solver"]["Step Size Jitter"] = 0.2
     #self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.9 #hbar = t^(-C)
-    #self.e["Solver"]["Target Acceptance Rate"] = 0.6
+    #self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     #self.e["Solver"]["Initial Fast Adaption Interval"] = 75
     #self.e["Solver"]["Initial Slow Adaption Interval"] = 25
     #self.e["Solver"]["Final Fast Adaption Interval"] = 50
+    self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
+
+    js = self.get_variables_and_distributions()
+    self.set_variables_and_distributions(js)
+
+    self.set_korali_output_files( self.saveInfo['korali samples'], 500 )
+    self.e['Console Output']['Verbosity'] = 'Detailed'
+    self.e["Console Output"]["Frequency"] = 1
+    
+    k = korali.Engine()
+    k['Conduit']['Type'] = 'Sequential'
+    
+    printlog('Copy variables from Korali to Epidemics...')
+    
+
+    k.run(self.e)
+    myDatabase = self.e['Results']['Sample Database']
+    self.nSamples, _ = np.shape(myDatabase)
+    
+    self.parameters = []
+    for j in range(self.nParameters):
+      self.parameters.append({})
+      self.parameters[j]['Name'] = self.e['Variables'][j]['Name']
+      self.parameters[j]['Values'] = np.asarray( [myDatabase[k][j] for k in range(self.nSamples)] )
+
+    self.has_been_called['sample'] = True
+    self.has_been_called['propagate'] = False
+    printlog('Done copying variables.')
+ 
+  def sample_mcmc(self, maxiter=5000):
+    self.e = korali.Experiment()
+
+    self.e['Problem']['Type'] = 'Bayesian/Reference'
+    self.e['Problem']["Likelihood Model"] = self.likelihoodModel
+    self.e['Problem']['Reference Data']   = list(map(float, self.data['Model']['y-data']))
+    self.e['Problem']['Computational Model'] = self.computational_model
+
+    self.e["Solver"]["Type"] = "Sampler/MCMC"
+    self.e["Solver"]["Burn In"] = 2000
+    self.e["Solver"]["Use Adaptive Sampling"] = True
+    self.e["Solver"]["Chain Covariance Scaling"] = 0.1
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
 
     js = self.get_variables_and_distributions()
@@ -298,6 +335,7 @@ class EpidemicsBase:
     self.has_been_called['sample'] = True
     self.has_been_called['propagate'] = False
     printlog('Done copying variables.')
+
 
   def sample_knested(self, nLiveSamples=1500, freq=1500, maxiter=1e9, dlogz=0.1, batch=1 ):
 
@@ -430,7 +468,7 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            if self.sampler == "HMC":
+            if self.sampler == "HMC" or self.sampler == "MCMC":
                 self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
                 self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
@@ -444,7 +482,7 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            if self.sampler == "HMC":
+            if self.sampler == "HMC" or self.sampler == "MCMC":
                 self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
                 self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
   
@@ -458,7 +496,7 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            if self.sampler == "HMC":
+            if self.sampler == "HMC" or self.sampler == "MCMC":
                 self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
                 self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
@@ -474,7 +512,7 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Variables'][k]['Lower Bound'] = vmin
             self.e['Variables'][k]['Upper Bound'] = vmax
-            if self.sampler == "HMC":
+            if self.sampler == "HMC" or self.sampler == "MCMC":
                 self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax-vmin)
                 self.e['Variables'][k]['Initial Standard Deviation'] = 0.2*(vmax-vmin)
  
@@ -486,7 +524,7 @@ class EpidemicsBase:
             vmax = js['Distributions'][k]['Maximum']
             self.e['Distributions'][k]['Minimum'] = vmin
             self.e['Distributions'][k]['Maximum'] = vmax
-            if self.sampler == "HMC":
+            if self.sampler == "HMC" or self.sampler == "MCMC":
                 self.e['Variables'][k]['Initial Mean'] = 0.5*(vmax+vmin)
                 self.e['Variables'][k]['Initial Standard Deviation'] = 0.3*(vmax-vmin)
  
