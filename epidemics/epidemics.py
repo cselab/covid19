@@ -249,22 +249,22 @@ class EpidemicsBase:
 
     self.e["Solver"]["Type"] = "Sampler/HMC"
     self.e["Solver"]["Version"] = self.version
-    self.e["Solver"]["Burn In"] = 300
+    self.e["Solver"]["Burn In"] = 500
     self.e["Solver"]["Use NUTS"] = True
     self.e["Solver"]["Use Diagonal Metric"] = True
-    self.e["Solver"]["Max Depth"] = 5
+    self.e["Solver"]["Max Depth"] = 10
     self.e["Solver"]["Step Size"] = 1.0
     self.e["Solver"]["Use Adaptive Step Size"] = True
     
     #self.e["Solver"]["Max Integration Steps"] = 1000
     #self.e["Solver"]["Num Integration Steps"] = 20
     #self.e["Solver"]["Target Integration Time"] = 1
-    #self.e["Solver"]["Step Size Jitter"] = 0.2
+    self.e["Solver"]["Step Size Jitter"] = 0.2
     #self.e["Solver"]["Adaptive Step Size Schedule Constant"] = 0.9 #hbar = t^(-C)
     #self.e["Solver"]["Inverse Regularization Parameter"] = 0.1
     
     self.e["Solver"]["Initial Fast Adaption Interval"] = 100
-    self.e["Solver"]["Initial Slow Adaption Interval"] = 100
+    self.e["Solver"]["Initial Slow Adaption Interval"] = 200
     self.e["Solver"]["Final Fast Adaption Interval"] = 100
 
     self.e["Solver"]["Termination Criteria"]["Max Samples"] = maxiter
