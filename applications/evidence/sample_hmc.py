@@ -13,11 +13,11 @@ from epidemics.utils.misc import import_from, put_comment
 sys.path.append('../../build')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--compModel', '-cm', default='country.reparam.sir_int.tnrm', help='The computational model.')
+parser.add_argument('--compModel', '-cm', default='country.reparam.sir_int.nbin', help='The computational model.')
 parser.add_argument('--dataFolder', '-df', default='data/test/', help='Save all results in the folder \'data\\dataFolder\' ')
 parser.add_argument('--nPropagation', '-np', type=int, default=100, help='Number of points to evaluate the solution in the propagation phase.')
-parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--lastDay', '-ld', default='2020-06-15', help='Last day of data sequence in format %Y-%m-%d./')
+parser.add_argument('--country', '-c', default='switzerland', help='Country from which to retrieve data./')
 parser.add_argument('--silent', action='store_true', help='No output on screen.')
 parser.add_argument('--silentPlot', '-sp', action='store_true', help='Close plot window after plot.')
 parser.add_argument('--nThreads', '-nt', type=int, default=1, help='Number of threads.')

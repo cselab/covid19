@@ -5,9 +5,9 @@ msg="test hmc"
 declare -a countries=(
 #"canada"
 #"china"
-#"france"
-#"germany"
-#"italy"
+"france"
+"germany"
+"italy"
 #"japan"
 #"russia"
 "switzerland"
@@ -15,9 +15,10 @@ declare -a countries=(
 #"us"
 )
 
-base="./data/test_hmc/"
+base="./data/hmc/"
 
-model="country.reparam.sird_int.nbin"
+model="country.reparam.sir_int.nbin"
+#model="country.reparam.sird_int.nbin"
 #model="country.reparam.seird_int_init.nbin"
 #model="country.reparam.seiird2_int_init.nbin"
 #model="country.reparam.saphire_int_init.nbin"
@@ -43,7 +44,7 @@ do
 
     outfile=${folder}/knested.out
     time PYTHONPATH=../..:../../build:$PYTHONPATH python sample_hmc.py \
-        --silentPlot -cm ${model} -c "${c}" -v "Euclidean" -ns 10000 \
+        --silentPlot -cm ${model} -c "${c}" -v "Euclidean" -ns 5000 \
         -ui -uint -df "$base" \
         2>&1 | tee "${outfile}"
 
