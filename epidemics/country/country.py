@@ -32,9 +32,9 @@ class EpidemicsCountry( EpidemicsBase ):
     self.preprocess        = kwargs.pop('preprocess')
 
     self.defaults = { 
-            'R0'    : (1.0, 25.0),
+            'R0'    : (1.0, 14.0),
             'beta'  : (0.01, 30.0),
-            'D'     : (1.0, 25.0),  # recovery period
+            'D'     : (1.0, 14.0),  # recovery period
             'F'     : (1.0, 50.0),  # removal period
             'gamma' : (0.01, 1.0),  # recovery rate
             'Z'     : (0.0, 25.0),  # latency period (latency == incubation period)
@@ -202,14 +202,11 @@ class EpidemicsCountry( EpidemicsBase ):
         
         gradMu  = self.getCases(gradMu, self.data['Model']['x-infected'])
         s["Gradient Mean"] = gradMu
-        #print(gradMu)
         if self.likelihoodModel == 'Normal' or self.likelihoodModel == 'Positive Normal':
             gradSig = self.getCases(gradSig, self.data['Model']['x-infected'])
-            #print(gradSig, flush=True)
             s["Gradient Standard Deviation"] = gradSig
         elif self.likelihoodModel == 'Negative Binomial':
             gradDisp = self.getCases(gradDisp, self.data['Model']['x-infected'])
-            #print(gradDisp, flush=True)
             s["Gradient Dispersion"] = gradDisp
         else:
             print('Gradients not implemented for other likelihood models', flush=True)

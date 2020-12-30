@@ -5,9 +5,9 @@ msg="test hmc"
 declare -a countries=(
 #"canada"
 #"china"
-"france"
-"germany"
-"italy"
+#"france"
+#"germany"
+#"italy"
 #"japan"
 #"russia"
 "switzerland"
@@ -48,7 +48,7 @@ do
         -ui -uint -df "$base" \
         2>&1 | tee "${outfile}"
 
-    python3 -m korali.plotter --dir "${folder}/_korali_samples"  --output "${folder}/figures/samples.png" 
+    python3 -m korali.plotter --dir "${folder}/_korali_samples"  --output "${folder}/figures/samples.eps" 
     rm -rf "$folder/_korali_samples" "$folder/_korali_propagation"
 
 done
