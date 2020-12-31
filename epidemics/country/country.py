@@ -44,7 +44,7 @@ class EpidemicsCountry( EpidemicsBase ):
             'alpha' : (0.05, 1.0),  # reporting rate
             'eps'   : (0.01, 0.25), # case fatality rate
             'tact'  : (0.0, 100.0), # intervention time
-            'dtact' : (0.0, 30.0),  # intervention duration
+            'dtact' : (0.0, 60.0),  # intervention duration
             'kbeta' : (0.0, 1.0),   # reduction factor
             'kexp'  : (0.1, 3.3),   # 90% decay in ~ (1,30) days
             'Sigma' : (0.0, 100.0), # sdev Normal
