@@ -3,14 +3,14 @@
 msg="test hmc"
 
 declare -a countries=(
+"switzerland"
 #"canada"
 #"china"
 "france"
 "germany"
-#"italy"
+"italy"
 #"japan"
 #"russia"
-"switzerland"
 #"uk"
 #"us"
 )
